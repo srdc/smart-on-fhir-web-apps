@@ -1,0 +1,26 @@
+.score2-table {
+  .score {
+    width: 2em;
+    height: 2em;
+    text-align: center;
+    font-weight: bold;
+    &.selected:before {
+      display: block;
+      position: absolute;
+      border: 3px solid;
+      content: '';
+      width: 2em;
+      height: 2em;
+      border-radius: 100%;
+      margin-top: -3px;
+    }
+    &.lvl-0 { background: #00a54f; }
+    &.lvl-1 { background: #79c142; }
+    &.lvl-2 { background: #fff101; }
+    &.lvl-3 { background: #f7931d; }
+    &.lvl-4 { background: #ee1d23; }
+    &.lvl-5 { background: #c4121a; color: white; }
+    &.lvl-6 { background: #9d070d; color: white; }
+  }
+}
+
