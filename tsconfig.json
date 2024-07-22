@@ -15,6 +15,17 @@
     "experimentalDecorators": true,
     "moduleResolution": "node",
     "importHelpers": true,
+    "paths": {
+      "cds-hooks": [
+        "./dist/cds-hooks"
+      ],
+      "common": [
+        "./dist/common"
+      ],
+      "smart-on-fhir": [
+        "./dist/smart-on-fhir"
+      ]
+    },
     "target": "ES2022",
     "module": "ES2022",
     "useDefineForClassFields": false,
