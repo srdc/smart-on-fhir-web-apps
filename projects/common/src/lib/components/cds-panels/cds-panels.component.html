@@ -1,0 +1,53 @@
+@for (group of groupedConceptDefinitions | keyvalue; track $index) {
+  <div class="card mb-4">
+    <div class="card-header fw-bold">
+      @switch (group.key) {
+        @case ('Condition') { Conditions }
+        @case ('MedicationStatement') { Medications }
+        @case ('FamilyMemberHistory') { Family History }
+        @case ('Observation') { Observations }
+      }
+    </div>
+    <div class="card-body row">
+      @for (definition of group.value; track $index) {
+        @switch (definition['type']) {
+          @case ('boolean') {
+            <div class="col-lg-4 col-xl-3 col-6 p-2 boolean-container">
+              <input class="form-check-input me-2" type="checkbox" [attr.id]="definition.id" [value]="definition.value().value" [checked]="definition.value().value" (change)="updateBooleanValue(definition, $any($event.target).checked)">
+              <label [attr.for]="definition.id">{{definition['label'] || definition['code']?.display}}</label>
+              @if (definition['select'] && definition.value().value) {
+                <p>
+                  <select [ngModel]="definition.value()?.selected?.code" (ngModelChange)="updateBooleanSelection(definition, $event)" class="form-select">
+                    <option *ngFor="let code of definition['select']" [value]="code.code">{{code.display}}</option>
+                  </select>
+                </p>
+              }
+            </div>
+          }
+          @case ('Quantity') {
+            <div class="mb-2">
+              <div class="col-6 col-xl-4 d-inline-block">{{definition['label'] || definition['code']?.display}}
+                <span *ngIf="definition['required']" class="text-danger">*</span>
+              </div>
+              <div class="col-6 col-xl-8 d-inline-block">
+                <input [attr.required]="definition['required']" class="form-control" type="number" [ngModel]="definition.value().value" (ngModelChange)="updateQuantityValue(definition, $event)">
+              </div>
+            </div>
+          }
+          @case ('CodeableConcept') {
+            <div class="mb-2">
+              <div class="col-6 col-xl-4 d-inline-block">{{definition['label'] || definition['code']?.display}}
+                <span *ngIf="definition['required']" class="text-danger">*</span>
+              </div>
+              <div class="col-6 col-xl-8 d-inline-block">
+                <select [ngModel]="definition.value()?.code" (ngModelChange)="updateCodeableConceptValue(definition, $event)" class="form-select">
+                  <option *ngFor="let code of definition['select']" [value]="code.code">{{code.display}}</option>
+                </select>
+              </div>
+            </div>
+          }
+        }
+      }
+    </div>
+  </div>
+}
