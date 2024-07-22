@@ -1,5 +1,5 @@
 {
-  "name": "stage-smart-apps",
+  "name": "smart-apps",
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
