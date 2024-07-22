@@ -292,7 +292,7 @@
       "schematics": {},
       "root": "projects/acc_aha",
       "sourceRoot": "projects/acc_aha/src",
-      "prefix": "app",
+      "prefix": "acc_aha",
       "architect": {
         "build": {
           "builder": "@angular-devkit/build-angular:application",
@@ -309,6 +309,7 @@
               "projects/acc_aha/src/assets"
             ],
             "styles": [
+              "node_modules/bootstrap/dist/css/bootstrap.min.css",
               "projects/acc_aha/src/styles.css"
             ],
             "scripts": []
@@ -368,6 +369,7 @@
               "projects/acc_aha/src/assets"
             ],
             "styles": [
+              "node_modules/bootstrap/dist/css/bootstrap.min.css",
               "projects/acc_aha/src/styles.css"
             ],
             "scripts": []
