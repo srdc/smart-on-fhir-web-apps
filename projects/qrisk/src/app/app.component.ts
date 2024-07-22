@@ -20,6 +20,7 @@ import {CdsUtils, FhirUtils} from "../../../common/src/lib/utils";
 })
 export class AppComponent implements OnDestroy {
 
+  title = 'qrisk';
   scores: number[] = [];
   error: string | undefined;
   patient: fhir4.Patient|undefined;
