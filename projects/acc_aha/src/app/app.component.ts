@@ -12,7 +12,7 @@ import {StatefulCdsService} from "../../../common/src/lib/services";
 import {CdsUtils} from "../../../common/src/lib/utils";
 
 @Component({
-  selector: 'app-root',
+  selector: 'acc_aha-root',
   standalone: true,
   imports: [RouterOutlet, FormsModule, CommonModule, HttpClientModule, SmartCdsCommonModule],
   templateUrl: './app.component.html',
@@ -49,7 +49,7 @@ export class AppComponent implements OnDestroy{
     this.age = (new Date().getFullYear()) - (new Date(<string>this.patient.birthDate).getFullYear())
     this.conceptDefinitions = await this.statefulCdsService.createState({
       patient: this.patient,
-      serviceId: 'qrisk',
+      serviceId: 'acc_aha',
       language: 'es',
       client: this.client,
       onPrefetchStateChange: {
