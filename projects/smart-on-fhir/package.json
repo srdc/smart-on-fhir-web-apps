@@ -1,0 +1,16 @@
+{
+  "name": "smart-on-fhir",
+  "version": "0.0.1",
+  "peerDependencies": {
+    "@angular/common": "^17.3.0",
+    "@angular/core": "^17.3.0",
+    "@angular/router": "^17.3.0",
+    "bootstrap": "^5.3.3",
+    "fhirclient": "^2.5.3",
+    "@types/fhir": "^0.0.41"
+  },
+  "dependencies": {
+    "tslib": "^2.3.0"
+  },
+  "sideEffects": false
+}
