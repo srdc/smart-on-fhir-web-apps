@@ -12,7 +12,6 @@ export class FhirUtils {
       type: 'searchset',
       entry: []
     }
-
     switch (conceptDefinition['resourceType']) {
       case 'Condition':
         if (data.value?.value) {
