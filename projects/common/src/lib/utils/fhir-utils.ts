@@ -32,6 +32,20 @@ export class FhirUtils {
           })
         }
         break;
+      case 'MedicationStatement':
+        if (data.value?.value) {
+          bundle.entry?.push({
+            resource: <fhir4.MedicationStatement>{
+              resourceType: 'MedicationStatement',
+              id: Date.now() + '-MedicationStatement',
+              date: new Date().toISOString(),
+              medicationCodeableConcept: { coding: [ conceptDefinition['select'] ? data?.value?.selected : conceptDefinition['code'] ]},
+              status: 'active',
+              subject: { reference: 'Patient/' + patient?.id }
+            }
+          })
+        }
+        break;
       case 'Observation':
         const observation = <fhir4.Observation>{
           resourceType: 'Observation',
@@ -57,6 +71,7 @@ export class FhirUtils {
           }
           bundle.entry?.push({ resource: observation })
         }
+
     }
     bundle.total = bundle.entry?.length || 0;
     bundle.entry?.forEach(entry => entry.search = { mode: 'match' })
