@@ -82,10 +82,8 @@ export class StatefulCdsService {
           initialValue.unit =  obs.valueQuantity?.unit || definition.unit;
         } else {
           const comp = obs?.component?.find(component => component.code.coding?.some(coding => coding.code === definition['code'].code))
-          if (comp) {
-            initialValue.value = comp.valueQuantity?.value;
-            initialValue.unit =  comp.valueQuantity?.unit || definition.unit;
-          }
+          initialValue.value = comp?.valueQuantity?.value;
+          initialValue.unit =  comp?.valueQuantity?.unit || definition.unit;
         }
         break;
       case 'CodeableConcept':
