@@ -32,6 +32,31 @@ export class FhirUtils {
           })
         }
         break;
+      case 'FamilyMemberHistory':
+        if (data.value?.value) {
+          bundle.entry?.push({
+            resource: <fhir4.FamilyMemberHistory>{
+              resourceType: 'FamilyMemberHistory',
+              id: Date.now() + '-FamilyMemberHistory',
+              date: new Date().toISOString(),
+              condition: [{
+                code: { coding: [ conceptDefinition['select'] ? data?.value?.selected : conceptDefinition['code'] ]}
+              }],
+              status: 'completed',
+              patient: { reference: 'Patient/' + patient?.id },
+              relationship: {
+                coding: [
+                  {
+                    system: 'http://terminology.hl7.org/CodeSystem/v3-RoleCode',
+                    code: 'FAMMEMB',
+                    display: 'family member'
+                  }
+                ]
+              },
+            }
+          })
+        }
+        break;
       case 'MedicationStatement':
         if (data.value?.value) {
           bundle.entry?.push({
@@ -71,7 +96,6 @@ export class FhirUtils {
           }
           bundle.entry?.push({ resource: observation })
         }
-
     }
     bundle.total = bundle.entry?.length || 0;
     bundle.entry?.forEach(entry => entry.search = { mode: 'match' })
