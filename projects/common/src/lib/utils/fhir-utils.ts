@@ -32,6 +32,45 @@ export class FhirUtils {
           })
         }
         break;
+      case 'FamilyMemberHistory':
+        if (data.value?.value) {
+          bundle.entry?.push({
+            resource: <fhir4.FamilyMemberHistory>{
+              resourceType: 'FamilyMemberHistory',
+              id: Date.now() + '-FamilyMemberHistory',
+              date: new Date().toISOString(),
+              condition: [{
+                code: { coding: [ conceptDefinition['select'] ? data?.value?.selected : conceptDefinition['code'] ]}
+              }],
+              status: 'completed',
+              patient: { reference: 'Patient/' + patient?.id },
+              relationship: {
+                coding: [
+                  {
+                    system: 'http://terminology.hl7.org/CodeSystem/v3-RoleCode',
+                    code: 'FAMMEMB',
+                    display: 'family member'
+                  }
+                ]
+              },
+            }
+          })
+        }
+        break;
+      case 'MedicationStatement':
+        if (data.value?.value) {
+          bundle.entry?.push({
+            resource: <fhir4.MedicationStatement>{
+              resourceType: 'MedicationStatement',
+              id: Date.now() + '-MedicationStatement',
+              date: new Date().toISOString(),
+              medicationCodeableConcept: { coding: [ conceptDefinition['select'] ? data?.value?.selected : conceptDefinition['code'] ]},
+              status: 'active',
+              subject: { reference: 'Patient/' + patient?.id }
+            }
+          })
+        }
+        break;
       case 'Observation':
         const observation = <fhir4.Observation>{
           resourceType: 'Observation',
