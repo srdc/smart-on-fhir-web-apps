@@ -309,6 +309,7 @@
               "projects/qrisk3/src/assets"
             ],
             "styles": [
+              "node_modules/bootstrap/dist/css/bootstrap.min.css",
               "projects/qrisk3/src/styles.css"
             ],
             "scripts": []
@@ -368,6 +369,7 @@
               "projects/qrisk3/src/assets"
             ],
             "styles": [
+              "node_modules/bootstrap/dist/css/bootstrap.min.css",
               "projects/qrisk3/src/styles.css"
             ],
             "scripts": []
