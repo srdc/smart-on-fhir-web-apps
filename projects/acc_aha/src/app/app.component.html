@@ -9,9 +9,10 @@
       <div class="card mt-2">
         <div class="card-header fw-bold bg-primary text-light">Patient</div>
         <div class="card-body list-group list-group-flush p-0">
+          <!--suppress TypeScriptValidateTypes -->
           <div class="list-group-item"><b>Name:</b> {{patient?.name?.at(0)?.family}}, {{patient?.name?.at(0)?.given}}</div>
           <div class="list-group-item"><b>Age:</b> {{age}}</div>
-          <div class="list-group-item"><b>Gender:</b> {{patient?.gender}}</div>
+          <div class="list-group-item"><b>Gender:</b> {{patient.gender}}</div>
         </div>
       </div>
       <button class="btn btn-danger w-100 mt-2" (click)="logout()">Change Patient</button>
