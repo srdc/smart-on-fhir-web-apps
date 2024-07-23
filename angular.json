@@ -309,6 +309,7 @@
               "projects/advance/src/assets"
             ],
             "styles": [
+              "node_modules/bootstrap/dist/css/bootstrap.min.css",
               "projects/advance/src/styles.css"
             ],
             "scripts": []
@@ -368,6 +369,7 @@
               "projects/advance/src/assets"
             ],
             "styles": [
+              "node_modules/bootstrap/dist/css/bootstrap.min.css",
               "projects/advance/src/styles.css"
             ],
             "scripts": []
