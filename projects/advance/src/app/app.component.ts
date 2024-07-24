@@ -97,4 +97,14 @@ export class AppComponent implements OnDestroy {
   reset() {
     this.statefulCdsService.resetState(this.conceptDefinitions)
   }
+
+  scoreHandler(score: number):string {
+    if(score<0.5) {
+      return "<0.5"
+    } else if(score > 83){
+      return ">83"
+    } else {
+      return score.toString()
+    }
+  }
 }

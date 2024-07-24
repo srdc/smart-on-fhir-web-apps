@@ -18,11 +18,11 @@
       <p *ngIf="error" class="text-danger mt-2 fw-bold">{{error}}</p>
       <p class="mt-2 mb-1 fw-bold">Advance Risk Score</p>
       <div class="progress" style="height: 2.5em" role="progressbar" aria-label="Advance" [attr.aria-valuenow]="scores[0]" aria-valuemin="0" aria-valuemax="100">
-        <div class="progress-bar bg-danger" [ngStyle]="{width: (scores[0] || 0) + '%', 'min-width': '3em'}">{{ scores[0] }}%</div>
+        <div class="progress-bar bg-danger" [ngStyle]="{width: (scores[0] || 0) + '%', 'min-width': '3em'}">{{ scoreHandler(scores[0]) }}%</div>
       </div>
       <p class="mt-2 mb-1 fw-bold">Healthy Score</p>
       <div class="progress" style="height: 2.5em" role="progressbar" aria-label="Advance" [attr.aria-valuenow]="scores[1]" aria-valuemin="0" aria-valuemax="100">
-        <div class="progress-bar bg-primary" [ngStyle]="{width: (scores[1] || 0) + '%', 'min-width': '3em'}">{{ scores[1] }}%</div>
+        <div class="progress-bar bg-primary" [ngStyle]="{width: (scores[1] || 0) + '%', 'min-width': '3em'}">{{ scoreHandler(scores[1]) }}%</div>
       </div>
     </div>
     <div class="col p-3 h-100 overflow-auto">
