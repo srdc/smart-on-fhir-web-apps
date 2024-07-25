@@ -43,7 +43,7 @@ export class FormComponent implements OnInit, OnDestroy {
       //   handleServiceResponse: (response) => {
       //   try {
       //     const accahaObs = <fhir4.Observation>response.cards[0].suggestions[0].actions[0].resource;
-      //     this.scores = [Math.floor((qriskObs?.valueQuantity?.value || 0) * 100) / 100,
+      //     this.scores = [Math.floor((accahaObs?.valueQuantity?.value || 0) * 100) / 100,
       //       Math.floor((accahaObs?.referenceRange?.at(0)?.high?.value || 0) * 100) / 100]
       //   } catch (err) {
       //     if (!response?.cards?.length) {
