@@ -1,0 +1,28 @@
+<a routerLink="/">&lt; Back</a>
+<p *ngIf="error" class="text-danger mt-2 fw-bold">{{error}}</p>
+<p class="mt-2 mb-1 fw-bold">QRISK Score</p>
+<div class="progress" style="height: 2.5em" role="progressbar" aria-label="QRISK" [attr.aria-valuenow]="initialScores[0]" aria-valuemin="0" aria-valuemax="100">
+  <div class="progress-bar bg-danger" [ngStyle]="{width: (initialScores[0] || 0) + '%', 'min-width': '3em'}">{{ initialScores[0] }}%</div>
+</div>
+<p class="mt-2 mb-1 fw-bold">Healthy Score</p>
+<div class="progress" style="height: 2.5em" role="progressbar" aria-label="QRISK" [attr.aria-valuenow]="initialScores[1]" aria-valuemin="0" aria-valuemax="100">
+  <div class="progress-bar bg-primary" [ngStyle]="{width: (initialScores[1] || 0) + '%', 'min-width': '3em'}">{{ initialScores[1] }}%</div>
+</div>
+@if (suggestions.length) {
+  <div class="mt-2 mb-1 fw-bold">Suggestions</div>
+  <ul class="list-group">
+    @for (card of suggestions; track card.uuid) {
+      @for (suggestion of card.suggestions; track suggestion.uuid) {
+        <li class="list-group-item">
+          <input class="form-check-input me-1" type="checkbox" value="" [attr.id]="suggestion.uuid" [ngModel]="suggestion.apply"
+                 (ngModelChange)="suggestion.apply = $event; applySuggestions()">
+          <label class="form-check-label" [attr.for]="suggestion.uuid"><b>{{card.summary}}</b><br>{{suggestion.label}}</label>
+        </li>
+      }
+    }
+  </ul>
+  <p class="mt-2 mb-1 fw-bold">QRISK Score After Suggested Targets Achieved</p>
+  <div class="progress" style="height: 2.5em" role="progressbar" aria-label="QRISK" [attr.aria-valuenow]="scores[0]" aria-valuemin="0" aria-valuemax="100">
+    <div class="progress-bar bg-danger" [ngStyle]="{width: (scores[0] || 0) + '%', 'min-width': '3em'}">{{ scores[0] }}%</div>
+  </div>
+}

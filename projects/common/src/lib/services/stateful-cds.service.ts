@@ -4,26 +4,30 @@ import {CdsHooksService} from 'cds-hooks'
 import {SmartOnFhirService} from 'smart-on-fhir'
 import Client from "fhirclient/lib/Client";
 
+export interface CreateStateOptions {
+  serviceId: string;
+  patient?: fhir4.Patient;
+  language?: string;
+  client?: Client;
+  onPrefetchStateChange?: PrefetchStateChangeOptions;
+}
+
+export interface PrefetchStateChangeOptions {
+  callService?: boolean;
+  transformState?: (state: any) => {prefetch: any, context: any};
+  handleServiceResponse?: (response: any) => any;
+  handleServiceError?: (error: Error) => any;
+  handleState?: (state: any) => any;
+  injector: Injector;
+  takeUntil?: Subject<any>;
+}
+
 @Injectable()
 export class StatefulCdsService {
 
   constructor(private cds: CdsHooksService<fhir4.Resource>, private sof: SmartOnFhirService) { }
 
-  async createState(options: {
-    serviceId: string,
-    patient?: fhir4.Patient,
-    language?: string,
-    client?: Client,
-    onPrefetchStateChange?: {
-      callService?: boolean,
-      transformState?: (state: any) => {prefetch: any, context: any},
-      handleServiceResponse?: (response: any) => any,
-      handleServiceError?: (error: Error) => any,
-      handleState?: (state: any) => any,
-      injector: Injector,
-      takeUntil?: Subject<any>
-    }
-  }) {
+  async createState(options: CreateStateOptions) {
     const cdsDefinition = await this.cds.getServiceDefinition(options.serviceId)
     const conceptDefinitionResp = await this.cds.callService({
       serviceId: 'definition',
@@ -49,26 +53,24 @@ export class StatefulCdsService {
       definition.id = conceptId;
       conceptDefinitions.push(definition)
     }))
-    if (options.onPrefetchStateChange) {
-      this.cds.onChange(Object.keys(cdsDefinition.prefetch), (state: any) => {
-        if (options.onPrefetchStateChange?.handleState) {
-          options.onPrefetchStateChange?.handleState(state)
-        }
-        if (options.onPrefetchStateChange?.callService) {
-          const params: { context?: any, prefetch?: any } = options.onPrefetchStateChange.transformState ? options.onPrefetchStateChange.transformState(state) : {}
-          this.cds.callService({
-            serviceId: options.serviceId,
-            language: options.language,
-            fhirServer: options.client?.state?.serverUrl,
-            fhirAuthorization: options.client?.state.tokenResponse,
-            prefetch: params.prefetch || {},
-            context: params.context || {}
-          }).then(options.onPrefetchStateChange.handleServiceResponse, options.onPrefetchStateChange.handleServiceError)
-        }
-      },
-      options.onPrefetchStateChange.injector, options.onPrefetchStateChange.takeUntil)
-    }
+    this.onPrefetchStateChange(options)
     return conceptDefinitions
+  }
+
+  async onPrefetchStateChange(options: CreateStateOptions) {
+    if (options.onPrefetchStateChange) {
+      const cdsDefinition = await this.cds.getServiceDefinition(options.serviceId)
+      this.cds.onChange(Object.keys(cdsDefinition.prefetch), (state: any) => {
+          if (options.onPrefetchStateChange?.handleState) {
+            options.onPrefetchStateChange?.handleState(state)
+          }
+          if (options.onPrefetchStateChange?.callService) {
+            const params: { context?: any, prefetch?: any } = options.onPrefetchStateChange.transformState ? options.onPrefetchStateChange.transformState(state) : {}
+            this.callService(options, params).then(options.onPrefetchStateChange.handleServiceResponse, options.onPrefetchStateChange.handleServiceError)
+          }
+        },
+        options.onPrefetchStateChange.injector, options.onPrefetchStateChange.takeUntil)
+    }
   }
 
   private getInitialValue(definition: any, resources: fhir4.Resource[]) {
@@ -101,6 +103,21 @@ export class StatefulCdsService {
   resetState(conceptDefinitions: { id: string; value: Signal<any>; [p: string]: any }[]) {
     conceptDefinitions.forEach(definition => {
       this.cds.setValue(definition.id, this.getInitialValue(definition, this.cds.getResources(definition.id)))
+    })
+  }
+
+  getState(conceptDefinitions: { id: string; value: Signal<any>; [p: string]: any }[]) {
+    return this.cds.getCurrentState(conceptDefinitions.map(definition => definition.id))
+  }
+
+  callService(options: CreateStateOptions, params: { prefetch?: any, context?: any }) {
+    return this.cds.callService({
+      serviceId: options.serviceId,
+      language: options.language,
+      fhirServer: options.client?.state?.serverUrl,
+      fhirAuthorization: options.client?.state.tokenResponse,
+      prefetch: params.prefetch || {},
+      context: params.context || {}
     })
   }
 }

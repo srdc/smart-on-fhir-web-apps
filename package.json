@@ -4,7 +4,7 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "start-qrisk": "ng serve qrisk",
+    "start-qrisk2": "ng serve qrisk2",
     "start-score2": "ng serve score2",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
