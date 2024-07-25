@@ -1,9 +1,0 @@
-.boolean-container {
-  display: inline-block;
-  vertical-align: top;
-  white-space: nowrap;
-}
-
-.boolean-container input[type=checkbox] {
-  margin-right: 1em;
-}
