@@ -22,6 +22,11 @@
                   </select>
                 </p>
               }
+              @if (definition['selectDate'] && definition.value().value) {
+                <p>
+                  <input type="date" [ngModel]="definition.value()?.date" (ngModelChange)="updateBooleanDate(definition, $event)" class="form-control">
+                </p>
+              }
             </div>
           }
           @case ('Quantity') {

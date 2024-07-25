@@ -46,5 +46,7 @@ export class CdsPanelsComponent {
     this.cds.updateValue(definition.id, (current) => ({ ...current,
       selected: definition['select'].find((coding: fhir4.Coding) => coding.code === code)}))
   }
-
+  updateBooleanDate(definition: any, date: string) {
+    this.cds.updateValue(definition.id, (current) => ({ ...current, date }))
+  }
 }
