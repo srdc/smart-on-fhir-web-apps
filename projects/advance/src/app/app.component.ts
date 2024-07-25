@@ -99,12 +99,17 @@ export class AppComponent implements OnDestroy {
   }
 
   scoreHandler(score: number):string {
-    if(score<0.5) {
-      return "<0.5"
-    } else if(score > 83){
-      return ">83"
-    } else {
-      return score.toString()
+    try {
+      if(score<0.5) {
+        return "<0.5"
+      } else if(score > 83){
+        return ">83"
+      } else {
+        return score.toString()
+      }
+    } catch (Error) {
+      return ""
     }
+
   }
 }
