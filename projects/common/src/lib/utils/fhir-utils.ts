@@ -19,7 +19,8 @@ export class FhirUtils {
             resource: <fhir4.Condition>{
               resourceType: 'Condition',
               id: Date.now() + '-condition',
-              onsetDateTime: new Date().toISOString(),
+              onsetDateTime: data.value?.date ? new Date(data.value.date) : new Date().toISOString(),
+              recordedDate: new Date().toISOString(),
               code: { coding: [ conceptDefinition['select'] ? data?.value?.selected : conceptDefinition['code'] ]},
               clinicalStatus: {
                 coding: [{
