@@ -21,7 +21,9 @@ export abstract class CdsStore<T extends { resourceType: string, id?: string }> 
   private sorting: SortingConfig<T>|undefined = this.config.sort;
   private effects: EffectRef[] = [];
 
-  constructor(protected config: CdsHooksServiceConfig<T>) {}
+  constructor(protected config: CdsHooksServiceConfig<T>) {
+    console.log('instance created')
+  }
 
   public hasConcept(conceptId: string): boolean {
     return !!this.valueState[conceptId];
@@ -66,15 +68,19 @@ export abstract class CdsStore<T extends { resourceType: string, id?: string }> 
     ))
   }
 
+  public getCurrentState(conceptIds: string[]) {
+    return conceptIds.reduce(
+      (obj: { [conceptId: string]: any }, arg) => {
+        if (this.valueState[arg]) {
+          obj[arg] = { value: this.valueState[arg].value(), resources: (<T[]>[]).concat(this.valueState[arg].resources) };
+        }
+        return obj;
+      }, {})
+  }
+
   public onChange(conceptIds: string[], callback: (args: { [conceptId: string]: any }) => any, injector: Injector, takeUntil?: Subject<void>) {
     const effectRef = effect(() => {
-      const args = conceptIds.reduce(
-        (obj: { [conceptId: string]: any }, arg) => {
-          if (this.valueState[arg]) {
-            obj[arg] = { value: this.valueState[arg].value(), resources: (<T[]>[]).concat(this.valueState[arg].resources) };
-          }
-          return obj;
-        }, {})
+      const args = this.getCurrentState(conceptIds)
       callback(args)
     }, { injector });
     this.effects.push(effectRef)

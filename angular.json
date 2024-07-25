@@ -3,96 +3,6 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "qrisk": {
-      "projectType": "application",
-      "schematics": {},
-      "root": "projects/qrisk",
-      "sourceRoot": "projects/qrisk/src",
-      "prefix": "qrisk",
-      "architect": {
-        "build": {
-          "builder": "@angular-devkit/build-angular:application",
-          "options": {
-            "outputPath": "dist/qrisk",
-            "index": "projects/qrisk/src/index.html",
-            "browser": "projects/qrisk/src/main.ts",
-            "polyfills": [
-              "zone.js"
-            ],
-            "tsConfig": "projects/qrisk/tsconfig.app.json",
-            "assets": [
-              "projects/qrisk/src/favicon.ico",
-              "projects/qrisk/src/assets"
-            ],
-            "styles": [
-              "node_modules/bootstrap/dist/css/bootstrap.min.css",
-              "projects/qrisk/src/styles.css"
-            ],
-            "scripts": []
-          },
-          "configurations": {
-            "production": {
-              "budgets": [
-                {
-                  "type": "initial",
-                  "maximumWarning": "500kb",
-                  "maximumError": "1mb"
-                },
-                {
-                  "type": "anyComponentStyle",
-                  "maximumWarning": "2kb",
-                  "maximumError": "4kb"
-                }
-              ],
-              "outputHashing": "all"
-            },
-            "development": {
-              "optimization": false,
-              "extractLicenses": false,
-              "sourceMap": true
-            }
-          },
-          "defaultConfiguration": "production"
-        },
-        "serve": {
-          "builder": "@angular-devkit/build-angular:dev-server",
-          "configurations": {
-            "production": {
-              "buildTarget": "qrisk:build:production"
-            },
-            "development": {
-              "buildTarget": "qrisk:build:development"
-            }
-          },
-          "defaultConfiguration": "development"
-        },
-        "extract-i18n": {
-          "builder": "@angular-devkit/build-angular:extract-i18n",
-          "options": {
-            "buildTarget": "qrisk:build"
-          }
-        },
-        "test": {
-          "builder": "@angular-devkit/build-angular:karma",
-          "options": {
-            "polyfills": [
-              "zone.js",
-              "zone.js/testing"
-            ],
-            "tsConfig": "projects/qrisk/tsconfig.spec.json",
-            "assets": [
-              "projects/qrisk/src/favicon.ico",
-              "projects/qrisk/src/assets"
-            ],
-            "styles": [
-              "node_modules/bootstrap/dist/css/bootstrap.min.css",
-              "projects/qrisk/src/styles.css"
-            ],
-            "scripts": []
-          }
-        }
-      }
-    },
     "smart-on-fhir": {
       "projectType": "library",
       "root": "projects/smart-on-fhir",
@@ -287,30 +197,42 @@
         }
       }
     },
-    "advance": {
+    "qrisk2": {
       "projectType": "application",
-      "schematics": {},
-      "root": "projects/advance",
-      "sourceRoot": "projects/advance/src",
-      "prefix": "app",
+      "schematics": {
+        "@schematics/angular:component": {
+          "style": "scss",
+          "standalone": false
+        },
+        "@schematics/angular:directive": {
+          "standalone": false
+        },
+        "@schematics/angular:pipe": {
+          "standalone": false
+        }
+      },
+      "root": "projects/qrisk2",
+      "sourceRoot": "projects/qrisk2/src",
+      "prefix": "qrisk2",
       "architect": {
         "build": {
           "builder": "@angular-devkit/build-angular:application",
           "options": {
-            "outputPath": "dist/advance",
-            "index": "projects/advance/src/index.html",
-            "browser": "projects/advance/src/main.ts",
+            "outputPath": "dist/qrisk2",
+            "index": "projects/qrisk2/src/index.html",
+            "browser": "projects/qrisk2/src/main.ts",
             "polyfills": [
               "zone.js"
             ],
-            "tsConfig": "projects/advance/tsconfig.app.json",
+            "tsConfig": "projects/qrisk2/tsconfig.app.json",
+            "inlineStyleLanguage": "scss",
             "assets": [
-              "projects/advance/src/favicon.ico",
-              "projects/advance/src/assets"
+              "projects/qrisk2/src/favicon.ico",
+              "projects/qrisk2/src/assets"
             ],
             "styles": [
               "node_modules/bootstrap/dist/css/bootstrap.min.css",
-              "projects/advance/src/styles.css"
+              "projects/qrisk2/src/styles.scss"
             ],
             "scripts": []
           },
@@ -342,10 +264,10 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "advance:build:production"
+              "buildTarget": "qrisk2:build:production"
             },
             "development": {
-              "buildTarget": "advance:build:development"
+              "buildTarget": "qrisk2:build:development"
             }
           },
           "defaultConfiguration": "development"
@@ -353,7 +275,7 @@
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "buildTarget": "advance:build"
+            "buildTarget": "qrisk2:build"
           }
         },
         "test": {
@@ -363,14 +285,15 @@
               "zone.js",
               "zone.js/testing"
             ],
-            "tsConfig": "projects/advance/tsconfig.spec.json",
+            "tsConfig": "projects/qrisk2/tsconfig.spec.json",
+            "inlineStyleLanguage": "scss",
             "assets": [
-              "projects/advance/src/favicon.ico",
-              "projects/advance/src/assets"
+              "projects/qrisk2/src/favicon.ico",
+              "projects/qrisk2/src/assets"
             ],
             "styles": [
               "node_modules/bootstrap/dist/css/bootstrap.min.css",
-              "projects/advance/src/styles.css"
+              "projects/qrisk2/src/styles.scss"
             ],
             "scripts": []
           }
