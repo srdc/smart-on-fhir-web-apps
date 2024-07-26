@@ -16,7 +16,6 @@ export class AppComponent  implements OnDestroy {
   scores: number[] = [];
   error: string | undefined;
   patient: fhir4.Patient|undefined;
-  title = "acc_aha"
 
   age: number = 0;
 
