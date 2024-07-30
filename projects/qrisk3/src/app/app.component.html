@@ -11,6 +11,14 @@
           <div class="list-group-item"><b>Name:</b> {{patient?.name?.at(0)?.family}}, {{patient?.name?.at(0)?.given}}</div>
           <div class="list-group-item"><b>Age:</b> {{age}}</div>
           <div class="list-group-item"><b>Gender:</b> {{patient?.gender}}</div>
+          <div class= "list-group-item" *ngIf="ageValid != 0">
+            <div class="alert alert-danger" *ngIf="ageValid == 1">
+              <strong>Danger!</strong> QRisk3 works between the ages 24-85, so your age is estimated to be 25
+            </div>
+            <div class="alert alert-danger" *ngIf="ageValid == 2">
+              <strong>Danger!</strong> QRisk3 works between the ages 24-85, so your age is estimated to be 85
+            </div>
+          </div>
         </div>
       </div>
       <button class="btn btn-danger w-100 mt-2" (click)="logout()">Change Patient</button>
