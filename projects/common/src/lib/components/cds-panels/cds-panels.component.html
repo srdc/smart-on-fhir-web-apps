@@ -30,21 +30,24 @@
             </div>
           }
           @case ('Quantity') {
-            <div class="mb-2">
-              <div class="col-6 col-xl-4 d-inline-block">{{definition['label'] || definition['code']?.display}}
+            <div class="mb-2 row align-items-center">
+              <div class="col-6 col-xl-4">{{definition['label'] || definition['code']?.display}}
                 <span *ngIf="definition['required']" class="text-danger">*</span>
               </div>
-              <div class="col-6 col-xl-8 d-inline-block">
-                <input [attr.required]="definition['required']" class="form-control" type="number" [ngModel]="definition.value().value" (ngModelChange)="updateQuantityValue(definition, $event)">
+              <div class="col-6 col-xl-8">
+                <div class="input-group" style="min-width: 150px;">
+                  <input [attr.required]="definition['required']" class="form-control" type="number" [ngModel]="definition.value().value" (ngModelChange)="updateQuantityValue(definition, $event)">
+                  <span class="input-group-text" style="width: 80px;" *ngIf="definition['unit']">{{definition['unit']}}</span>
+                </div>
               </div>
             </div>
           }
           @case ('CodeableConcept') {
-            <div class="mb-2">
-              <div class="col-6 col-xl-4 d-inline-block">{{definition['label'] || definition['code']?.display}}
+            <div class="mb-2 row align-items-center">
+              <div class="col-6 col-xl-4">{{definition['label'] || definition['code']?.display}}
                 <span *ngIf="definition['required']" class="text-danger">*</span>
               </div>
-              <div class="col-6 col-xl-8 d-inline-block">
+              <div class="col-6 col-xl-8">
                 <select [ngModel]="definition.value()?.code" (ngModelChange)="updateCodeableConceptValue(definition, $event)" class="form-select">
                   <option *ngFor="let code of definition['select']" [value]="code.code">{{code.display}}</option>
                 </select>
