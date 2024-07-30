@@ -16,6 +16,7 @@ export class AppComponent  implements OnDestroy {
   scores: number[] = [];
   error: string | undefined;
   patient: fhir4.Patient|undefined;
+  ageValid: boolean = false;
 
   age: number = 0;
 
@@ -39,6 +40,7 @@ export class AppComponent  implements OnDestroy {
     this.loadingPatientData = true;
     this.patient = await this.sof.getPatient()
     this.age = (new Date().getFullYear()) - (new Date(<string>this.patient.birthDate).getFullYear())
+    this.ageValid = (this.age >= 40 && this.age <=79)
     await this.acc_ahaService.init(this.client, this.patient)
     this.loadingPatientData = false
   }
