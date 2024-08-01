@@ -15,4 +15,25 @@ export class CdsUtils {
     }
     return prefetch
   }
+
+
+  public static applySuggestions(prefetch: any, suggestions: any[], conceptDefinitions: any[]) {
+    suggestions.forEach(card => card.suggestions.forEach((suggestion: any) => {
+      if (suggestion.apply) {
+        const resource: fhir4.Observation = suggestion.actions[0].resource
+        const definition = conceptDefinitions.find((_definition: any) =>
+          _definition.code?.code === resource.code?.coding?.at(0)?.code)
+        if (definition && prefetch[definition.id]) {
+          prefetch[definition.id].total += 1
+          prefetch[definition.id].entry.splice(0, 1, {
+            resource: resource,
+            search: {
+              mode: 'match'
+            }
+          })
+        }
+      }
+    }))
+    return prefetch
+  }
 }
