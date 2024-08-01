@@ -1,5 +1,5 @@
 import {Component, Injector, OnDestroy, OnInit} from '@angular/core';
-import {StatefulCdsService, CdsService} from "common";
+import {StatefulCdsService, CdsDataService} from "common";
 import * as FHIR from "fhirclient";
 import Client from "fhirclient/lib/Client";
 import {SmartOnFhirService} from "smart-on-fhir";
@@ -17,7 +17,7 @@ export class FormComponent implements OnInit, OnDestroy {
   private destroy$: Subject<void> = new Subject();
   valid = false
 
-  constructor(public qriskService: CdsService, private sof: SmartOnFhirService, private injector: Injector,
+  constructor(public qriskService: CdsDataService, private sof: SmartOnFhirService, private injector: Injector,
               private statefulCdsService: StatefulCdsService) {
   }
 

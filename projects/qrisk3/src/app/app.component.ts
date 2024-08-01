@@ -3,7 +3,7 @@ import {SmartOnFhirService} from "smart-on-fhir";
 import * as FHIR from 'fhirclient'
 import Client from "fhirclient/lib/Client";
 import {Subject} from "rxjs";
-import {CdsService, StatefulCdsService} from "common";
+import {CdsDataService, StatefulCdsService} from "common";
 
 
 @Component({
@@ -28,7 +28,7 @@ export class AppComponent  implements OnDestroy {
   private destroy$: Subject<void> = new Subject();
   private stateChanged$: Subject<any> = new Subject();
 
-  constructor(private sof: SmartOnFhirService, private qrisk3Service: CdsService,
+  constructor(private sof: SmartOnFhirService, private qrisk3Service: CdsDataService,
               private injector: Injector, private statefulCdsService: StatefulCdsService) {
   }
 

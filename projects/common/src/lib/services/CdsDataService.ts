@@ -4,7 +4,7 @@ import {PrefetchStateChangeOptions, StatefulCdsService} from "./stateful-cds.ser
 
 
 @Injectable()
-export class CdsService {
+export class CdsDataService {
   conceptDefinitions: any[] = [];
   patient: fhir4.Patient|undefined;
   client: Client|undefined;

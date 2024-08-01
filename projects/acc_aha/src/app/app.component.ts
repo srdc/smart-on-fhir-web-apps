@@ -3,7 +3,7 @@ import {SmartOnFhirService} from "smart-on-fhir";
 import * as FHIR from 'fhirclient'
 import Client from "fhirclient/lib/Client";
 import {Subject} from "rxjs";
-import {StatefulCdsService, CdsService} from "common";
+import {StatefulCdsService, CdsDataService} from "common";
 
 @Component({
   selector: 'acc_aha-root',
@@ -26,7 +26,7 @@ export class AppComponent  implements OnDestroy {
   private destroy$: Subject<void> = new Subject();
   private stateChanged$: Subject<any> = new Subject();
 
-  constructor(private sof: SmartOnFhirService, private acc_ahaService: CdsService,
+  constructor(private sof: SmartOnFhirService, private acc_ahaService: CdsDataService,
               private injector: Injector, private statefulCdsService: StatefulCdsService) {
   }
 

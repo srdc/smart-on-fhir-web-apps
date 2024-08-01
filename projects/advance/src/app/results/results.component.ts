@@ -1,5 +1,5 @@
 import {Component, Injector, OnDestroy, OnInit} from '@angular/core';
-import {CdsUtils, StatefulCdsService, CdsService} from "common"
+import {CdsUtils, StatefulCdsService, CdsDataService} from "common"
 import {SmartOnFhirService} from "smart-on-fhir"
 import Client from "fhirclient/lib/Client";
 import {Subject} from "rxjs";
@@ -21,7 +21,7 @@ export class ResultsComponent implements OnInit, OnDestroy {
   error: any;
   suggestions: any[] = [];
 
-  constructor(public advanceService: CdsService, private sof: SmartOnFhirService, private injector: Injector,
+  constructor(public advanceService: CdsDataService, private sof: SmartOnFhirService, private injector: Injector,
               private statefulCdsService: StatefulCdsService) {
   }
 

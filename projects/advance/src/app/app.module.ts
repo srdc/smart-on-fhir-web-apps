@@ -5,7 +5,7 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { FormComponent } from './form/form.component';
 import { ResultsComponent } from './results/results.component';
-import {SmartCdsCommonModule, CdsService} from "common";
+import {SmartCdsCommonModule} from "common";
 import {FormsModule} from "@angular/forms";
 
 @NgModule({
@@ -20,7 +20,7 @@ import {FormsModule} from "@angular/forms";
     SmartCdsCommonModule,
     FormsModule
   ],
-  providers: [CdsService],
+  providers: [],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
