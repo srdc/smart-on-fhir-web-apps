@@ -3,8 +3,7 @@ import {SmartOnFhirService} from "smart-on-fhir";
 import * as FHIR from 'fhirclient'
 import Client from "fhirclient/lib/Client";
 import {Subject} from "rxjs";
-import {StatefulCdsService} from "common";
-import {ACCAHAService} from "./acc_aha.service";
+import {StatefulCdsService, CdsService} from "common";
 
 @Component({
   selector: 'acc_aha-root',
@@ -27,7 +26,7 @@ export class AppComponent  implements OnDestroy {
   private destroy$: Subject<void> = new Subject();
   private stateChanged$: Subject<any> = new Subject();
 
-  constructor(private sof: SmartOnFhirService, private acc_ahaService: ACCAHAService,
+  constructor(private sof: SmartOnFhirService, private acc_ahaService: CdsService,
               private injector: Injector, private statefulCdsService: StatefulCdsService) {
   }
 
@@ -41,7 +40,7 @@ export class AppComponent  implements OnDestroy {
     this.patient = await this.sof.getPatient()
     this.age = (new Date().getFullYear()) - (new Date(<string>this.patient.birthDate).getFullYear())
     this.ageValid = (this.age >= 40 && this.age <=79)
-    await this.acc_ahaService.init(this.client, this.patient)
+    await this.acc_ahaService.init(this.client, this.patient, 'acc_aha')
     this.loadingPatientData = false
   }
 

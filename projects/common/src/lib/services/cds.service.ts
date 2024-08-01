@@ -1,30 +1,33 @@
 import { Injectable } from '@angular/core';
 import Client from "fhirclient/lib/Client";
-import {PrefetchStateChangeOptions, StatefulCdsService} from "common";
+import {PrefetchStateChangeOptions, StatefulCdsService} from "./stateful-cds.service";
+
 
 @Injectable()
-export class ACCAHAService {
+export class CdsService {
   conceptDefinitions: any[] = [];
   patient: fhir4.Patient|undefined;
   client: Client|undefined;
+  Id: string = '';
   private initialized: Promise<void>|undefined;
 
   constructor(private statefulCdsService: StatefulCdsService) { }
 
-  private async _init(client: Client, patient: fhir4.Patient | undefined) {
+  private async _init(client: Client, patient: fhir4.Patient | undefined, serviceId: string) {
+    this.Id = serviceId;
     this.patient = patient;
     this.client = client;
     this.conceptDefinitions = await this.statefulCdsService?.createState({
       patient: this.patient,
-      serviceId: 'acc_aha',
+      serviceId: this.Id,
       language: 'en',
       client: this.client
     }) || []
   }
 
-  init(client: Client, patient: fhir4.Patient | undefined) {
+  init(client: Client, patient: fhir4.Patient | undefined, serviceId: string) {
     if (!this.initialized) {
-      this.initialized = this._init(client, patient)
+      this.initialized = this._init(client, patient, serviceId)
     }
     return this.initialized
   }
@@ -35,11 +38,11 @@ export class ACCAHAService {
 
   onPrefetchStateChange(options: PrefetchStateChangeOptions) {
     if (!this.initialized) {
-      throw new Error('ACC/AHA service should be initialized.')
+      throw new Error( this.Id + ' service should be initialized.')
     }
     this.statefulCdsService?.onPrefetchStateChange({
       patient: this.patient,
-      serviceId: 'acc_aha',
+      serviceId: this.Id,
       language: 'en',
       client: this.client,
       onPrefetchStateChange: options

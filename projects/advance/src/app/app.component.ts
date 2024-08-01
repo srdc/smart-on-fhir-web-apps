@@ -1,14 +1,9 @@
 import {Component, Injector, OnDestroy, Signal} from '@angular/core';
-import {RouterOutlet} from '@angular/router';
 import {SmartOnFhirService} from "smart-on-fhir";
-import {FormsModule} from "@angular/forms";
-import {CommonModule} from "@angular/common";
-import {HttpClientModule} from "@angular/common/http";
 import * as FHIR from 'fhirclient'
 import Client from "fhirclient/lib/Client";
 import {Subject} from "rxjs";
-import {CdsUtils, FhirUtils, StatefulCdsService, SmartCdsCommonModule} from "common";
-import {AdvanceService} from "./advance.service";
+import {CdsService, StatefulCdsService} from "common";
 
 @Component({
   selector: 'advance-root',
@@ -30,7 +25,7 @@ export class AppComponent  implements OnDestroy {
   private destroy$: Subject<void> = new Subject();
   private stateChanged$: Subject<any> = new Subject();
 
-  constructor(private sof: SmartOnFhirService, private advanceService: AdvanceService,
+  constructor(private sof: SmartOnFhirService, private advanceService: CdsService,
               private injector: Injector, private statefulCdsService: StatefulCdsService) {
   }
 
@@ -43,7 +38,7 @@ export class AppComponent  implements OnDestroy {
     this.loadingPatientData = true;
     this.patient = await this.sof.getPatient()
     this.age = (new Date().getFullYear()) - (new Date(<string>this.patient.birthDate).getFullYear())
-    await this.advanceService.init(this.client, this.patient)
+    await this.advanceService.init(this.client, this.patient, 'advance')
     this.loadingPatientData = false
   }
 

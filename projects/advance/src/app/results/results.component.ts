@@ -1,11 +1,9 @@
 import {Component, Injector, OnDestroy, OnInit} from '@angular/core';
-import {CdsUtils, StatefulCdsService} from "common"
+import {CdsUtils, StatefulCdsService, CdsService} from "common"
 import {SmartOnFhirService} from "smart-on-fhir"
 import Client from "fhirclient/lib/Client";
 import {Subject} from "rxjs";
-import {AdvanceService} from "../advance.service";
 import * as FHIR from "fhirclient";
-import {FhirUtils} from "../../../../common/src/lib/utils";
 
 @Component({
   selector: 'advance-results',
@@ -23,7 +21,7 @@ export class ResultsComponent implements OnInit, OnDestroy {
   error: any;
   suggestions: any[] = [];
 
-  constructor(public advanceService: AdvanceService, private sof: SmartOnFhirService, private injector: Injector,
+  constructor(public advanceService: CdsService, private sof: SmartOnFhirService, private injector: Injector,
               private statefulCdsService: StatefulCdsService) {
   }
 
@@ -31,7 +29,7 @@ export class ResultsComponent implements OnInit, OnDestroy {
     this.loadingPatientData = true
     this.client = await FHIR.oauth2.ready()
     this.patient = await this.sof.getPatient()
-    await this.advanceService.init(this.client, this.patient)
+    await this.advanceService.init(this.client, this.patient, 'advance')
     this.loadingPatientData = false
     this.advanceService.onPrefetchStateChange({
       callService: true,
