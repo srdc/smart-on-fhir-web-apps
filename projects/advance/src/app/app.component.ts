@@ -48,23 +48,5 @@ export class AppComponent  implements OnDestroy {
     window.location.href = launchUrl
   }
 
-  reset() {
-    this.statefulCdsService.resetState(this.conceptDefinitions)
-  }
-
-  scoreHandler(score: number):string {
-    try {
-      if(score<0.5) {
-        return "<0.5"
-      } else if(score > 83){
-        return ">83"
-      } else {
-        return score.toString()
-      }
-    } catch (Error) {
-      return ""
-    }
-
-  }
 }
 

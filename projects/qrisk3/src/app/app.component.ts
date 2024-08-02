@@ -47,13 +47,10 @@ export class AppComponent  implements OnDestroy {
   }
 
   logout() {
-    const launchUrl =  <string>sessionStorage.getItem('launchUrl')
-    sessionStorage.clear()
-    window.location.href = launchUrl
+    const launchUrl = <string>sessionStorage.getItem('launchUrl');
+    sessionStorage.clear();
+    window.location.href = launchUrl;
   }
 
-  reset() {
-    this.statefulCdsService.resetState(this.conceptDefinitions)
-  }
 }
 
