@@ -3,7 +3,7 @@ import { CdsHooksModule } from 'cds-hooks'
 import {CdsPanelsComponent, PatientInfoComponent} from "./components";
 import {FormsModule} from "@angular/forms";
 import {JsonPipe, KeyValuePipe, NgForOf, NgIf} from "@angular/common";
-import {StatefulCdsService} from "./services";
+import {CdsDataService, StatefulCdsService} from "./services";
 
 @NgModule({
   declarations: [
@@ -43,7 +43,8 @@ import {StatefulCdsService} from "./services";
     PatientInfoComponent
   ],
   providers: [
-    StatefulCdsService
+    StatefulCdsService,
+    CdsDataService
   ]
 })
 export class SmartCdsCommonModule { }

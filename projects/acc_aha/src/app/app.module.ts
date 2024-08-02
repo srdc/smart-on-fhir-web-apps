@@ -6,7 +6,6 @@ import { AppComponent } from './app.component';
 import { FormComponent } from './form/form.component';
 import { ResultsComponent } from './results/results.component';
 import {SmartCdsCommonModule} from "common";
-import {ACCAHAService} from "./acc_aha.service";
 import {FormsModule} from "@angular/forms";
 
 @NgModule({
@@ -21,7 +20,7 @@ import {FormsModule} from "@angular/forms";
     SmartCdsCommonModule,
     FormsModule
   ],
-  providers: [ACCAHAService],
+  providers: [],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

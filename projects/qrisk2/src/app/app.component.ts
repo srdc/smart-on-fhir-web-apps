@@ -3,8 +3,7 @@ import {SmartOnFhirService} from "smart-on-fhir";
 import * as FHIR from 'fhirclient'
 import Client from "fhirclient/lib/Client";
 import {Subject} from "rxjs";
-import {StatefulCdsService} from "common";
-import {QriskService} from "./qrisk.service";
+import {CdsDataService, StatefulCdsService} from "common";
 
 @Component({
   selector: 'qrisk2-root',
@@ -26,7 +25,7 @@ export class AppComponent  implements OnDestroy {
   private destroy$: Subject<void> = new Subject();
   private stateChanged$: Subject<any> = new Subject();
 
-  constructor(private sof: SmartOnFhirService, private qriskService: QriskService,
+  constructor(private sof: SmartOnFhirService, private qriskService: CdsDataService,
               private injector: Injector, private statefulCdsService: StatefulCdsService) {
   }
 
@@ -39,7 +38,7 @@ export class AppComponent  implements OnDestroy {
     this.loadingPatientData = true;
     this.patient = await this.sof.getPatient()
     this.age = (new Date().getFullYear()) - (new Date(<string>this.patient.birthDate).getFullYear())
-    await this.qriskService.init(this.client, this.patient)
+    await this.qriskService.init(this.client, this.patient, 'qrisk')
     this.loadingPatientData = false
   }
 

@@ -1,9 +1,8 @@
 import {Component, Injector, OnDestroy, OnInit} from '@angular/core';
-import {CdsUtils, StatefulCdsService} from "common"
+import {CdsUtils, StatefulCdsService, CdsDataService} from "common"
 import {SmartOnFhirService} from "smart-on-fhir"
 import Client from "fhirclient/lib/Client";
 import {Subject} from "rxjs";
-import {ACCAHAService} from "../acc_aha.service";
 import * as FHIR from "fhirclient";
 
 @Component({
@@ -22,7 +21,7 @@ export class ResultsComponent implements OnInit, OnDestroy {
   error: any;
   suggestions: any[] = [];
 
-  constructor(public AccAhaService: ACCAHAService, private sof: SmartOnFhirService, private injector: Injector,
+  constructor(public AccAhaService: CdsDataService, private sof: SmartOnFhirService, private injector: Injector,
               private statefulCdsService: StatefulCdsService) {
   }
 
@@ -30,7 +29,7 @@ export class ResultsComponent implements OnInit, OnDestroy {
     this.loadingPatientData = true
     this.client = await FHIR.oauth2.ready()
     this.patient = await this.sof.getPatient()
-    await this.AccAhaService.init(this.client, this.patient)
+    await this.AccAhaService.init(this.client, this.patient, 'acc_aha')
     this.loadingPatientData = false
     this.AccAhaService.onPrefetchStateChange({
       callService: true,

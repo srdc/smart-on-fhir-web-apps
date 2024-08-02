@@ -1,10 +1,9 @@
 import {Component, Injector, OnDestroy, OnInit} from '@angular/core';
-import {StatefulCdsService} from "common";
+import {StatefulCdsService, CdsDataService} from "common";
 import * as FHIR from "fhirclient";
 import Client from "fhirclient/lib/Client";
 import {SmartOnFhirService} from "smart-on-fhir";
 import {Subject} from "rxjs";
-import {QriskService} from "../qrisk.service";
 
 @Component({
   selector: 'qrisk2-form',
@@ -18,7 +17,7 @@ export class FormComponent implements OnInit, OnDestroy {
   private destroy$: Subject<void> = new Subject();
   valid = false
 
-  constructor(public qriskService: QriskService, private sof: SmartOnFhirService, private injector: Injector,
+  constructor(public qriskService: CdsDataService, private sof: SmartOnFhirService, private injector: Injector,
               private statefulCdsService: StatefulCdsService) {
   }
 
@@ -26,7 +25,7 @@ export class FormComponent implements OnInit, OnDestroy {
     this.loadingPatientData = true
     this.client = await FHIR.oauth2.ready()
     this.patient = await this.sof.getPatient()
-    await this.qriskService.init(this.client, this.patient)
+    await this.qriskService.init(this.client, this.patient, 'qrisk')
     this.loadingPatientData = false
     this.qriskService.onPrefetchStateChange({
       callService: false,
