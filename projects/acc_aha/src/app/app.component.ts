@@ -51,8 +51,5 @@ export class AppComponent  implements OnDestroy {
     window.location.href = launchUrl
   }
 
-  reset() {
-    this.statefulCdsService.resetState(this.conceptDefinitions)
-  }
 }
 

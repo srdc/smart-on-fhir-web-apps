@@ -1,13 +1,15 @@
 import { NgModule } from '@angular/core';
 import { CdsHooksModule } from 'cds-hooks'
-import {CdsPanelsComponent} from "./components";
+import {CdsPanelsComponent, PatientInfoComponent} from "./components";
 import {FormsModule} from "@angular/forms";
 import {JsonPipe, KeyValuePipe, NgForOf, NgIf} from "@angular/common";
 import {StatefulCdsService} from "./services";
+import {RouterOutlet} from "@angular/router";
 
 @NgModule({
   declarations: [
-    CdsPanelsComponent
+    CdsPanelsComponent,
+    PatientInfoComponent
   ],
   imports: [
     CdsHooksModule.forRoot({
@@ -35,10 +37,12 @@ import {StatefulCdsService} from "./services";
     KeyValuePipe,
     NgForOf,
     JsonPipe,
-    NgIf
+    NgIf,
+    RouterOutlet
   ],
   exports: [
-    CdsPanelsComponent
+    CdsPanelsComponent,
+    PatientInfoComponent
   ],
   providers: [
     StatefulCdsService
