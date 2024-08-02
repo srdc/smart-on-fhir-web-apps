@@ -4,7 +4,6 @@ import {CdsPanelsComponent, PatientInfoComponent} from "./components";
 import {FormsModule} from "@angular/forms";
 import {JsonPipe, KeyValuePipe, NgForOf, NgIf} from "@angular/common";
 import {StatefulCdsService} from "./services";
-import {RouterOutlet} from "@angular/router";
 
 @NgModule({
   declarations: [
@@ -37,8 +36,7 @@ import {RouterOutlet} from "@angular/router";
     KeyValuePipe,
     NgForOf,
     JsonPipe,
-    NgIf,
-    RouterOutlet
+    NgIf
   ],
   exports: [
     CdsPanelsComponent,
