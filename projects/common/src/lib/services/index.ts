@@ -1,2 +1,2 @@
 export * from './stateful-cds.service'
-export * from './CdsDataService'
+export * from './cds-data.service'
