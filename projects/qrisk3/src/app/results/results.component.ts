@@ -60,23 +60,8 @@ export class ResultsComponent implements OnInit, OnDestroy {
 
   applySuggestions() {
     const state = this.statefulCdsService.getState(this.qrisk3Service.conceptDefinitions)
-    const prefetch = CdsUtils.stateToPrefetch(state, this.qrisk3Service.conceptDefinitions, <fhir4.Patient>this.patient, true)
-    this.suggestions.forEach(card => card.suggestions.forEach((suggestion: any) => {
-      if (suggestion.apply) {
-        const resource: fhir4.Observation = suggestion.actions[0].resource
-        const definition = this.qrisk3Service.conceptDefinitions.find((_definition: any) =>
-          _definition.code?.code === resource.code?.coding?.at(0)?.code)
-        if (definition && prefetch[definition.id]) {
-          prefetch[definition.id].total += 1
-          prefetch[definition.id].entry.splice(0, 1, {
-            resource: resource,
-            search: {
-              mode: 'match'
-            }
-          })
-        }
-      }
-    }))
+    const tmpPrefetch = CdsUtils.stateToPrefetch(state, this.qrisk3Service.conceptDefinitions, <fhir4.Patient>this.patient, true)
+    const prefetch = CdsUtils.applySuggestions(tmpPrefetch, this.suggestions, this.qrisk3Service.conceptDefinitions)
     this.statefulCdsService.callService({
       serviceId: 'qrisk3',
       language: 'en',
