@@ -1,7 +1,7 @@
 <div class="vh-100">
   <div class="row w-100 m-auto h-100">
     <div class="col-4 p-3 bg-light h-100 overflow-auto" *ngIf="patient">
-      <app-patient-info [patient]="patient" (logout)="logout()"></app-patient-info>
+      <app-patient-info [patient]="patient" (logout)="patient = undefined"></app-patient-info>
     </div>
     <div class="col p-3 h-100 overflow-auto">
       <router-outlet></router-outlet>

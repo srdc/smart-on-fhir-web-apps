@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
+import {Component, Inject} from '@angular/core';
 import * as FHIR from 'fhirclient'
+import {LoginClientConfig, SmartOnFhirConfig} from "../smart-on-fhir.module";
 
 @Component({
   selector: 'lib-login',
@@ -8,12 +9,15 @@ import * as FHIR from 'fhirclient'
 })
 export class LoginComponent {
 
-  login() {
+  constructor(@Inject('sofConfig') public config: SmartOnFhirConfig) {
+  }
+
+  login(config: LoginClientConfig) {
     FHIR.oauth2.authorize({
-      iss: 'https://fhir.epic.com/interconnect-fhir-oauth/api/FHIR/R4/',
-      redirectUri: 'http://localhost:4200/callback',
-      clientId: 'd70cb3b8-8141-494d-b29d-515d7a071495',
-      scope: 'patient/*.*'
+      iss: config.iss,
+      redirectUri: config.redirectUri,
+      clientId: config.clientId,
+      scope: config.scope
     }).then(console.log, console.error)
   }
 }

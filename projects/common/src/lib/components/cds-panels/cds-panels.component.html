@@ -49,6 +49,9 @@
               </div>
               <div class="col-6 col-xl-8">
                 <select [ngModel]="definition.value()?.code" (ngModelChange)="updateCodeableConceptValue(definition, $event)" class="form-select">
+                  @if (unknownSelection(definition, definition.value()?.code)) {
+                    <option [value]="definition.value()?.code">{{definition.value()?.display}}</option>
+                  }
                   <option *ngFor="let code of definition['select']" [value]="code.code">{{code.display}}</option>
                 </select>
               </div>

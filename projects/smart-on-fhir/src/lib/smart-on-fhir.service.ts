@@ -1,15 +1,18 @@
-import {Injectable} from '@angular/core';
+import {Inject, Injectable} from '@angular/core';
 import * as FHIR from 'fhirclient'
 import Client from "fhirclient/lib/Client";
+import {SmartOnFhirConfig} from "./smart-on-fhir.module";
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable()
 export class SmartOnFhirService {
 
   private client$ = FHIR.oauth2.ready()
 
-  constructor() {
+  constructor(@Inject('sofConfig') public config: SmartOnFhirConfig = {}) {
+  }
+
+  getClient() {
+    return this.client$;
   }
 
   private async ready<T>(callback: (client: Client) => Promise<T>): Promise<T> {

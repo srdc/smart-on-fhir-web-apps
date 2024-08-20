@@ -1,0 +1,23 @@
+.login-container {
+  margin: -1rem !important;
+  width: calc(100% + 2rem) !important;
+  height: calc(100% + 2rem) !important;
+
+  & > .card {
+    min-width: 500px;
+    position: relative;
+    top: 50%;
+    transform: translateY(-50%);
+    min-height: 500px;
+
+    .card-body {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
+
+      & > * {
+        align-self: center;
+      }
+    }
+  }
+}

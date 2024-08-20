@@ -22,7 +22,6 @@ export abstract class CdsStore<T extends { resourceType: string, id?: string }> 
   private effects: EffectRef[] = [];
 
   constructor(protected config: CdsHooksServiceConfig<T>) {
-    console.log('instance created')
   }
 
   public hasConcept(conceptId: string): boolean {

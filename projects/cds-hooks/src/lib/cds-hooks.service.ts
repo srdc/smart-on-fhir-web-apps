@@ -30,7 +30,7 @@ export class CdsHooksService<T extends { resourceType: string, id?: string }> ex
   private loadDefinitions: Promise<any>|undefined;
   private baseUrl: string = '';
 
-  constructor( @Inject('config') protected override config: CdsHooksServiceConfig<T>, private http: HttpClient) {
+  constructor( @Inject('cdsConfig') protected override config: CdsHooksServiceConfig<T>, private http: HttpClient) {
     super(config)
     this.baseUrl = config.baseUrl.replace(/\/$/, '')
     this.loadDefinitions = new Promise<void>((resolve, reject) =>

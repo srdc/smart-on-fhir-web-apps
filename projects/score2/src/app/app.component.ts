@@ -1,12 +1,11 @@
 import {Component, Injector, OnDestroy, Signal} from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import {Router, RouterOutlet} from '@angular/router';
 import Client from "fhirclient/lib/Client";
 import {Subject} from "rxjs";
 import * as FHIR from "fhirclient";
-import {FhirUtils, StatefulCdsService, SmartCdsCommonModule} from "common";
+import {CdsUtils, SmartCdsCommonModule, StatefulCdsService} from "common";
 import {SmartOnFhirService} from "smart-on-fhir";
 import {NgClass, NgIf, NgStyle} from "@angular/common";
-import {CdsUtils} from "../../../common/src/lib/utils";
 
 @Component({
   selector: 'score2-root',
@@ -33,7 +32,7 @@ export class AppComponent implements OnDestroy {
   scoreTable: number[][] | undefined;
   summary: string | undefined;
 
-  constructor(private sof: SmartOnFhirService,
+  constructor(private sof: SmartOnFhirService, private router: Router,
               private injector: Injector, private statefulCdsService: StatefulCdsService) {
   }
 
@@ -96,7 +95,12 @@ export class AppComponent implements OnDestroy {
   logout() {
     const launchUrl =  <string>sessionStorage.getItem('launchUrl')
     sessionStorage.clear()
-    window.location.href = launchUrl
+    if (launchUrl) {
+      window.location.href = launchUrl
+    } else {
+      this.patient = undefined;
+      this.router.navigate(['/login']);
+    }
   }
 
   reset() {

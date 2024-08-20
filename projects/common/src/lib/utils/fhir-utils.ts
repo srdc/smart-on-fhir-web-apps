@@ -97,7 +97,6 @@ export class FhirUtils {
           }
           bundle.entry?.push({ resource: observation })
         }
-        console.log(data)
         data.resources?.forEach(resource => bundle.entry?.push( { resource: <fhir4.FhirResource> resource}))
     }
     bundle.total = bundle.entry?.length || 0;

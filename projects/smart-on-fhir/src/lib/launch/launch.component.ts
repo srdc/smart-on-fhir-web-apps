@@ -11,7 +11,6 @@ export class LaunchComponent {
   constructor(private route: ActivatedRoute) {
     this.route.queryParams.subscribe(params => {
       sessionStorage.setItem('launchUrl', window.location.href)
-      console.log(params, params['iss'].replace('http://', 'https://'))
       FHIR.oauth2.authorize({
         clientId: 'srdc-qrisk',
         iss: params['iss'].replace('http://', 'https://'),

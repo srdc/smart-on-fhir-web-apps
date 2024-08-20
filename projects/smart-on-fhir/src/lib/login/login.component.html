@@ -1,1 +1,26 @@
-<button (click)="login()">Login</button>
+<div class="bg-gradient bg-secondary login-container">
+  <div class="card w-25 m-auto">
+    <div class="card-header bg-light fw-bold text-center"><h4>Login via...</h4></div>
+    <div class="card-body text-center">
+      <!--    <h4>Login With:</h4>-->
+      @for (client of config?.loginClients; track $index) {
+        @if (client.image) {
+          <a (click)="login(client)" style="cursor:pointer;">
+            <img [src]="client.image" width="200px">
+          </a>
+        } @else {
+          <button class="btn fw-bold w-75" [ngStyle]="{background: client.background, color: client.color}" (click)="login(client)">{{client.label}}</button>
+        }
+      }
+      @for (client of config?.launchClients; track $index) {
+        @if (client.image) {
+          <a [href]="client.url" style="cursor:pointer;">
+            <img [src]="client.image" width="200px">
+          </a>
+        } @else {
+          <a class="btn fw-bold w-75" [ngStyle]="{background: client.background, color: client.color}" [href]="client.url">{{client.label}}</a>
+        }
+      }
+    </div>
+  </div>
+</div>

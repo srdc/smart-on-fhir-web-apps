@@ -1,6 +1,4 @@
 import { Routes } from '@angular/router';
-import {smartHandlerRoutes} from "../../../smart-on-fhir/src/public-api";
+import {withSmartHandlerRoutes} from "smart-on-fhir";
 
-export const routes: Routes = [
-  ...smartHandlerRoutes('/', 'both')
-];
+export const routes: Routes = withSmartHandlerRoutes([], '/', 'both', true);

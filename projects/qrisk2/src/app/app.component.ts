@@ -1,9 +1,8 @@
-import {Component, Injector, OnDestroy, Signal} from '@angular/core';
+import {Component, OnDestroy, Signal} from '@angular/core';
 import {SmartOnFhirService} from "smart-on-fhir";
-import * as FHIR from 'fhirclient'
-import Client from "fhirclient/lib/Client";
 import {Subject} from "rxjs";
-import {CdsDataService, StatefulCdsService} from "common";
+import {CdsDataService} from "common";
+import {Router} from "@angular/router";
 
 @Component({
   selector: 'qrisk2-root',
@@ -21,12 +20,10 @@ export class AppComponent  implements OnDestroy {
   loadingPatientData: boolean = false;
   conceptDefinitions: { id: string, value: Signal<any>, [key: string]: any }[] = [];
 
-  private client: Client|undefined;
   private destroy$: Subject<void> = new Subject();
-  private stateChanged$: Subject<any> = new Subject();
 
   constructor(private sof: SmartOnFhirService, private qriskService: CdsDataService,
-              private injector: Injector, private statefulCdsService: StatefulCdsService) {
+              private router: Router) {
   }
 
   ngOnDestroy() {
@@ -34,18 +31,11 @@ export class AppComponent  implements OnDestroy {
   }
 
   async ngOnInit() {
-    this.client = await FHIR.oauth2.ready()
     this.loadingPatientData = true;
     this.patient = await this.sof.getPatient()
     this.age = (new Date().getFullYear()) - (new Date(<string>this.patient.birthDate).getFullYear())
-    await this.qriskService.init(this.client, this.patient, 'qrisk')
+    await this.qriskService.init(await this.sof.getClient(), this.patient, 'qrisk')
     this.loadingPatientData = false
-  }
-
-  logout() {
-    const launchUrl =  <string>sessionStorage.getItem('launchUrl')
-    sessionStorage.clear()
-    window.location.href = launchUrl
   }
 
 }

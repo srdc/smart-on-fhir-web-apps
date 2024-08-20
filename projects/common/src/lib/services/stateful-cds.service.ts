@@ -43,8 +43,8 @@ export class StatefulCdsService {
     await Promise.all(Object.entries(conceptDefinition).map(async ([conceptId, definition]) => {
       if (!this.cds.hasConcept(conceptId)) {
         const bundle = cdsDefinition.prefetch[conceptId] ?
-          await this.sof.request<fhir4.Resource>(cdsDefinition.prefetch[conceptId].replaceAll("{{context.patientId}}", options.patient?.id)) : { entry: [] }
-        const resources: fhir4.Resource[] = bundle.entry?.map(entry => <fhir4.Resource>entry.resource) || [];
+          await this.sof.request<fhir4.Resource>(cdsDefinition.prefetch[conceptId].replaceAll("{{context.patientId}}", options.patient?.id)).catch(err => ({ entry: [] })) : { entry: [] }
+        const resources: fhir4.Resource[] = bundle.entry?.filter(entry => entry.resource?.resourceType === definition.resourceType).map(entry => <fhir4.Resource>entry.resource) || [];
         const initial = this.getInitialValue(definition, resources)
         definition.value = this.cds.addConcept(conceptId, initial, resources)
       } else {
@@ -79,7 +79,7 @@ export class StatefulCdsService {
     switch (definition.type) {
       case 'Quantity':
         const obs = (<fhir4.Observation>latest)
-        if (obs?.code.coding?.some(coding => coding.code === definition['code'].code)) {
+        if (obs?.code?.coding?.some(coding => coding.code === definition['code'].code) && !isNaN(<any>obs.valueQuantity?.value)) {
           initialValue.value = obs.valueQuantity?.value;
           initialValue.unit =  obs.valueQuantity?.unit || definition.unit;
         } else {
@@ -93,7 +93,6 @@ export class StatefulCdsService {
         break;
       case 'boolean':
       default:
-        console.log(definition.id, resources.length)
         initialValue.value = !!resources.length
         initialValue.selected = definition.required ? definition.select[0] : undefined
     }

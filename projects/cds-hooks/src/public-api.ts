@@ -18,7 +18,7 @@ export class CdsHooksModule {
   static forRoot<T extends {resourceType: string, id?: string}>(config: CdsHooksServiceConfig<T>): ModuleWithProviders<CdsHooksModule> {
     return {
       ngModule: CdsHooksModule,
-      providers: [ CdsHooksService<T>, { provide: 'config', useValue: config } ]
+      providers: [ CdsHooksService<T>, { provide: 'cdsConfig', useValue: config } ]
     }
   }
 }

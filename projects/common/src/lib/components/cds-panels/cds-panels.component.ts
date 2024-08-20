@@ -49,4 +49,8 @@ export class CdsPanelsComponent {
   updateBooleanDate(definition: any, date: string) {
     this.cds.updateValue(definition.id, (current) => ({ ...current, date }))
   }
+
+  unknownSelection(definition: { id: string; value: Signal<any>; [p: string]: any }, code: string) {
+    return (code && !definition['select'].find((coding: fhir4.Coding) => coding.code === code))
+  }
 }

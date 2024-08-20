@@ -33,8 +33,6 @@ export class FormComponent implements OnInit, OnDestroy {
         this.valid = this.qrisk3Service
           .conceptDefinitions?.every(definition => !definition.required
             || state[definition.id].value?.value || state[definition.id].value?.code)
-        console.log(state)
-        console.log(this.statefulCdsService)
       },
       injector: this.injector,
       takeUntil: this.destroy$

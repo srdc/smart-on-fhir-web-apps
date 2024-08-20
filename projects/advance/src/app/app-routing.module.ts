@@ -1,10 +1,10 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import {smartHandlerRoutes} from "../../../smart-on-fhir/src/public-api";
+import {withSmartHandlerRoutes} from "smart-on-fhir";
 import {FormComponent} from "./form/form.component";
 import {ResultsComponent} from "./results/results.component";
 
-const routes: Routes = [
+const routes: Routes = withSmartHandlerRoutes([
   {
     path: '',
     component: FormComponent
@@ -12,9 +12,8 @@ const routes: Routes = [
   {
     path: 'results',
     component: ResultsComponent
-  },
-  ...smartHandlerRoutes('/', 'both')
-];
+  }
+], '/', 'both', true);
 
 @NgModule({
   imports: [RouterModule.forRoot(routes)],
