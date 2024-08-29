@@ -23,4 +23,4 @@ export class CdsHooksModule {
   }
 }
 
-export { CdsHooksService } from "./lib/cds-hooks.service"
+export { CdsHooksService, CdsHooksServiceConfig } from "./lib/cds-hooks.service"

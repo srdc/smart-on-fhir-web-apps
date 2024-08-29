@@ -1,0 +1,51 @@
+server {
+    listen       80;
+    # Placehoders
+    #	SERVER_NAME --> The Public Server Name according to the final deployment
+    # DOCKER_CONTAINER_HOST --> For other docker containers (sharing the network) to reach by using the container's host name
+    server_name  ${SERVER_NAME} ${DOCKER_CONTAINER_HOST};
+
+    # When accessing over a port, redirection can only work this way
+    server_name_in_redirect on;
+    root   /usr/share/nginx/html;
+    index  index.html index.htm;
+
+    client_max_body_size 25M;
+
+    #DNS resolver to Docker's Network DNS resolver (which is configured specifically or by running docker-compose)
+    #resolver 127.0.0.11;
+
+    #access_log  /var/log/nginx/log/host.access.log  main;
+
+    # Web Application Deployment
+    location ${SERVER_PATH}qrisk {
+        alias     /usr/share/nginx/html/smart-apps/qrisk2/browser/;
+        try_files $uri $uri/ ${SERVER_PATH}qrisk/index.html;
+    }
+
+    location ${SERVER_PATH}qrisk3 {
+        alias     /usr/share/nginx/html/smart-apps/qrisk3/browser/;
+        try_files $uri $uri/ ${SERVER_PATH}qrisk3/index.html;
+    }
+
+    location ${SERVER_PATH}score2 {
+        alias     /usr/share/nginx/html/smart-apps/score2/browser/;
+        try_files $uri $uri/ ${SERVER_PATH}score2/index.html;
+    }
+
+    location ${SERVER_PATH}advance {
+        alias     /usr/share/nginx/html/smart-apps/advance/browser/;
+        try_files $uri $uri/ ${SERVER_PATH}advance/index.html;
+    }
+
+    location ${SERVER_PATH}acc_aha {
+        alias     /usr/share/nginx/html/smart-apps/acc_aha/browser/;
+        try_files $uri $uri/ ${SERVER_PATH}acc_aha/index.html;
+    }
+
+    error_page   500 502 503 504  /50x.html;
+    location = /50x.html {
+        root   /usr/share/nginx/html;
+    }
+
+}

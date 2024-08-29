@@ -27,6 +27,9 @@ export interface LaunchClientConfig {
 }
 
 export interface SmartOnFhirConfig {
+  clientIds?: {[iss: string]: string};
+  clientId?: string;
+  redirectUrl?: string;
   loginClients?: LoginClientConfig[];
   launchClients?: LaunchClientConfig[];
 }

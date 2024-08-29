@@ -7,6 +7,8 @@ import { FormComponent } from './form/form.component';
 import { ResultsComponent } from './results/results.component';
 import {SmartCdsCommonModule} from "common";
 import {FormsModule} from "@angular/forms";
+import {environment} from "../environments/environment";
+
 
 @NgModule({
   declarations: [
@@ -17,7 +19,7 @@ import {FormsModule} from "@angular/forms";
   imports: [
     BrowserModule,
     AppRoutingModule,
-    SmartCdsCommonModule,
+    SmartCdsCommonModule.forRoot(environment),
     FormsModule
   ],
   providers: [],

@@ -1,6 +1,6 @@
-<router-outlet></router-outlet>
-<div *ngIf="patient" class="vh-100">
-  <div class="row w-100 m-auto h-100">
+<div class="vh-100">
+  <router-outlet></router-outlet>
+  <div class="row w-100 m-auto h-100" *ngIf="patient">
     <div class="col-lg-6 p-3 h-100 overflow-auto">
       @if (loadingPatientData) {
         <p *ngIf="loadingPatientData">

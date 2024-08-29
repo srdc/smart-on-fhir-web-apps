@@ -143,7 +143,11 @@
                   "maximumError": "4kb"
                 }
               ],
-              "outputHashing": "all"
+              "outputHashing": "all",
+              "fileReplacements": [{
+                "replace": "projects/acc_aha/src/environments/environment.ts",
+                "with": "projects/acc_aha/src/environments/environment-docker.ts"
+              }]
             },
             "development": {
               "optimization": false,
@@ -238,7 +242,11 @@
                   "maximumError": "4kb"
                 }
               ],
-              "outputHashing": "all"
+              "outputHashing": "all",
+              "fileReplacements": [{
+                "replace": "projects/score2/src/environments/environment.ts",
+                "with": "projects/score2/src/environments/environment-docker.ts"
+              }]
             },
             "development": {
               "optimization": false,
@@ -340,7 +348,11 @@
                   "maximumError": "4kb"
                 }
               ],
-              "outputHashing": "all"
+              "outputHashing": "all",
+              "fileReplacements": [{
+                "replace": "projects/qrisk2/src/environments/environment.ts",
+                "with": "projects/qrisk2/src/environments/environment-docker.ts"
+              }]
             },
             "development": {
               "optimization": false,
@@ -431,7 +443,11 @@
                   "maximumError": "4kb"
                 }
               ],
-              "outputHashing": "all"
+              "outputHashing": "all",
+              "fileReplacements": [{
+                "replace": "projects/advance/src/environments/environment.ts",
+                "with": "projects/advance/src/environments/environment-docker.ts"
+              }]
             },
             "development": {
               "optimization": false,
@@ -521,7 +537,11 @@
                   "maximumError": "4kb"
                 }
               ],
-              "outputHashing": "all"
+              "outputHashing": "all",
+              "fileReplacements": [{
+                "replace": "projects/qrisk3/src/environments/environment.ts",
+                "with": "projects/qrisk3/src/environments/environment-docker.ts"
+              }]
             },
             "development": {
               "optimization": false,

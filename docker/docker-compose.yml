@@ -1,0 +1,12 @@
+version: '3.0'
+
+services:
+  smart-apps:
+    image: srdc/smart-apps
+    container_name: smart-apps
+    environment:
+      - SERVER_NAME=localhost
+      - SERVER_PATH=/smart-apps/
+    ports:
+      - "4800:80"
+    restart: always
