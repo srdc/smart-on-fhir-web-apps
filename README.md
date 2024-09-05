@@ -7,7 +7,7 @@ If you don't have Angular CLI installed, check out the [Angular CLI Overview and
 Clone the project and install the npm dependencies:
 
 ```
-git clone https://github.com/bunyaminsg/smart-apps.git
+git clone https://github.com/srdc/smart-on-fhir-web-apps.git
 cd smart-apps
 npm install
 ```
@@ -33,7 +33,7 @@ service which allows storing and subscribing to states of CDS related data by us
 - **common**: A library for commonly used custom implementations with services and components. The `common` library imports `CDSHooksModule` and
 extends the `CDSHooksService` by custom methods commonly used in the child applications.
 
-And 5 applications which are the user interfaces for the CDS services implemented in [the smart-cds project](http://github.com/bunyaminsg/smart-cds):
+And 5 applications which are the user interfaces for the CDS services implemented in [the smart-cds project](https://github.com/srdc/smart-on-fhir-cds.git):
 - **acc_aha**: Interface for [ACC/AHA](https://www.acc.org/Guidelines) service
 - **advance**: Interface for [ADVANCE](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3902381/) service
 - **qrisk**: Interface for [QRISK2](https://qrisk.org/) service
