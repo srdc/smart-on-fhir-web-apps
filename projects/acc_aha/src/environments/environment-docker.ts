@@ -15,7 +15,7 @@ export const environment = {
         image: 'https://fhir.epic.com/Content/images/EpicOnFhir.png',
         iss: 'https://fhir.epic.com/interconnect-fhir-oauth/api/FHIR/R4/',
         redirectUri: appBaseUrl + '/callback',
-        clientId: '43a60ffa-242a-4bbe-bb17-97666be7189e',
+        clientId: '9dc58e42-28ea-446c-8a07-40b169a5b112',
         scope: 'launch launch/patient patient/*.*'
       }
     ],
