@@ -36,7 +36,7 @@ extends the `CDSHooksService` by custom methods commonly used in the child appli
 And 5 applications which are the user interfaces for the CDS services implemented in [the smart-cds project](https://github.com/srdc/smart-on-fhir-cds.git):
 - **acc_aha**: Interface for [ACC/AHA](https://www.acc.org/Guidelines) service
 - **advance**: Interface for [ADVANCE](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3902381/) service
-- **qrisk**: Interface for [QRISK2](https://qrisk.org/) service
+- **qrisk2**: Interface for [QRISK2](https://qrisk.org/) service
 - **qrisk3**: Interface for [QRISK3](https://qrisk.org/) service
 - **score2**: Interface for [SCORE2](https://www.escardio.org/Education/Practice-Tools/CVD-prevention-toolbox/SCORE-Risk-Charts) service
 
@@ -60,7 +60,7 @@ After building the libraries, run
 ng serve <application name>
 ```
 
-for a dev server (e.g. `ng serve qrisk`).
+for a dev server (e.g. `ng serve qrisk2`).
 
 Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
 
