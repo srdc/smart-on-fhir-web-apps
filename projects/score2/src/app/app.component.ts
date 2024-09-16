@@ -27,7 +27,6 @@ export class AppComponent implements OnDestroy {
   loadingPatientData: boolean = false;
   conceptDefinitions: { id: string, value: Signal<any>, [key: string]: any }[] = [];
 
-  private client: Client|undefined;
   private destroy$: Subject<void> = new Subject();
   private stateChanged$: Subject<any> = new Subject();
   indices: number[] | undefined;
@@ -43,7 +42,6 @@ export class AppComponent implements OnDestroy {
   }
 
   async ngOnInit() {
-    this.client = await FHIR.oauth2.ready()
     this.loadingPatientData = true;
     this.patient = await this.sof.getPatient()
     this.age = (new Date().getFullYear()) - (new Date(<string>this.patient.birthDate).getFullYear())
@@ -51,7 +49,7 @@ export class AppComponent implements OnDestroy {
       patient: this.patient,
       serviceId: 'score2',
       language: 'es',
-      client: this.client,
+      client: await this.sof.getClient(),
       onPrefetchStateChange: {
         callService: true,
         transformState: (state) => {
