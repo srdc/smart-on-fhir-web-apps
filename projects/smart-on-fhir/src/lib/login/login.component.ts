@@ -13,6 +13,7 @@ export class LoginComponent {
   }
 
   login(config: LoginClientConfig) {
+    sessionStorage.removeItem('launchUrl')
     FHIR.oauth2.authorize({
       iss: config.iss,
       redirectUri: config.redirectUri,
