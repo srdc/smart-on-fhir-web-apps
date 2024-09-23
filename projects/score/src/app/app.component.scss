@@ -4,6 +4,7 @@
     height: 2em;
     text-align: center;
     font-weight: bold;
+    border: .25em solid white;
     &.selected:before {
       display: block;
       position: absolute;
@@ -13,6 +14,7 @@
       height: 2em;
       border-radius: 100%;
       margin-top: -3px;
+      margin-left: -3px;
     }
     &.lvl-0 { background: #00a54f; }
     &.lvl-1 { background: #79c142; }

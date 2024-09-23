@@ -29,8 +29,8 @@ server {
     }
 
     location ${SERVER_PATH}score2 {
-        alias     /usr/share/nginx/html/smart-apps/score2/browser/;
-        try_files $uri $uri/ ${SERVER_PATH}score2/index.html;
+        alias     /usr/share/nginx/html/smart-apps/score/browser/;
+        try_files $uri $uri/ ${SERVER_PATH}score/index.html;
     }
 
     location ${SERVER_PATH}advance {

@@ -1,6 +1,6 @@
 @for (group of groupedConceptDefinitions | keyvalue; track $index) {
-  <div class="card mb-4">
-    <div class="card-header fw-bold">
+  <div class="shadow border border-0 card mb-4">
+    <div class="bg-secondary text-white card-header fw-bold">
       @switch (group.key) {
         @case ('Condition') { Conditions }
         @case ('MedicationStatement') { Medications }
@@ -36,8 +36,8 @@
               </div>
               <div class="col-6 col-xl-8">
                 <div class="input-group" style="min-width: 150px;">
-                  <input [attr.required]="definition['required']" class="form-control" type="number" [ngModel]="definition.value().value" (ngModelChange)="updateQuantityValue(definition, $event)">
-                  <span class="input-group-text" style="width: 80px;" *ngIf="definition['unit']">{{definition['unit']}}</span>
+                  <input [attr.required]="definition['required']" class="form-control shadow-none" type="number" [ngModel]="definition.value().value" (ngModelChange)="updateQuantityValue(definition, $event)">
+                  <span class="input-group-text bg-secondary text-secondary-text" style="width: 80px;" *ngIf="definition['unit']">{{definition['unit']}}</span>
                 </div>
               </div>
             </div>

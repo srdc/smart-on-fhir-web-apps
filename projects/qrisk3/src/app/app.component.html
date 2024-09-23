@@ -1,15 +1,16 @@
 <div class="vh-100">
   <div class="row w-100 m-auto h-100">
-    <div class="col-4 p-3 bg-light h-100 overflow-auto" *ngIf="patient">
-      <app-patient-info [patient]="patient" (logout)="patient = undefined"></app-patient-info>
-      <div class="danger-alert" *ngIf="ageValid != 0">
-        <div class="alert alert-danger" *ngIf="ageValid == 1">
-          <strong>Danger!</strong> QRisk3 works between the ages 24-85, so your age is estimated to be 25
+    <div class="col-4 p-0 bg-light h-100 overflow-auto" *ngIf="patient">
+      <app-patient-info [patient]="patient" (logout)="patient = undefined" title="QRISK3 Calculator">
+        <div class="danger-alert" *ngIf="ageValid != 0">
+          <div class="alert alert-danger" *ngIf="ageValid == 1">
+            QRisk3 works between the ages 24-85, so your age is estimated to be 25
+          </div>
+          <div class="alert alert-danger" *ngIf="ageValid == 2">
+            QRisk3 works between the ages 24-85, so your age is estimated to be 85
+          </div>
         </div>
-        <div class="alert alert-danger" *ngIf="ageValid == 2">
-          <strong>Danger!</strong> QRisk3 works between the ages 24-85, so your age is estimated to be 85
-        </div>
-      </div>
+      </app-patient-info>
     </div>
     <div class="col p-3 h-100 overflow-auto">
       <router-outlet></router-outlet>

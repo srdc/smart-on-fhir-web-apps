@@ -1,6 +1,6 @@
-<div class="bg-gradient bg-secondary login-container">
-  <div class="card w-25 m-auto">
-    <div class="card-header bg-light fw-bold text-center"><h4>Login via...</h4></div>
+<div class="bg-gradient login-container bg-dark">
+  <div class="shadow border border-0 card w-25 m-auto">
+    <div class="card-header fw-bold bg-secondary text-white text-center"><h4>Login via...</h4></div>
     <div class="card-body text-center">
       <!--    <h4>Login With:</h4>-->
       @for (client of config?.loginClients; track $index) {
@@ -18,7 +18,7 @@
             <img [src]="client.image" width="200px">
           </a>
         } @else {
-          <a class="btn fw-bold w-75" [ngStyle]="{background: client.background, color: client.color}" [href]="client.url">{{client.label}}</a>
+          <a class="btn btn-secondary fw-bold w-75" [href]="client.url">{{client.label}}</a>
         }
       }
     </div>

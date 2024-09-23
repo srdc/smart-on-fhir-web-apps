@@ -7,21 +7,30 @@ import {Router} from "@angular/router";
   styleUrls: ['./patient-info.component.css']
 })
 export class PatientInfoComponent {
-  @Input() patient: fhir4.Patient | undefined;
+
+  private _patient: fhir4.Patient | undefined;
+  @Input() set patient(value: fhir4.Patient | undefined) {
+    this._patient = value;
+    this.age = (new Date().getFullYear()) - (new Date(<string>this._patient?.birthDate).getFullYear())
+  }
+  get patient(): fhir4.Patient | undefined {
+    return this._patient;
+  }
+
   @Output() logout = new EventEmitter<void>();
   age: number = 0
   launchUrl = sessionStorage.getItem('launchUrl')
+  @Input() title: string|undefined;
 
   constructor(private router: Router) {
   }
 
   async ngOnInit() {
-    this.age = (new Date().getFullYear()) - (new Date(<string>this.patient?.birthDate).getFullYear())
   }
 
   onLogout() {
     sessionStorage.clear()
-    this.patient = undefined;
+    this._patient = undefined;
     this.router.navigate(['/login'])
     this.logout.emit();
   }

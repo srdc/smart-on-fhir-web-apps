@@ -124,8 +124,7 @@
               "projects/acc_aha/src/assets"
             ],
             "styles": [
-              "node_modules/bootstrap/dist/css/bootstrap.min.css",
-              "projects/acc_aha/src/styles.css"
+              "projects/acc_aha/src/styles.scss"
             ],
             "scripts": []
           },
@@ -196,105 +195,6 @@
         }
       }
     },
-    "score2": {
-      "projectType": "application",
-      "schematics": {
-        "@schematics/angular:component": {
-          "style": "scss"
-        }
-      },
-      "root": "projects/score2",
-      "sourceRoot": "projects/score2/src",
-      "prefix": "score2",
-      "architect": {
-        "build": {
-          "builder": "@angular-devkit/build-angular:application",
-          "options": {
-            "outputPath": "dist/score2",
-            "index": "projects/score2/src/index.html",
-            "browser": "projects/score2/src/main.ts",
-            "polyfills": [
-              "zone.js"
-            ],
-            "tsConfig": "projects/score2/tsconfig.app.json",
-            "inlineStyleLanguage": "scss",
-            "assets": [
-              "projects/score2/src/favicon.ico",
-              "projects/score2/src/assets"
-            ],
-            "styles": [
-              "node_modules/bootstrap/dist/css/bootstrap.min.css",
-              "projects/score2/src/styles.scss"
-            ],
-            "scripts": []
-          },
-          "configurations": {
-            "production": {
-              "budgets": [
-                {
-                  "type": "initial",
-                  "maximumWarning": "500kb",
-                  "maximumError": "1mb"
-                },
-                {
-                  "type": "anyComponentStyle",
-                  "maximumWarning": "2kb",
-                  "maximumError": "4kb"
-                }
-              ],
-              "outputHashing": "all",
-              "fileReplacements": [{
-                "replace": "projects/score2/src/environments/environment.ts",
-                "with": "projects/score2/src/environments/environment-docker.ts"
-              }]
-            },
-            "development": {
-              "optimization": false,
-              "extractLicenses": false,
-              "sourceMap": true
-            }
-          },
-          "defaultConfiguration": "production"
-        },
-        "serve": {
-          "builder": "@angular-devkit/build-angular:dev-server",
-          "configurations": {
-            "production": {
-              "buildTarget": "score2:build:production"
-            },
-            "development": {
-              "buildTarget": "score2:build:development"
-            }
-          },
-          "defaultConfiguration": "development"
-        },
-        "extract-i18n": {
-          "builder": "@angular-devkit/build-angular:extract-i18n",
-          "options": {
-            "buildTarget": "score2:build"
-          }
-        },
-        "test": {
-          "builder": "@angular-devkit/build-angular:karma",
-          "options": {
-            "polyfills": [
-              "zone.js",
-              "zone.js/testing"
-            ],
-            "tsConfig": "projects/score2/tsconfig.spec.json",
-            "inlineStyleLanguage": "scss",
-            "assets": [
-              "projects/score2/src/favicon.ico",
-              "projects/score2/src/assets"
-            ],
-            "styles": [
-              "projects/score2/src/styles.scss"
-            ],
-            "scripts": []
-          }
-        }
-      }
-    },
     "qrisk2": {
       "projectType": "application",
       "schematics": {
@@ -329,7 +229,6 @@
               "projects/qrisk2/src/assets"
             ],
             "styles": [
-              "node_modules/bootstrap/dist/css/bootstrap.min.css",
               "projects/qrisk2/src/styles.scss"
             ],
             "scripts": []
@@ -424,8 +323,7 @@
               "projects/advance/src/assets"
             ],
             "styles": [
-              "node_modules/bootstrap/dist/css/bootstrap.min.css",
-              "projects/advance/src/styles.css"
+              "projects/advance/src/styles.scss"
             ],
             "scripts": []
           },
@@ -518,8 +416,7 @@
               "projects/qrisk3/src/assets"
             ],
             "styles": [
-              "node_modules/bootstrap/dist/css/bootstrap.min.css",
-              "projects/qrisk3/src/styles.css"
+              "projects/qrisk3/src/styles.scss"
             ],
             "scripts": []
           },
@@ -584,6 +481,111 @@
             "styles": [
               "node_modules/bootstrap/dist/css/bootstrap.min.css",
               "projects/qrisk3/src/styles.css"
+            ],
+            "scripts": []
+          }
+        }
+      }
+    },
+    "score": {
+      "projectType": "application",
+      "schematics": {
+        "@schematics/angular:component": {
+          "style": "scss",
+          "standalone": false
+        },
+        "@schematics/angular:directive": {
+          "standalone": false
+        },
+        "@schematics/angular:pipe": {
+          "standalone": false
+        }
+      },
+      "root": "projects/score",
+      "sourceRoot": "projects/score/src",
+      "prefix": "app",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-angular:application",
+          "options": {
+            "outputPath": "dist/score",
+            "index": "projects/score/src/index.html",
+            "browser": "projects/score/src/main.ts",
+            "polyfills": [
+              "zone.js"
+            ],
+            "tsConfig": "projects/score/tsconfig.app.json",
+            "inlineStyleLanguage": "scss",
+            "assets": [
+              "projects/score/src/favicon.ico",
+              "projects/score/src/assets"
+            ],
+            "styles": [
+              "projects/score/src/styles.scss"
+            ],
+            "scripts": []
+          },
+          "configurations": {
+            "production": {
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "500kb",
+                  "maximumError": "1mb"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "2kb",
+                  "maximumError": "4kb"
+                }
+              ],
+              "outputHashing": "all",
+              "fileReplacements": [{
+                "replace": "projects/score/src/environments/environment.ts",
+                "with": "projects/score/src/environments/environment-docker.ts"
+              }]
+            },
+            "development": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "serve": {
+          "builder": "@angular-devkit/build-angular:dev-server",
+          "configurations": {
+            "production": {
+              "buildTarget": "score:build:production"
+            },
+            "development": {
+              "buildTarget": "score:build:development"
+            }
+          },
+          "defaultConfiguration": "development"
+        },
+        "extract-i18n": {
+          "builder": "@angular-devkit/build-angular:extract-i18n",
+          "options": {
+            "buildTarget": "score:build"
+          }
+        },
+        "test": {
+          "builder": "@angular-devkit/build-angular:karma",
+          "options": {
+            "polyfills": [
+              "zone.js",
+              "zone.js/testing"
+            ],
+            "tsConfig": "projects/score/tsconfig.spec.json",
+            "inlineStyleLanguage": "scss",
+            "assets": [
+              "projects/score/src/favicon.ico",
+              "projects/score/src/assets"
+            ],
+            "styles": [
+              "projects/score/src/styles.scss"
             ],
             "scripts": []
           }

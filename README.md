@@ -38,7 +38,7 @@ And 5 applications which are the user interfaces for the CDS services implemente
 - **advance**: Interface for [ADVANCE](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3902381/) service
 - **qrisk2**: Interface for [QRISK2](https://qrisk.org/) service
 - **qrisk3**: Interface for [QRISK3](https://qrisk.org/) service
-- **score2**: Interface for [SCORE2](https://www.escardio.org/Education/Practice-Tools/CVD-prevention-toolbox/SCORE-Risk-Charts) service
+- **score**: Interface for [SCORE2](https://www.escardio.org/Education/Practice-Tools/CVD-prevention-toolbox/SCORE-Risk-Charts) service
 
 Even the application codes are simple and similar, the Angular Monorepo architecture is chosen so the service interfaces can be deployed as separate applications.
 
@@ -174,7 +174,7 @@ call ng build qrisk2 --configuration production --base-href /smart-apps/qrisk/ -
 call ng build qrisk3 --configuration production --base-href /smart-apps/qrisk3/ --deploy-url /smart-apps/qrisk3/
 call ng build advance --configuration production --base-href /smart-apps/advance/ --deploy-url /smart-apps/advance/
 call ng build acc_aha --configuration production --base-href /smart-apps/acc_aha/ --deploy-url /smart-apps/acc_aha/
-call ng build score2 --configuration production --base-href /smart-apps/score2/ --deploy-url /smart-apps/score2/
+call ng build score --configuration production --base-href /smart-apps/score2/ --deploy-url /smart-apps/score2/
 ```
 
 Then, build the docker image:

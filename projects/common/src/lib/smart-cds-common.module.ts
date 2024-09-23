@@ -5,6 +5,7 @@ import {CdsPanelsComponent, PatientInfoComponent} from "./components";
 import {FormsModule} from "@angular/forms";
 import {JsonPipe, KeyValuePipe, NgForOf, NgIf} from "@angular/common";
 import {CdsDataService, StatefulCdsService} from "./services";
+import {RouterModule} from "@angular/router";
 
 /**
  * Will be replaced with FHIR path sorting
@@ -41,7 +42,8 @@ const sorting = {
     KeyValuePipe,
     NgForOf,
     JsonPipe,
-    NgIf
+    NgIf,
+    RouterModule
   ],
   exports: [
     CdsPanelsComponent,

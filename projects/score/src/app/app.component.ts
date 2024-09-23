@@ -1,18 +1,11 @@
-import {Component, Injector, OnDestroy, Provider, Signal} from '@angular/core';
-import {Router, RouterOutlet} from '@angular/router';
-import Client from "fhirclient/lib/Client";
+import {Component, Injector, OnDestroy, Signal} from '@angular/core';
+import {Router} from '@angular/router';
 import {Subject} from "rxjs";
-import * as FHIR from "fhirclient";
-import {CdsUtils, SmartCdsCommonModule, StatefulCdsService} from "common";
+import {CdsUtils, StatefulCdsService} from "common";
 import {SmartOnFhirService} from "smart-on-fhir";
-import {NgClass, NgIf, NgStyle} from "@angular/common";
-import {environment} from "../environments/environment";
 
 @Component({
-  selector: 'score2-root',
-  standalone: true,
-  imports: [RouterOutlet, NgIf, SmartCdsCommonModule, NgStyle, NgClass],
-  providers: [<Provider[]>SmartCdsCommonModule.forRoot(environment).providers],
+  selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })

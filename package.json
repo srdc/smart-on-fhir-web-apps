@@ -5,7 +5,7 @@
     "ng": "ng",
     "start": "ng serve",
     "start-qrisk2": "ng serve qrisk2",
-    "start-score2": "ng serve score2",
+    "start-score2": "ng serve score",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
@@ -21,6 +21,7 @@
     "@angular/platform-browser-dynamic": "^17.3.0",
     "@angular/router": "^17.3.0",
     "bootstrap": "^5.3.3",
+    "bootstrap-icons": "^1.11.3",
     "fhirclient": "^2.5.3",
     "fhirpath": "^3.13.4",
     "rxjs": "~7.8.0",

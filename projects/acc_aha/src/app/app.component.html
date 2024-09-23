@@ -1,21 +1,22 @@
 <div class="vh-100">
   <div class="row w-100 m-auto h-100">
-    <div class="col-4 p-3 bg-light h-100 overflow-auto" *ngIf="patient">
-      <app-patient-info [patient]="patient" (logout)="patient = undefined"></app-patient-info>
-      <div *ngIf="!ageValid">
-        <div class="card mt-2">
-          <div class="card-header fw-bold bg-warning text-dark">Invalid Age</div>
-          <div class="card-body">
-            <p>
-              The 10-year risk estimation requires an age range of 40 to 79.
-              For purposes of calculation, age of the patient has been cast to
-              <span *ngIf="age < 40">40 years old</span>
-              <span *ngIf="age > 79">79 years old</span>
-              ; however, this risk assessment may be less accurate.
-            </p>
+    <div class="col-4 p-0 bg-light h-100 overflow-auto" *ngIf="patient">
+      <app-patient-info title="ACC/AHA Calculator" [patient]="patient" (logout)="patient = undefined">
+        <div *ngIf="!ageValid">
+          <div class="card mt-2">
+            <div class="card-header fw-bold bg-warning text-dark">Invalid Age</div>
+            <div class="card-body">
+              <p>
+                The 10-year risk estimation requires an age range of 40 to 79.
+                For purposes of calculation, age of the patient has been cast to
+                <span *ngIf="age < 40">40 years old</span>
+                <span *ngIf="age > 79">79 years old</span>
+                ; however, this risk assessment may be less accurate.
+              </p>
+            </div>
           </div>
         </div>
-      </div>
+      </app-patient-info>
     </div>
     <div class="col p-3 h-100 overflow-auto">
       <router-outlet></router-outlet>
