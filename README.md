@@ -14,7 +14,7 @@ npm install
 
 ## Live Demo
 
-Visit the live demo at [SRDC deployment](https://kroniq.srdc.com.tr/smart-apps/qrisk3/login).
+Visit the live demo at [SRDC deployment](https://kroniq.srdc.com.tr/smart-apps/qrisk3/login) or try EHR launch from the [SMART App Gallery](https://apps.smarthealthit.org/app/srdc-qrisk2).
 
 You can use the different login options provided. For epic, use the test practitioner account and example patients specified in their [docs](https://fhir.epic.com/Documentation?docId=testpatients).
 
