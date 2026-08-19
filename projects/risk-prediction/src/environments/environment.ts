@@ -31,6 +31,10 @@ export const environment = {
         scope: 'profile openid email roles offline_access launch/patient user/*.* patient/*.*',
         aud: 'fhir-repo',
         promptLogin: true,
+        interventions: {
+          relatedObservationMethod: '_source',
+          value: 'http://stage-healthyageing.eu/data-source/LIVA'
+        },
         // logoutUri: 'http://127.0.0.1:8091/api/smart/logout?post_logout_redirect_uri=' + appBaseUrl + '/login'
       }
     ],

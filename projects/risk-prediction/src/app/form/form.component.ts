@@ -1,7 +1,6 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import type * as fhir4 from "fhir/r4";
 import { CdsHooksService } from 'cds-hooks';
 import { SmartOnFhirService } from "ng-smart-on-fhir";
 import {MenuService} from "../menu.service";
@@ -73,7 +72,8 @@ export class FormComponent implements OnInit, OnDestroy {
 
   private async loadQuestionnaire(): Promise<void> {
     return new Promise((resolve, reject) => {
-      this.http.get('assets/lr_questionnaire.json').subscribe({
+      this.http.get('http://localhost:8085/onfhir-feast/api/definition/FeatureSet/stage_wp6_features/$as-questionnaire?outcome=false')
+        .subscribe({
         next: (q: any) => {
           this.questionnaire = <fhir4.Questionnaire>q;
           this.groups = q.item;
@@ -111,10 +111,10 @@ export class FormComponent implements OnInit, OnDestroy {
         },
         prefetch: {
           patient: this.patient,
-          questionnaire: <fhir4.Bundle>{
-            resourceType: 'Bundle',
-            entry: [{ resource: this.questionnaire, search: { mode: 'match' } }]
-          }
+          // questionnaire: <fhir4.Bundle>{
+          //   resourceType: 'Bundle',
+          //   entry: [{ resource: this.questionnaire, search: { mode: 'match' } }]
+          // }
         }
       });
 

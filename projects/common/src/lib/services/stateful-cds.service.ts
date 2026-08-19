@@ -44,7 +44,7 @@ export class StatefulCdsService {
         const query = cdsDefinition.prefetch[conceptId]
           && cdsDefinition.prefetch[conceptId].replaceAll("{{context.patientId}}", options.patient?.id);
         const bundle = query ?
-          await this.sof.request<fhir4.Resource>(query).catch(err => ({ entry: [] })) : { entry: [] }
+          await this.sof.query<fhir4.Resource>(query).catch(err => ({ entry: [] })) : { entry: [] }
         const importedResources = await this.queryImportedResources(definition.resourceType, query)
         const resources: fhir4.Resource[] = importedResources.concat(
           bundle.entry?.filter(entry => entry.resource?.resourceType === definition.resourceType)

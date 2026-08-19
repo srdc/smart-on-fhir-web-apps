@@ -55,10 +55,10 @@
       <div class="row">
         <div class="col-md-6">
           <h5>Disease Risks</h5>
-          <c-chart style="max-width: 600px; margin: auto" type="radar" [data]="chartData" [options]="chartOptions"></c-chart>
+          <canvas baseChart style="max-width: 600px; margin: auto" type="radar" [data]="chartData" [options]="chartOptions"></canvas>
         </div>
         <div class="col-md-6">
-          <div class="alert alert-info">
+          <div class="alert alert-info small">
             <p>This radar chart presents the patient’s estimated risk levels (%) across multiple chronic conditions, calculated by the STAGE algorithms.
               Each axis represents a specific disease area, and the distance from the center indicates the relative risk magnitude.</p>
             <p>The predictions are as following:</p>
@@ -119,7 +119,7 @@
             <div>
               <h5 class="text-center mb-2">Beeswarm Plot</h5>
               <img [src]="'assets/beeswarm/' + disease.disease + '_beeswarm.png'" style="cursor:pointer;width: 100%; max-width: 600px"
-                   (click)="imageDisplay.src = ('assets/' + disease.disease + '.png')"
+                   (click)="imageDisplay.src = ('assets/beeswarm/' + disease.disease + '_beeswarm.png')"
                    data-bs-toggle="modal" data-bs-target="#imageModal">
               <p class="text-light-emphasis text-center" style="font-size: .6em">Click on image to enlarge</p>
             </div>
@@ -133,7 +133,7 @@
           <div class="col-sm-12 col-md-6 d-flex align-items-center justify-content-center">
             <div style="width: 100%; max-width: 600px">
               <h5 class="text-center mb-2">Waterfall Plot</h5>
-              <c-chart type="bar" [options]="waterfallChartOptions" [data]="waterfallChartData[disease.disease]"></c-chart>
+              <canvas baseChart type="bar" [options]="waterfallChartOptions" [data]="waterfallChartData[disease.disease]"></canvas>
             </div>
           </div>
           <div class="col-sm-12 col-md-6">

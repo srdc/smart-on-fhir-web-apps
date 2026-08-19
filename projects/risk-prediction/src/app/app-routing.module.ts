@@ -5,6 +5,8 @@ import {FormComponent} from "./form/form.component";
 import {ResultsComponent} from "./results/results.component";
 import {environment} from "../environments/environment";
 import {PatientSummaryComponent} from "./patient-summary/patient-summary.component";
+import {InterventionsComponent} from "./interventions/interventions.component";
+import {CarePlanComponent} from "./care-plan/care-plan.component";
 
 //const routes: Routes = [{ path: '', component: FormComponent },];
 const routes: Routes = [
@@ -20,6 +22,14 @@ const routes: Routes = [
     {
       path: 'results',
       component: ResultsComponent
+    },
+    {
+      path: 'interventions',
+      component: InterventionsComponent
+    },
+    {
+      path: 'intervention-plan',
+      component: CarePlanComponent
     }
   ], '/summary', 'both', true, environment.smart.shcLoginEnabled),
   {

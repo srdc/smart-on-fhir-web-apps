@@ -1,0 +1,81 @@
+<div class="grid">
+  <div class="row">
+    <h2 class="mb-4">Modifiable Risk Factors</h2>
+    @if (loadingRiskFactors) {
+      <div class="spinner-border me-2"></div> Detecting risk factors...
+    } @else {
+      @if (modifiableRiskFactors?.length) {
+        @for (mrf of modifiableRiskFactors; track $index) {
+          <div class="col-12 col-xl-6 mb-2">
+            <div class="card bg-white">
+              <div class="card-header bg-white text-primary">
+                <h5 class="card-title">{{mrf.disease}}</h5>
+              </div>
+              <div class="card-body">
+                @for (riskFactor of mrf.riskFactors; track $index) {
+                  <div class="d-flex align-items-center gap-4 mb-1">
+                    <!--                <img width="40em" [src]="'assets/interventions/' + riskFactor.id + '.png'">-->
+                    <img class="mrf-icon" [src]="'assets/interventions/' + riskFactor.id + '.png'">
+                    <span>{{riskFactor.label}}</span>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        }
+      } @else {
+        <div class="alert alert-info">Could not found any modifiable factors</div>
+      }
+    }
+  </div>
+  <div class="row">
+    <h2 class="mb-4 mt-2">Intervention Planning</h2>
+    @if (loadingInterventions) {
+      <div class="spinner-border me-2"></div> Suggesting interventions...
+    } @else {
+      @if (interventions?.length) {
+        @for (intervention of interventions; track $index) {
+          <div class="col-12 col-lg-6 col-xl-4 mb-2">
+            <div class="card bg-white h-100"
+                 [ngClass]="{'selected border-secondary': intervention.selected || (intervention.existing && ['active', 'accepted', 'proposed'].includes(intervention.existing.lifecycleStatus))}">
+              <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between gap-4 form-control border-0 bg-white">
+                  <div>
+                    <h5>{{intervention.label}}</h5>
+                    @if (intervention.existing && ['active', 'accepted', 'proposed'].includes(intervention.existing.lifecycleStatus)) {
+                      <div class="text-secondary">
+                        {{intervention.goal.description.text}}
+                        <br>
+                        <i class="bi bi-check-circle-fill"></i> {{intervention.existing.lifecycleStatus | goalAcceptanceStatus}}
+                      </div>
+                    } @else {
+                      <div>
+                        <input [(ngModel)]="intervention.selected" [id]="intervention.id" type="checkbox" class="me-2">
+                        <label [for]="intervention.id">{{intervention.goal.description.text}}</label>
+                        @if (intervention.existing && intervention.existing.lifecycleStatus === 'rejected') {
+                          <div class="text-danger"><i class="bi-x-circle-fill"></i> Rejected on {{intervention.existing.statusDate | date:'dd-MM-yyyy'}}</div>
+                        }
+                      </div>
+                    }
+                  </div>
+                  <img class="intervention-icon" [src]="'assets/interventions/' + intervention.id + '.png'">
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+        <div class="col-12 text-center mt-2">
+          <button [class.disabled]="!interventions.some(selectedFn)" (click)="suggestInterventions()"
+                  class="btn w-50 btn-secondary text-light mb-2">Suggest Interventions</button>
+          @if (error) {
+            <div class="alert alert-danger mt-2 mb-2">{{error}}</div>
+          } @else if (success) {
+            <div class="alert alert-success mt-2 mb-2">{{success}}</div>
+          }
+        </div>
+      } @else {
+        <div class="alert alert-info">Could not found any intervention suggestions</div>
+      }
+    }
+  </div>
+</div>

@@ -29,7 +29,11 @@ export const environment = {
         scope: 'profile openid email roles offline_access launch/patient user/*.* patient/*.*',
         aud: 'fhir-repo',
         promptLogin: true,
-        logoutUri: 'https://kroniq.srdc.com.tr/onauth/api/adlife/logout?post_logout_redirect_uri=' + appBaseUrl + '/login'
+        logoutUri: 'https://kroniq.srdc.com.tr/onauth/api/adlife/logout?post_logout_redirect_uri=' + appBaseUrl + '/login',
+        interventions: {
+          relatedObservationMethod: '_source',
+          value: 'http://stage-healthyageing.eu/data-source/LIVA'
+        }
       }
     ],
     launchClients: [

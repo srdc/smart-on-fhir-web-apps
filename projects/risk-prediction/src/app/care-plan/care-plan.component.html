@@ -1,0 +1,121 @@
+<div class="grid">
+  <div class="row">
+    <div class="col-12 col-lg-6 p-2">
+      <div class="card bg-white w-100 overflow-hidden h-100">
+        <div class="card-header bg-white">
+          <h5>Active Interventions</h5>
+        </div>
+        <div class="card-body p-0">
+          <table class="table table-white mb-0">
+            <thead>
+            <tr>
+              <th>Name</th>
+              <th>Target</th>
+            </tr>
+            </thead>
+            <tbody>
+              @for (goal of interventionService.goalsByStatus['active']; track goal.id) {
+                <tr>
+                  <td>
+                    {{goal.target?.at(0)?.measure?.text || goal.target?.at(0)?.measure?.coding?.at(0)?.display || goal.description?.text}}
+                  </td>
+                  <td>
+                    @if (goal.target?.at(0)?.detailQuantity) {
+                      {{goal.target?.at(0)?.detailQuantity?.value}} {{goal.target?.at(0)?.detailQuantity?.unit || goal.target?.at(0)?.detailQuantity?.code}}
+                    } @else if (goal.target?.at(0)?.detailRange) {
+                      @if (goal.target?.at(0)?.detailRange?.high) {
+                        &lt; {{goal.target?.at(0)?.detailRange?.high?.value}} {{goal.target?.at(0)?.detailRange?.high?.unit || goal.target?.at(0)?.detailRange?.high?.code}}<br>
+                      }
+                      @if (goal.target?.at(0)?.detailRange?.low) {
+                        &gt; {{goal.target?.at(0)?.detailRange?.low?.value}} {{goal.target?.at(0)?.detailRange?.low?.unit || goal.target?.at(0)?.detailRange?.low?.code}}
+                      }
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-lg-6 p-2">
+      <div class="card bg-white w-100 overflow-hidden">
+        <div class="card-header bg-white">
+          <h5>Suggested Interventions</h5>
+        </div>
+        <div class="card-body p-0">
+          <table class="table table-white mb-0">
+            <thead>
+            <tr>
+              <th>Name</th>
+              <th>Status</th>
+            </tr>
+            </thead>
+            <tbody>
+              @for (goal of interventionService.goals; track goal.id) {
+                <tr>
+                  <td>
+                    {{goal.target?.at(0)?.measure?.text || goal.target?.at(0)?.measure?.coding?.at(0)?.display || goal.description?.text}}
+                    @if (goal.target?.at(0)?.detailQuantity) {
+                      <div class="text-small text-muted fst-italic"><b>Target:</b> {{goal.target?.at(0)?.detailQuantity?.value}} {{goal.target?.at(0)?.detailQuantity?.unit || goal.target?.at(0)?.detailQuantity?.code}}</div>
+                    } @else if (goal.target?.at(0)?.detailRange) {
+                      <div class="text-small text-muted fst-italic">
+                        <b>Target:</b>
+                        @if (goal.target?.at(0)?.detailRange?.high) {
+                          &lt; {{goal.target?.at(0)?.detailRange?.high?.value}} {{goal.target?.at(0)?.detailRange?.high?.unit || goal.target?.at(0)?.detailRange?.high?.code}}<br>
+                        }
+                        @if (goal.target?.at(0)?.detailRange?.low) {
+                          &gt; {{goal.target?.at(0)?.detailRange?.low?.value}} {{goal.target?.at(0)?.detailRange?.low?.unit || goal.target?.at(0)?.detailRange?.low?.code}}
+                        }
+                      </div>
+                    }
+                  </td>
+                  <td [ngClass]="{ 'text-warning': goal.lifecycleStatus === 'proposed', 'text-danger': goal.lifecycleStatus === 'rejected', 'text-success': goal.lifecycleStatus === 'active' }">
+                    <div class="d-flex align-items-center gap-2">
+                      <i class="bi" [ngClass]="{ 'bi-hourglass-split': goal.lifecycleStatus === 'proposed', 'bi-x-circle-fill': goal.lifecycleStatus === 'rejected', 'bi-check-circle-fill': goal.lifecycleStatus === 'active' }"></i>
+                      <div class="d-flex flex-column">
+                        <div>{{goal.lifecycleStatus | goalAcceptanceStatus}}</div>
+                        <div class="text-small">{{goal.statusDate | date: 'dd-MM-yyyy'}}</div>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-12">
+      <div class="card bg-white w-100 overflow-hidden">
+        <div class="card-header bg-white">
+          <h5>Related Measurements</h5>
+        </div>
+        <div class="card-body p-0">
+          <table class="table table-white mb-0">
+            <thead>
+            <tr>
+              <th>Name</th>
+              <th class="w-25">History</th>
+              <th>Latest</th>
+            </tr>
+            </thead>
+            <tbody>
+              @for (observation of interventionService.observationMap | keyvalue; track observation.key) {
+                <tr>
+                  <td>{{interventionService.observationNameMap[observation.key]}}</td>
+                  <td>
+                    <rp-observation-row-chart [observations]="observation.value"></rp-observation-row-chart>
+                  </td>
+                  <td>{{observation.value[0].valueQuantity?.value}} {{observation.value[0].valueQuantity?.unit || observation.value[0].valueQuantity?.code}}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

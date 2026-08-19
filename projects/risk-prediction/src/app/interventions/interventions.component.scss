@@ -1,0 +1,13 @@
+.mrf-icon {
+  width: 3em;
+  height: 3em;
+}
+
+.intervention-icon {
+  width: 3em;
+  height: 3em;
+}
+
+.card:not(.selected):not(:hover) .intervention-icon {
+  opacity: 0.25;
+}

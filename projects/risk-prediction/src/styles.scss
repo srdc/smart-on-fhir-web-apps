@@ -30,6 +30,22 @@
   @extend .border-1;
 }
 
-@import "../../../node_modules/@coreui/coreui/dist/css/themes/bootstrap/bootstrap.css";
-@import "../../../node_modules/@coreui/coreui/dist/css/coreui.min.css";
-@import "../../../node_modules/@coreui/chartjs/dist/css/coreui-chartjs.min.css";
+.table-white {
+  background: #ffffff;
+  //& > thead, & > thead tr, & > tbody, & > tbody tr {
+  th {
+    background: var(--bs-light) !important;
+  }
+  td {
+    background: #ffffff !important;
+    color: var(--bs-emphasis-color);
+  }
+}
+
+.text-small {
+  font-size: .8rem !important;
+}
+
+.text-muted {
+  color: var(--stage-muted) !important;
+}

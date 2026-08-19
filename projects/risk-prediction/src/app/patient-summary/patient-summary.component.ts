@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { SmartOnFhirService } from 'ng-smart-on-fhir';
-import moment from 'moment';
+import format from 'date-fns/format';
+import isValid from 'date-fns/is_valid';
 
 interface SidebarRow {
   label: string;
@@ -309,11 +310,11 @@ export class PatientSummaryComponent implements OnInit {
   private formatDate(dateStr?: string): string {
     if (!dateStr) return '';
 
-    const strict = moment(dateStr, moment.ISO_8601, true);
-    if (strict.isValid()) return strict.format(PatientSummaryComponent.DATE_FMT);
+    const date = new Date(dateStr);
 
-    const loose = moment(dateStr);
-    return loose.isValid() ? loose.format(PatientSummaryComponent.DATE_FMT) : '';
+    return isValid(date)
+      ? format(date, 'dd/MM/yyyy')
+      : '';
   }
 
   /** ---------- Builders ---------- */

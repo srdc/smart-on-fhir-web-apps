@@ -11,11 +11,10 @@ import {MenuService} from "./menu.service";
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })
-
-
 export class AppComponent extends CdsBaseComponent implements CDSInitializer {
   override serviceName = environment.cds.serviceName;
   sidebarRows: any[] = [];
+  loadingError?: string;
 
   constructor(override cdsDataService: CdsDataService, override sof: SmartOnFhirService, override injector: Injector,
               override cdsService: StatefulCdsService, public menuService: MenuService) {
@@ -23,10 +22,9 @@ export class AppComponent extends CdsBaseComponent implements CDSInitializer {
   }
 
   override async ngOnInit() {
-    console.log('Service name:', this.serviceName);
-    console.log('Environment:', environment.cds);
-
-    await super.ngOnInit();
+    super.ngOnInit().catch((err: any) => {
+      this.loadingError = err.message || err.toString()
+    });
     this.prepareSidebarData();
   }
 
@@ -46,29 +44,29 @@ export class AppComponent extends CdsBaseComponent implements CDSInitializer {
     return age;
   }
 
-  private prepareSidebarData() {
-    if (!this.patient) return;
-
+  private async prepareSidebarData() {
+    const patient = await this.sof.getPatient();
+    if (!patient) return;
     this.sidebarRows = [
       {
         label: 'Name',
-        value: this.patient.name?.[0]?.given?.join(' ') + ' ' + this.patient.name?.[0]?.family || 'N/A'
+        value: patient.name?.[0]?.given?.join(' ') + ' ' + patient.name?.[0]?.family || 'N/A'
       },
       {
         label: 'Gender',
-        value: this.patient.gender || 'N/A'
+        value: patient.gender || 'N/A'
       },
       {
         label: 'Birth Date',
-        value: this.patient.birthDate || 'N/A'
+        value: patient.birthDate || 'N/A'
       },
       {
         label: 'Age',
-        value: this.calculateAge(this.patient.birthDate)?.toString() || 'N/A'
+        value: this.calculateAge(patient.birthDate)?.toString() || 'N/A'
       },
       {
         label: 'Patient ID',
-        value: this.patient.id || 'N/A'
+        value: patient.id || 'N/A'
       }
     ];
   }

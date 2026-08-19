@@ -8,7 +8,8 @@
     (logout)="logout()"
     [tabs]="[
       { label: 'Summary', link: '/summary' },
-      { label: 'Risks', link: '/form', active: true }
+      { label: 'Risks', link: '/form', active: true },
+      { label: 'Interventions', link: '/intervention-plan' }
     ]">
   </ui-header>
 
@@ -41,6 +42,9 @@
 
     <!-- MAIN CONTENT (router-outlet) -->
     <div [ngClass]="patient ? 'col-12 col-lg-9' : 'col-12'" class="p-4 h-100 overflow-auto">
+      @if (loadingError) {
+        <div class="alert alert-danger">{{loadingError}}</div>
+      }
       <router-outlet></router-outlet>
     </div>
 

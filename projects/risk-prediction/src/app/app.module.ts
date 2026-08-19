@@ -7,24 +7,23 @@ import { FormComponent } from './form/form.component';
 import {SmartCdsCommonModule} from "common";
 import {FormsModule} from "@angular/forms";
 import {environment} from "../environments/environment";
-import {TranslateLoader, TranslateModule} from '@ngx-translate/core';
 import {HttpClient, HttpClientModule} from "@angular/common/http";
-import {TranslateHttpLoader} from "@ngx-translate/http-loader";
 import {QuestionComponent} from "./question/question.component";
 import { ResultsComponent } from './results/results.component';
 import {ProgressCircleModule, SidebarModule, SummaryPanelModule, HeaderModule} from "ui-components";
-import {ChartjsModule} from "@coreui/angular-chartjs";
 import { ChatbotComponent } from './chatbot/chatbot.component';
 import {MenuService} from "./menu.service";
 import {PatientSummaryComponent} from "./patient-summary/patient-summary.component";
 import {NgxPaginationModule} from "ngx-pagination";
 import {HistorySettingsComponent} from "./patient-summary/history/history-settings.component";
 import {PatientHistoryComponent} from "./patient-summary/history/patient-history.component";
-
-
-export function HttpLoaderFactory(http: HttpClient) {
-  return new TranslateHttpLoader(http, './assets/i18n/', '.json');
-}
+import {BaseChartDirective, provideCharts, withDefaultRegisterables} from 'ng2-charts';
+import { InterventionsComponent } from './interventions/interventions.component';
+import {
+  CarePlanComponent,
+  GoalAcceptanceStatusPipe,
+  ObservationRowChartComponent
+} from './care-plan/care-plan.component';
 
 @NgModule({
   declarations: [
@@ -35,7 +34,11 @@ export function HttpLoaderFactory(http: HttpClient) {
     ChatbotComponent,
     HistorySettingsComponent,
     PatientHistoryComponent,
-    PatientSummaryComponent
+    PatientSummaryComponent,
+    InterventionsComponent,
+    CarePlanComponent,
+    GoalAcceptanceStatusPipe,
+    ObservationRowChartComponent
   ],
   imports: [
     BrowserModule,
@@ -43,21 +46,14 @@ export function HttpLoaderFactory(http: HttpClient) {
     SmartCdsCommonModule.forRoot(environment),
     FormsModule,
     HttpClientModule,
-    ChartjsModule,
+    BaseChartDirective,
     ProgressCircleModule,
     NgxPaginationModule,
-    TranslateModule.forRoot({
-      loader: {
-        provide: TranslateLoader,
-        useFactory: HttpLoaderFactory,
-        deps: [HttpClient]
-      }
-    }),
     SidebarModule,
     HeaderModule,
     SummaryPanelModule,
   ],
-  providers: [MenuService],
+  providers: [MenuService, provideCharts(withDefaultRegisterables())],
   bootstrap: [AppComponent],
 
 })

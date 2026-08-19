@@ -17,6 +17,7 @@ interface DiseaseRisk {
   riskScore: number;
   shapFeatures: ShapFeature[];
   expanded: boolean;
+  baseline: number;
 }
 
 interface SummaryItem {
@@ -65,9 +66,9 @@ export class ResultsComponent implements OnInit, OnDestroy {
   waterfallChartOptions: ChartOptions = {
     aspectRatio: 1,
     indexAxis: 'y', // <-- makes it horizontal
-    backgroundColor: (ctx: any) => ctx.raw >= 0 ? '#0d6efdaa' : '#fd7e14aa',
-    hoverBackgroundColor: (ctx: any) => ctx.raw >= 0 ? '#0d6efd' : '#fd7e14',
-    borderColor: (ctx: any) => ctx.raw >= 0 ? '#0d6efd' : '#fd7e14',
+    backgroundColor: (ctx: any) => ctx.raw >= 0 ? '#ff0051' : '#56b2fc',
+    hoverBackgroundColor: (ctx: any) => ctx.raw >= 0 ? '#b1033b' : '#018bfb',
+    borderColor: (ctx: any) => ctx.raw >= 0 ? '#b1033b' : '#018bfb',
     plugins: {
       legend: {
         display: true,
@@ -77,13 +78,13 @@ export class ResultsComponent implements OnInit, OnDestroy {
             return [
               {
                 text: 'Increasing Factors',
-                fillStyle: '#0d6efd',
-                strokeStyle: '#0d6efd'
+                fillStyle: '#ff0051',
+                strokeStyle: '#b1033b'
               },
               {
                 text: 'Decreasing Factors',
-                fillStyle: '#fd7e14',
-                strokeStyle: '#fd7e14'
+                fillStyle: '#56b2fc',
+                strokeStyle: '#018bfb'
               }
             ];
           }
@@ -151,7 +152,8 @@ export class ResultsComponent implements OnInit, OnDestroy {
           disease,
           riskScore,
           shapFeatures,
-          expanded: false
+          expanded: false,
+          baseline: result.plots['waterfall'].waterfall_data.baseline_value || 0
         });
 
         this.diseases = diseases.sort((a, b) => b.riskScore - a.riskScore);
@@ -183,117 +185,6 @@ export class ResultsComponent implements OnInit, OnDestroy {
       console.error(err)
       this.error = 'Error processing prediction results';
     }
-  }
-
-  private processCards(cards: any[]) {
-    try {
-      for (const card of cards) {
-        if (card.suggestions && card.suggestions.length > 0) {
-          for (const suggestion of card.suggestions) {
-            if (suggestion.actions && suggestion.actions.length > 0) {
-              for (const action of suggestion.actions) {
-                if (action.type === 'create' && action.resource?.resourceType === 'Bundle') {
-                  this.processBundle(action.resource);
-                  // if (!this.llmSessionId) {
-                  //   this.getShapExplanation(action.resource);
-                  // }
-                  return;
-                }
-              }
-            }
-          }
-        }
-      }
-
-      if (this.diseases.length === 0) {
-        this.extractFromCardSummaries(cards);
-      }
-    } catch (e) {
-      console.error('Error processing cards:', e);
-      this.error = 'Error processing prediction results';
-    }
-  }
-
-  private processBundle(bundle: any) {
-    if (!bundle.entry || bundle.entry.length === 0) {
-      this.error = 'No observations found in bundle';
-      return;
-    }
-
-    const diseases: DiseaseRisk[] = [];
-
-    bundle.entry.forEach((entry: any) => {
-      const obs = entry.resource;
-
-      if (obs.resourceType === 'Observation') {
-        const disease = obs.code?.text || 'Unknown Disease';
-        this.riskObservations[disease] = obs;
-        const riskScore = obs.valueQuantity?.value || 0;
-
-        const shapFeatures: ShapFeature[] = [];
-        if (obs.component && Array.isArray(obs.component)) {
-          obs.component.forEach((comp: any) => {
-            shapFeatures.push({
-              name: comp.code?.text || 'Unknown',
-              value: comp.valueQuantity?.value || 0
-            });
-          });
-        }
-
-        diseases.push({
-          diseaseId: disease.replaceAll(" ", "_"),
-          disease,
-          riskScore,
-          shapFeatures,
-          expanded: false
-        });
-      }
-    });
-
-    this.diseases = diseases.sort((a, b) => b.riskScore - a.riskScore);
-    this.diseases.forEach(disease => {
-      this.waterfallChartData[disease.disease] = this.getWaterfallChartData(disease)
-    })
-    setTimeout(() => {
-      this.menuService.menuItems.splice(0, this.menuService.menuItems.length, ...[{
-        label: 'Diseases',
-        header: true
-      }, ...this.diseases.map(disease => ({
-        label: disease.disease,
-        callback: () => {
-          const accordionBtn = document.getElementById('accordion-btn-' + disease.diseaseId)
-          accordionBtn?.scrollIntoView({ behavior: 'smooth' });
-          if (accordionBtn?.classList.contains('collapsed')) {
-            accordionBtn?.click()
-          }
-        }
-      }))])
-    })
-
-    if (this.diseases.length > 0) {
-      const top3 = this.diseases.slice(0, 3);
-      this.overallRiskScore = top3.reduce((sum, d) => sum + d.riskScore, 0) / top3.length;
-    }
-  }
-
-  private extractFromCardSummaries(cards: any[]) {
-    cards.forEach(card => {
-      const summary = card.summary || '';
-      const match = summary.match(/(.+?)\s*-\s*Risk:\s*([\d.]+)%/);
-
-      if (match) {
-        const disease = match[1].trim();
-        const riskScore = parseFloat(match[2]) / 100;
-
-        this.diseases.push({
-          diseaseId: disease.replaceAll(" ", "_"),
-          disease,
-          riskScore,
-          shapFeatures: [],
-          expanded: false
-        });
-      }
-    });
   }
 
   private prepareSummaryPanels() {
@@ -419,6 +310,7 @@ export class ResultsComponent implements OnInit, OnDestroy {
     return {
       labels: features.map(feature => feature.name),
       datasets: [{
+        base: disease.baseline,
         label: 'Contribution',
         data: features.map(feature => feature.value)
       }]
