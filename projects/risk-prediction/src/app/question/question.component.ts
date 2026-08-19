@@ -47,10 +47,12 @@ export class QuestionComponent {
     this.answerChanged.emit({ linkId: this.q.linkId, value: current });
   }
 
-  isChecked(code: string) {
+  isChecked(code: any) {
     const a = this.answers[this.q.linkId];
-    if (!a) return false;
-    return Array.isArray(a) ? a.includes(code) : a === code;
+    if (a === undefined || a === null) return false;
+    return Array.isArray(a)
+      ? a.some((x: any) => String(x) === String(code))
+      : String(a) === String(code);
   }
 
   //numeric input

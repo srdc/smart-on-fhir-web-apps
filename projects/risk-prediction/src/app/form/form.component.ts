@@ -163,9 +163,14 @@ export class FormComponent implements OnInit, OnDestroy {
           this.prefilledAnswers[item.linkId] = true;
           console.log(`  ✓ ${item.linkId} = ${answer.valueInteger} (integer)`);
         } else if (answer.valueCoding) {
-          this.answers[item.linkId] = answer.valueCoding.code;
+          const codes = item.answer
+            .filter((a: any) => a.valueCoding)
+            .map((a: any) => a.valueCoding.code);
+        
+          this.answers[item.linkId] = codes.length > 1 ? codes : codes[0];
           this.prefilledAnswers[item.linkId] = true;
-          console.log(`  ✓ ${item.linkId} = ${answer.valueCoding.code} (coding)`);
+        
+          console.log(`  ✓ ${item.linkId} = ${this.answers[item.linkId]} (coding)`);
         } else if (answer.valueDecimal !== undefined && answer.valueDecimal !== null) {
           this.answers[item.linkId] = answer.valueDecimal;
           this.prefilledAnswers[item.linkId] = true;
@@ -252,11 +257,13 @@ export class FormComponent implements OnInit, OnDestroy {
           .filter((q: any) => this.answers[q.linkId] !== undefined)
           .map((q: any) => ({
             linkId: q.linkId,
-            answer: [
-              q.type === "choice"
-                ? { valueCoding: { code: this.answers[q.linkId] } }
-                : { valueDecimal: Number(this.answers[q.linkId]) }
-            ]
+            answer: q.type === "choice"
+            ? (
+                Array.isArray(this.answers[q.linkId])
+                  ? this.answers[q.linkId].map((code: any) => ({ valueCoding: { code } }))
+                  : [{ valueCoding: { code: this.answers[q.linkId] } }]
+              )
+            : [{ valueDecimal: Number(this.answers[q.linkId]) }]
           }))
       }))
       .filter((g: any) => g.item && g.item.length > 0);
