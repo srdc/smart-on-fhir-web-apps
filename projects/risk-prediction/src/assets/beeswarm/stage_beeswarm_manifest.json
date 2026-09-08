@@ -1,0 +1,33 @@
+{
+  "source": "synth-cohort-v1.0 SRDC global SHAP H5 packages",
+  "ui_runtime": "static PNG and summary JSON assets; no /plots/global request",
+  "expected_diseases_per_stratum": 23,
+  "expected_png_total": 92,
+  "expected_json_total": 92,
+  "strata": [
+    {
+      "stratum": "Female_under60_srdc_poc",
+      "png_count": 23,
+      "json_count": 23,
+      "target_dir": "Female_under60_srdc_poc"
+    },
+    {
+      "stratum": "Female_60plus_srdc_poc",
+      "png_count": 23,
+      "json_count": 23,
+      "target_dir": "Female_60plus_srdc_poc"
+    },
+    {
+      "stratum": "Male_under60_srdc_poc",
+      "png_count": 23,
+      "json_count": 23,
+      "target_dir": "Male_under60_srdc_poc"
+    },
+    {
+      "stratum": "Male_60plus_srdc_poc",
+      "png_count": 23,
+      "json_count": 23,
+      "target_dir": "Male_60plus_srdc_poc"
+    }
+  ]
+}

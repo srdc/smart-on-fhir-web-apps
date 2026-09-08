@@ -291,10 +291,10 @@
         "feature_name": "Duration vigorous activity 0.0",
         "display_name": "Duration vigorous activity",
         "mean_abs_shap": 0.065341,
-        "direction_pattern": "mixed_direction",
+        "direction_pattern": "higher_values_usually_decrease_prediction",
         "color_pattern": {
-          "high_value_side": "mixed",
-          "low_value_side": "mixed"
+          "high_value_side": "left",
+          "low_value_side": "right"
         },
         "spread_level": "moderate",
         "spread_range": {
@@ -303,7 +303,7 @@
           "range_width": 0.27888
         },
         "variability_pattern": "moderate_variability",
-        "effect_stability": "mixed_behavior",
+        "effect_stability": "fairly_consistent_direction",
         "subgroup_importance_pattern": "important_in_some_patients_more_than_others",
         "interaction_hint": false,
         "interaction_strength": "low"
