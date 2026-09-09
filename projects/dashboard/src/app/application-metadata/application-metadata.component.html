@@ -176,6 +176,1922 @@
       </div>
     </div>
 
+    <!-- Model Card -->
+    <div class="col-12" *ngIf="modelCard">
+      <div class="metadata-section border rounded p-3">
+        <h6 class="section-title">Predictive Model Card</h6>
+
+        <!-- Always-visible model information -->
+        <div class="row g-3">
+          <div class="col-12 col-md-6">
+            <div class="meta-field">
+              <div class="meta-label">Model Card Version</div>
+              <div class="meta-value">
+                {{ modelCard.header?.version || '-' }}
+              </div>
+            </div>
+          </div>
+
+          <div class="col-12 col-md-6">
+            <div class="meta-field">
+              <div class="meta-label">Version Date</div>
+              <div class="meta-value">
+                {{ modelCard.header?.version_date || '-' }}
+              </div>
+            </div>
+          </div>
+
+          <div class="col-12">
+            <div class="meta-field">
+              <div class="meta-label">Summary</div>
+              <div class="meta-value">
+                {{ modelCard.summary || '-' }}
+              </div>
+            </div>
+          </div>
+
+          <div class="col-12">
+            <div class="meta-field">
+              <div class="meta-label">IMDRF Risk Classification</div>
+              <div class="meta-value">
+                {{ modelCard.imdrf_risk_classification?.description || '-' }}
+              </div>
+            </div>
+          </div>
+
+          <div class="col-12 col-md-6">
+            <div class="meta-field">
+              <div class="meta-label">Intended Purpose</div>
+              <div class="meta-value">
+                {{ modelCard.imdrf_risk_classification?.intended_purpose || '-' }}
+              </div>
+            </div>
+          </div>
+
+          <div class="col-12 col-md-6">
+            <div class="meta-field">
+              <div class="meta-label">Human Oversight Required</div>
+              <div class="meta-value">
+                <ng-container
+                  *ngIf="modelCard.intended_use?.human_oversight_required !== undefined;
+                         else noHumanOversight">
+                  {{ modelCard.intended_use?.human_oversight_required ? 'Yes' : 'No' }}
+                </ng-container>
+                <ng-template #noHumanOversight>-</ng-template>
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="col-12 col-md-6"
+            *ngIf="modelCard.multimorbidity?.risk_output_validated">
+            <div class="meta-field">
+              <div class="meta-label">Multimorbidity Risk Output Validation</div>
+              <div class="meta-value">
+                {{ modelCard.multimorbidity?.risk_output_validated }}
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="col-12"
+            *ngIf="modelCard.multimorbidity?.risk_output_rationale">
+            <div class="meta-field">
+              <div class="meta-label">Multimorbidity Risk Output Rationale</div>
+              <div class="meta-value">
+                {{ modelCard.multimorbidity?.risk_output_rationale }}
+              </div>
+            </div>
+          </div>
+
+          <div class="col-12">
+            <div class="meta-field">
+              <div class="meta-label">Cautioned / Out-of-Scope Uses</div>
+              <div class="meta-value">
+                <ng-container
+                  *ngIf="modelCard.cautioned_out_of_scope_uses?.length;
+                         else noCautionedUses">
+                  <ul class="mb-0">
+                    <li
+                      *ngFor="let item of
+                        modelCard.cautioned_out_of_scope_uses">
+                      {{ item }}
+                    </li>
+                  </ul>
+                </ng-container>
+                <ng-template #noCautionedUses>-</ng-template>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Detailed model information -->
+        <details class="border rounded p-3 mt-3">
+          <summary class="fw-semibold">
+            Detailed Model Information
+          </summary>
+
+        <!-- Disease-specific performance -->
+        <div
+          class="border rounded p-3 mt-4"
+          *ngIf="modelCardPipeline">
+
+          <h6 class="mb-3">Disease-specific Performance</h6>
+
+          <p class="text-muted small">
+            Select a population group to view disease-specific model performance.
+          </p>
+
+          <div class="row g-3">
+            <div class="col-12 col-md-4">
+              <label class="meta-label mb-1" for="modelCardSex">
+                Sex
+              </label>
+              <select
+                id="modelCardSex"
+                class="form-select"
+                [value]="selectedSex"
+                (change)="onSexChange($event)">
+                <option value="">Select sex</option>
+                <option
+                  *ngFor="let sex of availableSexes"
+                  [value]="sex">
+                  {{ sex | titlecase }}
+                </option>
+              </select>
+            </div>
+
+            <div class="col-12 col-md-4">
+              <label class="meta-label mb-1" for="modelCardAgeGroup">
+                Age Group
+              </label>
+              <select
+                id="modelCardAgeGroup"
+                class="form-select"
+                [value]="selectedAgeGroup"
+                (change)="onAgeGroupChange($event)">
+                <option value="">Select age group</option>
+                <option
+                  *ngFor="let ageGroup of availableAgeGroups"
+                  [value]="ageGroup">
+                  {{ ageGroup.replaceAll('_', ' ') | titlecase }}
+                </option>
+              </select>
+            </div>
+
+            <div class="col-12 col-md-4">
+              <label class="meta-label mb-1" for="modelCardFeatureSet">
+                Feature Set
+              </label>
+              <select
+                id="modelCardFeatureSet"
+                class="form-select"
+                [value]="selectedFeatureSet"
+                (change)="onFeatureSetChange($event)">
+                <option value="">Select feature set</option>
+                <option
+                  *ngFor="let featureSet of availableFeatureSets"
+                  [value]="featureSet">
+                  {{ featureSet.replaceAll('_', ' ') | titlecase }}
+                </option>
+              </select>
+            </div>
+
+            <ng-container
+            *ngIf="selectedStratum?.deployment_policy as deploymentPolicy">
+
+            <div class="row g-3 mt-3">
+              <div
+                class="col-12 col-md-4"
+                *ngIf="deploymentPolicy.risk_output_validated">
+
+                <div class="meta-field">
+                  <div class="meta-label">Risk Output Validation</div>
+                  <div class="meta-value">
+                    {{ deploymentPolicy.risk_output_validated }}
+                  </div>
+                </div>
+              </div>
+
+              <div
+                class="col-12"
+                *ngIf="deploymentPolicy.risk_output_rationale">
+
+                <div class="meta-field">
+                  <div class="meta-label">Risk Output Rationale</div>
+                  <div class="meta-value">
+                    {{ deploymentPolicy.risk_output_rationale }}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </ng-container>
+
+          <div
+            class="col-12 alert alert-light border mt-3 mb-0"
+            *ngIf="!selectedStratum">
+            Select sex, age group and feature set to continue.
+          </div>
+
+          <div class="col-12" *ngIf="selectedStratum">
+
+            <p class="text-muted small mb-2">
+              IMDRF risk categories are disease-specific and do not vary by the
+              selected population group. Performance metrics are shown for the
+              selected sex, age group and feature set.
+            </p>
+
+            <div class="table-responsive">
+              <table class="table table-sm table-bordered align-middle">
+                <thead>
+                  <tr>
+                    <th>Disease</th>
+                    <th>IMDRF Category (Disease-level)</th>
+                    <th>AUC</th>
+                    <th>95% Confidence Interval</th>
+                    <th>Calibration Method</th>
+                    <th>Brier Score</th>
+                    <th>Calibration Slope</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  <tr *ngFor="let disease of availableDiseases">
+                    <td>
+                      {{ disease.disease }}
+                    </td>
+
+                    <td>
+                      {{ getDiseaseImdrfCategory(disease.disease) }}
+                    </td>
+
+                    <td>
+                      {{ disease.discrimination?.auc ?? '-' }}
+                    </td>
+
+                    <td>
+                      <ng-container
+                        *ngIf="
+                          disease.discrimination?.ci_95_lo !== undefined &&
+                          disease.discrimination?.ci_95_hi !== undefined;
+                          else noDiseaseConfidenceInterval
+                        ">
+                        {{ disease.discrimination?.ci_95_lo }}
+                        –
+                        {{ disease.discrimination?.ci_95_hi }}
+                      </ng-container>
+
+                      <ng-template #noDiseaseConfidenceInterval>
+                        -
+                      </ng-template>
+                    </td>
+
+                    <td>
+                      {{ disease.calibration?.method || '-' }}
+                    </td>
+
+                    <td>
+                      {{ disease.calibration?.brier_score ?? '-' }}
+                    </td>
+
+                    <td>
+                      {{ disease.calibration?.calibration_slope ?? '-' }}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="col-12 mt-3" *ngIf="selectedStratum">
+            <details class="metric-interpretation border rounded p-3">
+              <summary class="fw-semibold">
+                Visualizing and Interpreting Performance Metrics
+              </summary>
+
+              <div class="pt-3">
+                <div class="mb-4">
+                  <label
+                    class="meta-label mb-1"
+                    for="visualizationDisease">
+                    Disease to Visualize
+                  </label>
+
+                  <select
+                    id="visualizationDisease"
+                    class="form-select"
+                    [value]="selectedDiseaseName"
+                    (change)="onDiseaseChange($event)">
+
+                    <option value="">Select disease</option>
+
+                    <option
+                      *ngFor="let disease of availableDiseases"
+                      [value]="disease.disease">
+                      {{ disease.disease }}
+                    </option>
+                  </select>
+                </div>
+
+                <div
+                  class="alert alert-light border"
+                  *ngIf="!selectedDisease">
+                  Select a disease to visualize its performance metrics.
+                </div>
+                <ng-container *ngIf="selectedDisease">
+                  <p class="text-muted mb-4">
+                  The visualizations below correspond to the currently selected
+                  stratum and disease. They provide contextual guidance and should
+                  not be interpreted as evidence of clinical validity on their own.
+                </p>
+
+                <!-- AUC and its confidence interval -->
+                <div
+                  class="metric-visualization mb-4"
+                  *ngIf="
+                    selectedDisease.discrimination?.auc !== undefined &&
+                    aucPositionPercent !== undefined
+                  ">
+
+                  <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div>
+                      <h6 class="mb-1">AUC Estimate and Its Uncertainty</h6>
+
+                      <div class="text-muted small">
+                        AUC measures how well the model distinguishes between patients
+                        who develop the condition and those who do not.
+                      </div>
+                    </div>
+
+                    <span class="metric-value-badge">
+                      AUC:
+                      {{ selectedDisease.discrimination?.auc | number:'1.3-3' }}
+                    </span>
+                  </div>
+
+                  <div class="metric-scale auc-scale">
+                    <!-- Chance-level reference -->
+                    <div
+                      class="reference-marker chance-marker"
+                      [style.left.%]="50">
+                    </div>
+
+                    <!-- 95% confidence interval belonging to the AUC -->
+                    <div
+                      class="confidence-interval"
+                      *ngIf="
+                        aucCiStartPercent !== undefined &&
+                        aucCiWidthPercent !== undefined
+                      "
+                      [style.left.%]="aucCiStartPercent"
+                      [style.width.%]="aucCiWidthPercent">
+                    </div>
+
+                    <!-- Estimated AUC -->
+                    <div
+                      class="metric-marker"
+                      [style.left.%]="aucPositionPercent">
+                    </div>
+                  </div>
+
+                  <div class="metric-scale-labels">
+                    <span>0</span>
+                    <span>Chance: 0.5</span>
+                    <span>1</span>
+                  </div>
+
+                  <div class="metric-legend mt-3">
+                    <div class="metric-legend-item">
+                      <span class="legend-auc-marker"></span>
+
+                      <span>
+                        <strong>Circle:</strong>
+                        estimated AUC
+                        ({{ selectedDisease.discrimination?.auc | number:'1.3-3' }})
+                      </span>
+                    </div>
+
+                    <div
+                      class="metric-legend-item"
+                      *ngIf="
+                        selectedDisease.discrimination?.ci_95_lo !== undefined &&
+                        selectedDisease.discrimination?.ci_95_hi !== undefined
+                      ">
+
+                      <span class="legend-ci-line"></span>
+
+                      <span>
+                        <strong>Horizontal line:</strong>
+                        95% confidence interval for this AUC estimate
+                        ({{ selectedDisease.discrimination?.ci_95_lo | number:'1.3-3' }}
+                        –
+                        {{ selectedDisease.discrimination?.ci_95_hi | number:'1.3-3' }})
+                      </span>
+                    </div>
+                  </div>
+
+                  <div class="metric-guidance mt-3">
+                    <div class="mb-2">
+                      <strong>Performance:</strong>
+                      An AUC closer to 1 indicates better discrimination. An AUC of
+                      0.5 corresponds to chance-level discrimination.
+                    </div>
+
+                    <div>
+                      <strong>Uncertainty:</strong>
+                      The 95% confidence interval shows the uncertainty around this
+                      AUC estimate. A narrower interval indicates a more precise AUC
+                      estimate, while a wider interval indicates greater uncertainty.
+                      A narrow interval does not necessarily indicate good performance;
+                      the AUC value and the interval must be interpreted together.
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Calibration slope -->
+                <div
+                  class="metric-visualization mb-4"
+                  *ngIf="
+                    selectedDisease.calibration?.calibration_slope !== undefined
+                  ">
+
+                  <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                      <h6 class="mb-1">Calibration Slope</h6>
+
+                      <div class="text-muted small">
+                        Compares how strongly the model separates lower-risk and
+                        higher-risk predictions. The ideal reference value is 1.
+                      </div>
+                    </div>
+
+                    <span class="metric-value-badge">
+                      Reported slope:
+                      {{
+                        selectedDisease.calibration?.calibration_slope
+                          | number:'1.3-3'
+                      }}
+                    </span>
+                  </div>
+
+                  <div class="row g-3 calibration-categories">
+
+                    <!-- Below 1 -->
+                    <div class="col-12 col-md-4">
+                      <div
+                        class="calibration-category h-100"
+                        [class.calibration-category-active]="
+                          selectedDisease.calibration!.calibration_slope! < 1
+                        ">
+
+                        <div class="calibration-category-title">
+                          Below 1
+                        </div>
+
+                        <div class="calibration-category-status">
+                          Risk differences may be exaggerated
+                        </div>
+
+                        <div class="small text-muted mt-2">
+                          Higher-risk predictions may be too high, while lower-risk
+                          predictions may be too low.
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Ideal: 1 -->
+                    <div class="col-12 col-md-4">
+                      <div
+                        class="calibration-category calibration-category-ideal h-100"
+                        [class.calibration-category-active]="
+                          selectedDisease.calibration!.calibration_slope === 1
+                        ">
+
+                        <div class="calibration-category-title">
+                          Ideal: 1
+                        </div>
+
+                        <div class="calibration-category-status">
+                          Risk differences are appropriately scaled
+                        </div>
+
+                        <div class="small text-muted mt-2">
+                          The separation between lower-risk and higher-risk predictions
+                          is consistent with the observed outcomes.
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Above 1 -->
+                    <div class="col-12 col-md-4">
+                      <div
+                        class="calibration-category h-100"
+                        [class.calibration-category-active]="
+                          selectedDisease.calibration!.calibration_slope! > 1
+                        ">
+
+                        <div class="calibration-category-title">
+                          Above 1
+                        </div>
+
+                        <div class="calibration-category-status">
+                          Risk differences may be compressed
+                        </div>
+
+                        <div class="small text-muted mt-2">
+                          Higher-risk predictions may be too low, while lower-risk
+                          predictions may be too high.
+                        </div>
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+
+                <!-- Brier score -->
+                <div
+                  class="metric-visualization mb-4"
+                  *ngIf="
+                    selectedDisease.calibration?.brier_score !== undefined
+                  ">
+
+                  <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                      <h6 class="mb-1">Brier Score</h6>
+                      <div class="text-muted small">
+                        Measures the mean squared difference between predicted
+                        probabilities and observed outcomes.
+                      </div>
+                    </div>
+
+                    <span class="metric-value-badge">
+                      {{
+                        selectedDisease.calibration?.brier_score
+                          | number:'1.3-3'
+                      }}
+                    </span>
+                  </div>
+
+                  <div class="small mt-3">
+                    Lower values indicate smaller prediction errors, and 0
+                    represents perfect probabilistic predictions. The score should
+                    be compared with disease prevalence and an appropriate
+                    reference model rather than interpreted using a universal
+                    threshold.
+                  </div>
+                </div>
+
+                <!-- Calibration method -->
+                <div
+                  class="metric-visualization"
+                  *ngIf="selectedDisease.calibration?.method">
+
+                  <h6 class="mb-1">Calibration Method</h6>
+
+                  <div class="meta-value">
+                    {{ selectedDisease.calibration?.method }}
+                  </div>
+
+                  <div class="text-muted small mt-2">
+                    Calibration adjusts predicted probabilities so that they more
+                    closely correspond to observed outcome frequencies.
+                  </div>
+                </div>
+                </ng-container>
+              </div>
+            </details>
+          </div>
+        </div>
+      </div>
+
+          <div class="mt-3">
+            <h6>Training Data</h6>
+
+            <div class="row g-3">
+              <div class="col-12 col-md-6">
+                <div class="meta-field">
+                  <div class="meta-label">Source</div>
+                  <div class="meta-value">
+                    {{ modelCard.training_data?.source || '-' }}
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="meta-field">
+                  <div class="meta-label">Number of Participants</div>
+                  <div class="meta-value">
+                    {{ modelCard.training_data?.n_participants_total ?? '-' }}
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-12">
+                <div class="meta-field">
+                  <div class="meta-label">Healthy Volunteer Bias</div>
+                  <div class="meta-value">
+                    {{ modelCard.training_data?.healthy_volunteer_bias || '-' }}
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-12">
+                <div class="meta-field">
+                  <div class="meta-label">Ethnic Composition</div>
+                  <div class="meta-value">
+                    {{ modelCard.training_data?.ethnic_composition || '-' }}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <hr>
+
+          <div>
+            <h6>Fairness Audit</h6>
+
+            <div class="row g-3">
+              <div class="col-12">
+                <div class="meta-field">
+                  <div class="meta-label">Audit Approach</div>
+                  <div class="meta-value">
+                    {{ modelCard.fairness?.audit_design?.approach || '-' }}
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-12">
+                <div class="meta-field">
+                  <div class="meta-label">Protected Attributes</div>
+                  <div class="meta-value">
+                    <ng-container
+                      *ngIf="modelCard.fairness?.audit_design
+                        ?.protected_attributes?.length;
+                        else noProtectedAttributes">
+                      {{ modelCard.fairness?.audit_design
+                        ?.protected_attributes?.join(', ') }}
+                    </ng-container>
+                    <ng-template #noProtectedAttributes>-</ng-template>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-12">
+                <div class="meta-field">
+                  <div class="meta-label">Fairness Metrics</div>
+                  <div class="meta-value">
+                    <ng-container
+                      *ngIf="modelCard.fairness?.audit_design?.metrics?.length;
+                             else noFairnessMetrics">
+                      <ul class="mb-0">
+                        <li
+                          *ngFor="let metric of
+                            modelCard.fairness?.audit_design?.metrics">
+                          <strong>{{ metric.name || '-' }}</strong>
+                          <span *ngIf="metric.description">
+                            — {{ metric.description }}
+                          </span>
+                        </li>
+                      </ul>
+                    </ng-container>
+                    <ng-template #noFairnessMetrics>-</ng-template>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-4">
+                <div class="meta-field">
+                  <div class="meta-label">Sex</div>
+                  <div class="meta-value">
+                    {{ modelCard.fairness?.attributes_considered?.sex || '-' }}
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-4">
+                <div class="meta-field">
+                  <div class="meta-label">Age Group</div>
+                  <div class="meta-value">
+                    {{ modelCard.fairness?.attributes_considered?.age_group || '-' }}
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-4">
+                <div class="meta-field">
+                  <div class="meta-label">Ethnicity</div>
+                  <div class="meta-value">
+                    {{ modelCard.fairness?.attributes_considered?.ethnicity || '-' }}
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-12">
+                <div class="meta-field">
+                  <div class="meta-label">Attributes Not Considered</div>
+                  <div class="meta-value">
+                    <ul class="mb-0">
+                      <li>
+                        Language:
+                        {{ modelCard.fairness?.attributes_not_considered?.language || '-' }}
+                      </li>
+                      <li>
+                        Sexual orientation:
+                        {{ modelCard.fairness?.attributes_not_considered?.sexual_orientation || '-' }}
+                      </li>
+                      <li>
+                        Gender identity:
+                        {{ modelCard.fairness?.attributes_not_considered?.gender_identity || '-' }}
+                      </li>
+                      <li>
+                        Disability:
+                        {{ modelCard.fairness?.attributes_not_considered?.disability || '-' }}
+                      </li>
+                      <li>
+                        Note:
+                        {{ modelCard.fairness?.attributes_not_considered?.note || '-' }}
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <hr>
+
+          <div>
+            <h6>Known Limitations</h6>
+
+            <ng-container
+              *ngIf="modelCard.known_limitations?.length;
+                     else noKnownLimitations">
+              <ul class="mb-0">
+                <li
+                  *ngFor="let limitation of modelCard.known_limitations">
+                  {{ limitation }}
+                </li>
+              </ul>
+            </ng-container>
+            <ng-template #noKnownLimitations>-</ng-template>
+          </div>
+
+          <hr>
+
+          <div>
+            <h6>Validation Status</h6>
+
+            <div class="row g-3">
+              <div class="col-12 col-md-4">
+                <div class="meta-field">
+                  <div class="meta-label">Internal Validation</div>
+                  <div class="meta-value">
+                    {{ modelCard.validation_status?.internal?.status || '-' }}
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-4">
+                <div class="meta-field">
+                  <div class="meta-label">External Validation</div>
+                  <div class="meta-value">
+                    {{ modelCard.validation_status?.external_nfbc1966?.status || '-' }}
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-4">
+                <div class="meta-field">
+                  <div class="meta-label">GP Linkage Validation</div>
+                  <div class="meta-value">
+                    {{ modelCard.validation_status?.gp_linkage_validation?.status || '-' }}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <hr>
+
+          <div *ngIf="modelCard.multimorbidity">
+            <h6>Multimorbidity</h6>
+
+            <div class="row g-3">
+
+              <div class="col-12">
+                <div class="meta-field">
+                  <div class="meta-label">Approach</div>
+                  <div class="meta-value">
+                    {{ modelCard.multimorbidity?.approach || '-' }}
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-12">
+                <div class="meta-field">
+                  <div class="meta-label">Pair Evidence</div>
+                  <div class="meta-value">
+                    {{ modelCard.multimorbidity?.pair_evidence?.definition || '-' }}
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-12">
+                <div class="meta-field">
+                  <div class="meta-label">Pair Evidence Coverage</div>
+                  <div class="meta-value">
+                    {{ modelCard.multimorbidity?.pair_evidence?.coverage || '-' }}
+                  </div>
+                </div>
+              </div>
+
+              <div
+                class="col-12"
+                *ngIf="modelCard.multimorbidity?.pair_evidence?.source">
+                <div class="meta-field">
+                  <div class="meta-label">Pair Evidence Source</div>
+                  <div class="meta-value">
+                    {{ modelCard.multimorbidity?.pair_evidence?.source }}
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-12">
+                <div class="meta-field">
+                  <div class="meta-label">Conditions Withheld</div>
+                  <div class="meta-value">
+                    <ng-container
+                      *ngIf="
+                        modelCard.multimorbidity?.conditions_withheld?.diseases?.length;
+                        else noWithheldConditions
+                      ">
+                      <ul class="mb-0">
+                        <li
+                          *ngFor="
+                            let disease of
+                            modelCard.multimorbidity?.conditions_withheld?.diseases
+                          ">
+                          {{ disease }}
+                        </li>
+                      </ul>
+                    </ng-container>
+
+                    <ng-template #noWithheldConditions>-</ng-template>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-12">
+                <div class="meta-field">
+                  <div class="meta-label">Withholding Rationale</div>
+                  <div class="meta-value">
+                    {{
+                      modelCard.multimorbidity?.conditions_withheld?.rationale || '-'
+                    }}
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-12">
+                <div class="meta-field">
+                  <div class="meta-label">Limitations</div>
+                  <div class="meta-value">
+                    <ng-container
+                      *ngIf="
+                        modelCard.multimorbidity?.limitations?.length;
+                        else noMultimorbidityLimitations
+                      ">
+                      <ul class="mb-0">
+                        <li
+                          *ngFor="
+                            let limitation of modelCard.multimorbidity?.limitations
+                          ">
+                          {{ limitation }}
+                        </li>
+                      </ul>
+                    </ng-container>
+
+                    <ng-template #noMultimorbidityLimitations>-</ng-template>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Reference-level technical information -->
+          <details class="border rounded p-3 mt-4">
+            <summary class="fw-semibold">
+              Technical Documentation and Evidence
+            </summary>
+
+            <div class="mt-3">
+              <h6>Complete Training Data Description</h6>
+
+              <div class="row g-3">
+                <div class="col-12 col-md-4">
+                  <div class="meta-field">
+                    <div class="meta-label">Recruitment Period</div>
+                    <div class="meta-value">
+                      {{ modelCard.training_data?.recruitment_period || '-' }}
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-12 col-md-4">
+                  <div class="meta-field">
+                    <div class="meta-label">Age Range</div>
+                    <div class="meta-value">
+                      {{ modelCard.training_data?.age_range_at_recruitment || '-' }}
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-12 col-md-4">
+                  <div class="meta-field">
+                    <div class="meta-label">Follow-up Horizon</div>
+                    <div class="meta-value">
+                      {{ modelCard.training_data?.follow_up_horizon || '-' }}
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-12">
+                  <div class="meta-field">
+                    <div class="meta-label">Geographic Scope</div>
+                    <div class="meta-value">
+                      {{ modelCard.training_data?.geographic_scope || '-' }}
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-12">
+                  <div class="meta-field">
+                    <div class="meta-label">Outcome Ascertainment</div>
+                    <div class="meta-value">
+                      {{ modelCard.training_data?.outcome_ascertainment || '-' }}
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-12">
+                  <div class="meta-field">
+                    <div class="meta-label">Split Strategy</div>
+                    <div class="meta-value">
+                      {{ modelCard.training_data?.split_strategy || '-' }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <hr>
+
+            <div>
+              <h6>Validation Details</h6>
+
+              <div class="row g-3">
+                <div class="col-12">
+                  <h6 class="small">Internal Validation</h6>
+                </div>
+
+                <div class="col-12 col-md-6">
+                  <div class="meta-field">
+                    <div class="meta-label">Status</div>
+                    <div class="meta-value">
+                      {{ modelCard.validation_status?.internal?.status || '-' }}
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-12 col-md-6">
+                  <div class="meta-field">
+                    <div class="meta-label">Method</div>
+                    <div class="meta-value">
+                      {{ modelCard.validation_status?.internal?.method || '-' }}
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-12 col-md-6">
+                  <div class="meta-field">
+                    <div class="meta-label">Bootstrap Resamples</div>
+                    <div class="meta-value">
+                      {{ modelCard.validation_status?.internal?.bootstrap_resamples ?? '-' }}
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-12 col-md-6">
+                  <div class="meta-field">
+                    <div class="meta-label">Confidence Level</div>
+                    <div class="meta-value">
+                      <ng-container
+                        *ngIf="modelCard.validation_status?.internal
+                          ?.confidence_level !== undefined;
+                          else noConfidenceLevel">
+                        {{ modelCard.validation_status?.internal
+                          ?.confidence_level | percent }}
+                      </ng-container>
+                      <ng-template #noConfidenceLevel>-</ng-template>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-12 mt-4">
+                  <h6 class="small">External Validation</h6>
+                </div>
+
+                <div class="col-12 col-md-6">
+                  <div class="meta-field">
+                    <div class="meta-label">Status</div>
+                    <div class="meta-value">
+                      {{ modelCard.validation_status?.external_nfbc1966?.status || '-' }}
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-12 col-md-6">
+                  <div class="meta-field">
+                    <div class="meta-label">Cohort</div>
+                    <div class="meta-value">
+                      {{ modelCard.validation_status?.external_nfbc1966?.cohort || '-' }}
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-12 col-md-6">
+                  <div class="meta-field">
+                    <div class="meta-label">Participants at Clinical Exam</div>
+                    <div class="meta-value">
+                      {{ modelCard.validation_status?.external_nfbc1966
+                        ?.n_participants_at_clinical_exam ?? '-' }}
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-12 col-md-6">
+                  <div class="meta-field">
+                    <div class="meta-label">Expected Completion</div>
+                    <div class="meta-value">
+                      {{ modelCard.validation_status?.external_nfbc1966
+                        ?.expected_completion || '-' }}
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-12 mt-4">
+                  <h6 class="small">GP Linkage Validation</h6>
+                </div>
+
+                <div class="col-12 col-md-4">
+                  <div class="meta-field">
+                    <div class="meta-label">Status</div>
+                    <div class="meta-value">
+                      {{ modelCard.validation_status?.gp_linkage_validation
+                        ?.status || '-' }}
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-12 col-md-8">
+                  <div class="meta-field">
+                    <div class="meta-label">Description</div>
+                    <div class="meta-value">
+                      {{ modelCard.validation_status?.gp_linkage_validation
+                        ?.description || '-' }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <hr>
+
+            <div>
+              <h6>Per-subgroup Fairness Results</h6>
+
+              <div class="mt-3 mb-3">
+                <label
+                  class="meta-label mb-1"
+                  for="fairnessDisease">
+                  Disease
+                </label>
+
+                <select
+                  id="fairnessDisease"
+                  class="form-select"
+                  [value]="selectedFairnessDiseaseName"
+                  [disabled]="!selectedStratum"
+                  (change)="onFairnessDiseaseChange($event)">
+
+                  <option value="">Select disease</option>
+
+                  <option
+                    *ngFor="let disease of availableDiseases"
+                    [value]="disease.disease">
+                    {{ disease.disease }}
+                  </option>
+                </select>
+              </div>
+
+              <div
+                class="alert alert-primary border mt-3"
+                *ngIf="selectedFairnessDiseaseName">
+                <div class="small mb-2">
+                  These subgroup fairness results correspond to the model
+                  selection made above.
+                </div>
+
+                <div class="d-flex flex-wrap gap-2">
+                  <span class="badge bg-light text-dark border">
+                    Sex: {{ selectedSex | titlecase }}
+                  </span>
+
+                  <span class="badge bg-light text-dark border">
+                    Age group:
+                    {{ selectedAgeGroup.replaceAll('_', ' ') | titlecase }}
+                  </span>
+
+                  <span class="badge bg-light text-dark border">
+                    Feature set:
+                    {{ selectedFeatureSet.replaceAll('_', ' ') | titlecase }}
+                  </span>
+
+                  <span class="badge bg-light text-dark border">
+                    Disease: {{ selectedFairnessDiseaseName }}
+                  </span>
+                </div>
+              </div>
+
+              <div
+                class="alert alert-light border"
+                *ngIf="!selectedFairnessDiseaseName">
+                Select a disease to view subgroup fairness results.
+              </div>
+              <ng-container *ngIf="selectedFairnessDiseaseName">
+                <h6 class="small">By Age</h6>
+
+                <div
+                  class="table-responsive mb-3"
+                  *ngIf="selectedDiseaseAgeFairness.length;
+                         else noAgeFairness">
+                  <table class="table table-sm table-bordered">
+                    <thead>
+                      <tr>
+                        <th>Subgroup</th>
+                        <th>AUC</th>
+                        <th>TPR at FPR 0.10</th>
+                        <th>Calibration Slope</th>
+                        <th>Positive Rate</th>
+                        <th>Sample Size</th>
+                        <th>Events</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr
+                        *ngFor="let result of
+                          selectedDiseaseAgeFairness">
+                        <td>{{ result.subgroup }}</td>
+                        <td>{{ result.auc ?? '-' }}</td>
+                        <td>{{ result.tpr_at_fpr10 ?? '-' }}</td>
+                        <td>{{ result.calibration_slope ?? '-' }}</td>
+                        <td>{{ result.positive_rate ?? '-' }}</td>
+                        <td>{{ result.n_samples ?? '-' }}</td>
+                        <td>{{ result.n_events ?? '-' }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <ng-template #noAgeFairness>
+                  <p class="text-muted">No age-group results available.</p>
+                </ng-template>
+
+                <h6 class="small">By Ethnicity</h6>
+
+                <div
+                  class="table-responsive"
+                  *ngIf="selectedDiseaseEthnicityFairness.length;
+                         else noEthnicityFairness">
+                  <table class="table table-sm table-bordered">
+                    <thead>
+                      <tr>
+                        <th>Subgroup</th>
+                        <th>AUC</th>
+                        <th>TPR at FPR 0.10</th>
+                        <th>Calibration Slope</th>
+                        <th>Positive Rate</th>
+                        <th>Sample Size</th>
+                        <th>Events</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr
+                        *ngFor="let result of
+                          selectedDiseaseEthnicityFairness">
+                        <td>{{ result.subgroup }}</td>
+                        <td>
+                          {{ result.auc === null ? 'Not estimable' : (result.auc ?? '-') }}
+                        </td>
+                        <td>{{ result.tpr_at_fpr10 ?? '-' }}</td>
+                        <td>{{ result.calibration_slope ?? '-' }}</td>
+                        <td>{{ result.positive_rate ?? '-' }}</td>
+                        <td>{{ result.n_samples ?? '-' }}</td>
+                        <td>{{ result.n_events ?? '-' }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <ng-template #noEthnicityFairness>
+                  <p class="text-muted">
+                    No ethnicity results available.
+                  </p>
+                </ng-template>
+              </ng-container>
+            </div>
+
+            <hr>
+
+            <div *ngIf="modelCard.multimorbidity">
+              <h6>Multimorbidity Technical Details</h6>
+
+              <div class="row g-3">
+
+                <div class="col-12">
+                  <div class="meta-field">
+                    <div class="meta-label">Independence Assumption</div>
+                    <div class="meta-value">
+                      {{ modelCard.multimorbidity?.independence_assumption || '-' }}
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-12">
+                  <h6 class="small mt-2">Derived Quantities</h6>
+                </div>
+
+                <div class="col-12 col-md-6">
+                  <div class="meta-field">
+                    <div class="meta-label">Expected Condition Count</div>
+                    <div class="meta-value">
+                      {{
+                        modelCard.multimorbidity?.quantities?.expected_condition_count || '-'
+                      }}
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-12 col-md-6">
+                  <div class="meta-field">
+                    <div class="meta-label">Count Distribution</div>
+                    <div class="meta-value">
+                      {{ modelCard.multimorbidity?.quantities?.count_distribution || '-' }}
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-12 col-md-6">
+                  <div class="meta-field">
+                    <div class="meta-label">Probability At Least</div>
+                    <div class="meta-value">
+                      {{ modelCard.multimorbidity?.quantities?.probability_at_least || '-' }}
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-12 col-md-6">
+                  <div class="meta-field">
+                    <div class="meta-label">Pair Ranking</div>
+                    <div class="meta-value">
+                      {{ modelCard.multimorbidity?.quantities?.pair_ranking || '-' }}
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-12">
+                  <div class="meta-field">
+                    <div class="meta-label">Causal Sequence Pairs</div>
+                    <div class="meta-value">
+                      {{ modelCard.multimorbidity?.causal_sequence_pairs?.note || '-' }}
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            <hr>
+
+            <div>
+              <h6>Model Architecture</h6>
+
+              <div class="row g-3">
+                <div class="col-12 col-md-6">
+                  <div class="meta-field">
+                    <div class="meta-label">Default Estimator</div>
+                    <div class="meta-value">
+                      {{ modelCard.model_architecture?.default_estimator || '-' }}
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-12 col-md-6">
+                  <div class="meta-field">
+                    <div class="meta-label">Diseases Deployed</div>
+                    <div class="meta-value">
+                      {{ modelCard.model_architecture?.n_diseases_deployed ?? '-' }}
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-12">
+                  <div class="meta-field">
+                    <div class="meta-label">Feature Selection</div>
+                    <div class="meta-value">
+                      {{ modelCard.model_architecture?.feature_selection || '-' }}
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-12">
+                  <div class="meta-field">
+                    <div class="meta-label">Calibration</div>
+                    <div class="meta-value">
+                      {{ modelCard.model_architecture?.calibration || '-' }}
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-12">
+                  <div class="meta-field">
+                    <div class="meta-label">Production Strata</div>
+                    <div class="meta-value">
+                      {{ modelCard.model_architecture?.strata || '-' }}
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="col-12"
+                  *ngIf="modelCard.model_architecture?.exception">
+
+                  <h6 class="small mt-3">Estimator Exception</h6>
+
+                  <div class="border rounded p-3">
+                    <div class="row g-3">
+                      <div class="col-12 col-md-6">
+                        <div class="meta-field">
+                          <div class="meta-label">Disease</div>
+                          <div class="meta-value">
+                            {{ modelCard.model_architecture?.exception
+                              ?.disease || '-' }}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="col-12 col-md-6">
+                        <div class="meta-field">
+                          <div class="meta-label">Estimator</div>
+                          <div class="meta-value">
+                            {{ modelCard.model_architecture?.exception
+                              ?.estimator || '-' }}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="col-12">
+                        <div class="meta-field">
+                          <div class="meta-label">Augmentation</div>
+                          <div class="meta-value">
+                            {{ modelCard.model_architecture?.exception
+                              ?.augmentation || '-' }}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="col-12">
+                        <div class="meta-field">
+                          <div class="meta-label">Rationale</div>
+                          <div class="meta-value">
+                            {{ modelCard.model_architecture?.exception
+                              ?.rationale || '-' }}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-12">
+                  <h6 class="small mt-3">Feature Sets</h6>
+                </div>
+
+                <div class="col-12 col-md-6">
+                  <div class="border rounded p-3 h-100">
+                    <div class="meta-label">SRDC POC</div>
+
+                    <div class="mb-3">
+                      <div class="meta-label">Description</div>
+                      <div class="meta-value">
+                        {{ modelCard.model_architecture?.feature_sets
+                          ?.srdc_poc?.description || '-' }}
+                      </div>
+                    </div>
+
+                    <div>
+                      <div class="meta-label">Candidate Features</div>
+                      <div class="meta-value">
+                        {{ modelCard.model_architecture?.feature_sets
+                          ?.srdc_poc?.n_candidate_features ?? '-' }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-12 col-md-6">
+                  <div class="border rounded p-3 h-100">
+                    <div class="meta-label">ABACUS POC</div>
+
+                    <div class="mb-3">
+                      <div class="meta-label">Description</div>
+                      <div class="meta-value">
+                        {{ modelCard.model_architecture?.feature_sets
+                          ?.abacus_poc?.description || '-' }}
+                      </div>
+                    </div>
+
+                    <div>
+                      <div class="meta-label">Candidate Features</div>
+                      <div class="meta-value">
+                        {{ modelCard.model_architecture?.feature_sets
+                          ?.abacus_poc?.n_candidate_features ?? '-' }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <hr>
+
+            <div>
+              <h6>Robustness</h6>
+
+              <div class="meta-label">Variation Sources Tested</div>
+              <ul>
+                <li
+                  *ngFor="let item of
+                    modelCard.robustness?.variation_sources_tested">
+                  {{ item }}
+                </li>
+              </ul>
+
+              <div class="meta-label">Variation Sources Not Tested</div>
+              <ul class="mb-0">
+                <li
+                  *ngFor="let item of
+                    modelCard.robustness?.variation_sources_not_tested">
+                  {{ item }}
+                </li>
+              </ul>
+            </div>
+
+            <hr>
+
+            <div>
+              <h6>Standards and Interoperability</h6>
+
+              <div class="table-responsive">
+                <table class="table table-sm table-bordered">
+                  <thead>
+                    <tr>
+                      <th>Standard</th>
+                      <th>Application</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr
+                      *ngFor="let item of
+                        modelCard.standards_interoperability">
+                      <td>{{ item.standard || '-' }}</td>
+                      <td>{{ item.application || '-' }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <hr>
+
+            <div>
+              <h6>Regulatory Landscape</h6>
+
+              <div class="row g-3">
+                <div class="col-12 col-md-4">
+                  <div class="border rounded p-3 h-100">
+                    <h6 class="small">EU AI Act</h6>
+
+                    <div class="mb-3">
+                      <div class="meta-label">Status</div>
+                      <div class="meta-value">
+                        {{ modelCard.regulatory_landscape?.eu_ai_act?.status || '-' }}
+                      </div>
+                    </div>
+
+                    <div>
+                      <div class="meta-label">Classification</div>
+                      <div class="meta-value">
+                        {{ modelCard.regulatory_landscape?.eu_ai_act?.classification || '-' }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-12 col-md-4">
+                  <div class="border rounded p-3 h-100">
+                    <h6 class="small">EU MDR</h6>
+
+                    <div class="mb-3">
+                      <div class="meta-label">Status</div>
+                      <div class="meta-value">
+                        {{ modelCard.regulatory_landscape?.eu_mdr?.status || '-' }}
+                      </div>
+                    </div>
+
+                    <div>
+                      <div class="meta-label">Classification</div>
+                      <div class="meta-value">
+                        {{ modelCard.regulatory_landscape?.eu_mdr?.classification || '-' }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-12 col-md-4">
+                  <div class="border rounded p-3 h-100">
+                    <h6 class="small">GDPR</h6>
+
+                    <div class="mb-3">
+                      <div class="meta-label">Status</div>
+                      <div class="meta-value">
+                        {{ modelCard.regulatory_landscape?.gdpr?.status || '-' }}
+                      </div>
+                    </div>
+
+                    <div>
+                      <div class="meta-label">Classification</div>
+                      <div class="meta-value">
+                        {{ modelCard.regulatory_landscape?.gdpr?.classification || '-' }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <hr>
+
+            <div>
+              <h6>Environmental Impact</h6>
+
+              <p
+              class="meta-value text-muted mb-3"
+              *ngIf="modelCard.environmental_impact?.note">
+              {{ modelCard.environmental_impact?.note }}
+              </p>
+
+              <div class="meta-field mb-3">
+                <div class="meta-label">Tracking Tool</div>
+                <div class="meta-value">
+                  {{ modelCard.environmental_impact?.tracking_tool || '-' }}
+                </div>
+              </div>
+
+              <div class="meta-field mb-3">
+                <div class="meta-label">Architecture Rationale</div>
+                <div class="meta-value">
+                  {{ modelCard.environmental_impact?.architecture_rationale || '-' }}
+                </div>
+              </div>
+
+              <div class="row g-3" *ngIf="modelCardPipeline">
+                <div class="col-12 col-md-4">
+                  <div class="meta-label">Energy</div>
+                  <div class="meta-value">
+                    {{ modelCardPipeline.environmental_impact?.total_energy_kwh ?? '-' }}
+                    kWh
+                  </div>
+                </div>
+
+                <div class="col-12 col-md-4">
+                  <div class="meta-label">Emissions</div>
+                  <div class="meta-value">
+                    {{ modelCardPipeline.environmental_impact?.total_emissions_kg_co2eq ?? '-' }}
+                    kg CO₂eq
+                  </div>
+                </div>
+
+                <div class="col-12 col-md-4">
+                  <div class="meta-label">Duration</div>
+                  <div class="meta-value">
+                    {{ modelCardPipeline.environmental_impact?.total_duration_s ?? '-' }}
+                    seconds
+                  </div>
+                </div>
+                <div
+                class="mt-4"
+                *ngIf="modelCardPipeline?.environmental_impact?.per_phase">
+
+                <h6 class="small">Breakdown by Pipeline Phase</h6>
+
+                <div class="table-responsive">
+                  <table class="table table-sm table-bordered align-middle">
+                    <thead>
+                      <tr>
+                        <th>Phase</th>
+                        <th>Energy (kWh)</th>
+                        <th>Emissions (kg CO₂eq)</th>
+                        <th>Duration (seconds)</th>
+                      </tr>
+                    </thead>
+
+                    <tbody>
+                      <tr>
+                        <td>Training</td>
+                        <td>
+                          {{ modelCardPipeline.environmental_impact
+                            ?.per_phase?.train?.energy_kwh ?? '-' }}
+                        </td>
+                        <td>
+                          {{ modelCardPipeline.environmental_impact
+                            ?.per_phase?.train?.emissions_kg_co2eq ?? '-' }}
+                        </td>
+                        <td>
+                          {{ modelCardPipeline.environmental_impact
+                            ?.per_phase?.train?.duration_s ?? '-' }}
+                        </td>
+                      </tr>
+
+                      <tr>
+                        <td>Post-evaluation</td>
+                        <td>
+                          {{ modelCardPipeline.environmental_impact
+                            ?.per_phase?.posteval?.energy_kwh ?? '-' }}
+                        </td>
+                        <td>
+                          {{ modelCardPipeline.environmental_impact
+                            ?.per_phase?.posteval?.emissions_kg_co2eq ?? '-' }}
+                        </td>
+                        <td>
+                          {{ modelCardPipeline.environmental_impact
+                            ?.per_phase?.posteval?.duration_s ?? '-' }}
+                        </td>
+                      </tr>
+
+                      <tr>
+                        <td>SHAP Explainability</td>
+                        <td>
+                          {{ modelCardPipeline.environmental_impact
+                            ?.per_phase?.shap_explain?.energy_kwh ?? '-' }}
+                        </td>
+                        <td>
+                          {{ modelCardPipeline.environmental_impact
+                            ?.per_phase?.shap_explain?.emissions_kg_co2eq ?? '-' }}
+                        </td>
+                        <td>
+                          {{ modelCardPipeline.environmental_impact
+                            ?.per_phase?.shap_explain?.duration_s ?? '-' }}
+                        </td>
+                      </tr>
+
+                      <tr>
+                        <td>Delta CI</td>
+                        <td>
+                          {{ modelCardPipeline.environmental_impact
+                            ?.per_phase?.delta_ci?.energy_kwh ?? '-' }}
+                        </td>
+                        <td>
+                          {{ modelCardPipeline.environmental_impact
+                            ?.per_phase?.delta_ci?.emissions_kg_co2eq ?? '-' }}
+                        </td>
+                        <td>
+                          {{ modelCardPipeline.environmental_impact
+                            ?.per_phase?.delta_ci?.duration_s ?? '-' }}
+                        </td>
+                      </tr>
+
+                      <tr>
+                        <td>Fairness Audit</td>
+                        <td>
+                          {{ modelCardPipeline.environmental_impact
+                            ?.per_phase?.fairness_audit?.energy_kwh ?? '-' }}
+                        </td>
+                        <td>
+                          {{ modelCardPipeline.environmental_impact
+                            ?.per_phase?.fairness_audit?.emissions_kg_co2eq ?? '-' }}
+                        </td>
+                        <td>
+                          {{ modelCardPipeline.environmental_impact
+                            ?.per_phase?.fairness_audit?.duration_s ?? '-' }}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              </div>
+            </div>
+
+            <hr>
+
+            <div>
+              <h6>Co-creation</h6>
+
+              <div class="meta-label">Stakeholder Groups</div>
+              <div class="meta-value mb-3">
+                {{ modelCard.co_creation?.stakeholder_groups?.join(', ') || '-' }}
+              </div>
+
+              <div class="meta-label">Stakeholder Requirements</div>
+              <ul>
+                <li
+                  *ngFor="let requirement of
+                    modelCard.co_creation?.key_requirements_from_stakeholders">
+                  {{ requirement }}
+                </li>
+              </ul>
+
+              <div class="meta-label">Documentation</div>
+              <div class="meta-value">
+                {{ modelCard.co_creation?.documentation || '-' }}
+              </div>
+            </div>
+
+            <hr>
+
+            <div>
+              <h6>Ongoing Maintenance</h6>
+
+              <div class="meta-field mb-3">
+                <div class="meta-label">Validity Monitoring</div>
+                <div class="meta-value">
+                  {{ modelCard.ongoing_maintenance?.monitoring_validity || '-' }}
+                </div>
+              </div>
+
+              <div class="meta-field mb-3">
+                <div class="meta-label">Fairness Monitoring</div>
+                <div class="meta-value">
+                  {{ modelCard.ongoing_maintenance?.monitoring_fairness || '-' }}
+                </div>
+              </div>
+
+              <div class="meta-label">Update Triggers</div>
+              <ul>
+                <li
+                  *ngFor="let trigger of
+                    modelCard.ongoing_maintenance?.update_triggers">
+                  {{ trigger }}
+                </li>
+              </ul>
+              <div class="row g-3 mt-2">
+                <div
+                class="col-12 col-md-4"
+                *ngIf="modelCard.ongoing_maintenance?.auc_reporting_threshold !== undefined"
+              >
+                <div class="meta-field">
+                  <div class="meta-label">AUC Reporting Threshold</div>
+                  <div class="meta-value">
+                    {{ modelCard.ongoing_maintenance?.auc_reporting_threshold }}
+                  </div>
+                </div>
+              </div>
+
+              <div
+                class="col-12 col-md-8"
+                *ngIf="modelCard.ongoing_maintenance?.auc_reporting_rationale"
+              >
+                <div class="meta-field">
+                  <div class="meta-label">AUC Reporting Rationale</div>
+                  <div class="meta-value">
+                    {{ modelCard.ongoing_maintenance?.auc_reporting_rationale }}
+                  </div>
+                </div>
+              </div>
+              <div
+              class="col-12"
+              *ngIf="modelCard.ongoing_maintenance?.deployment_selection_basis"
+            >
+              <div class="meta-field">
+                <div class="meta-label">Deployment Selection Basis</div>
+                <div class="meta-value">
+                  {{ modelCard.ongoing_maintenance?.deployment_selection_basis }}
+                </div>
+              </div>
+            </div>
+
+              </div>
+            </div>
+
+            <hr>
+
+            <div>
+              <h6>Security and Compliance</h6>
+
+              <div class="meta-field mb-3">
+                <div class="meta-label">Data Processing</div>
+                <div class="meta-value">
+                  {{ modelCard.security_compliance?.data_processing || '-' }}
+                </div>
+              </div>
+
+              <div class="meta-field mb-3">
+                <div class="meta-label">Access Control</div>
+                <div class="meta-value">
+                  {{ modelCard.security_compliance?.access_control || '-' }}
+                </div>
+              </div>
+
+              <div class="meta-field mb-3">
+                <div class="meta-label">Patient Data</div>
+                <div class="meta-value">
+                  {{ modelCard.security_compliance?.patient_data || '-' }}
+                </div>
+              </div>
+
+              <div class="meta-field">
+                <div class="meta-label">GDPR</div>
+                <div class="meta-value">
+                  {{ modelCard.security_compliance?.gdpr || '-' }}
+                </div>
+              </div>
+            </div>
+
+            <hr>
+
+            <div>
+              <h6>Data Governance</h6>
+
+              <div class="meta-field mb-3">
+                <div class="meta-label">UK Biobank Application</div>
+                <div class="meta-value">
+                  {{ modelCard.data_governance?.ukb_application || '-' }}
+                </div>
+              </div>
+
+              <div class="meta-field mb-3">
+                <div class="meta-label">Controller Status</div>
+                <div class="meta-value">
+                  {{ modelCard.data_governance?.ub_controller_status || '-' }}
+                </div>
+              </div>
+
+              <div class="meta-field mb-3">
+                <div class="meta-label">Data-sharing Constraints</div>
+                <div class="meta-value">
+                  {{ modelCard.data_governance?.data_sharing_constraints || '-' }}
+                </div>
+              </div>
+
+              <div class="meta-field">
+                <div class="meta-label">NFBC Validation</div>
+                <div class="meta-value">
+                  {{ modelCard.data_governance?.nfbc_validation || '-' }}
+                </div>
+              </div>
+            </div>
+
+            <hr>
+
+            <div>
+              <h6>References and Funding</h6>
+
+              <ul>
+                <li>
+                  FUTURE-AI:
+                  {{ modelCard.references?.future_ai_guideline || '-' }}
+                </li>
+                <li>
+                  CHAI Applied Model Card:
+                  {{ modelCard.references?.chai_model_card_template || '-' }}
+                </li>
+                <li>
+                  TRIPOD:
+                  {{ modelCard.references?.tripod_reporting || '-' }}
+                </li>
+              </ul>
+
+              <div class="meta-label">Funding</div>
+              <div class="meta-value">
+                {{ modelCard.funding || '-' }}
+              </div>
+            </div>
+          </details>
+        </details>
+      </div>
+    </div>
+
     <!-- Publisher & contact -->
     <div class="col-12 col-lg-6">
       <div class="metadata-section border rounded p-3 h-100">

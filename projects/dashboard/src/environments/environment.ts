@@ -13,8 +13,8 @@ export const environment = {
         img: 'assets/stage-circle-blue-text.png',
         metadata: {
           smartAppId: '0000-0000-0000-0001',
-          modelReference: '',
-          modelVersion: '',
+          modelCardUrl: 'assets/model-cards/stage/model_card_metadata.json',
+          modelCardPipelineUrl: 'assets/model-cards/stage/model_card_pipeline.json',
           name: 'STAGE Integrated Multi-morbidity Risk Prediction Tools',
           version: '1',
           keywords: ['Multimorbidity', 'Healthy Aging', 'AI'],
