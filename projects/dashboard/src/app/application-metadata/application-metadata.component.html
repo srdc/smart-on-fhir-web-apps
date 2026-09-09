@@ -242,6 +242,28 @@
             </div>
           </div>
 
+          <div
+            class="col-12 col-md-6"
+            *ngIf="modelCard.multimorbidity?.risk_output_validated">
+            <div class="meta-field">
+              <div class="meta-label">Multimorbidity Risk Output Validation</div>
+              <div class="meta-value">
+                {{ modelCard.multimorbidity?.risk_output_validated }}
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="col-12"
+            *ngIf="modelCard.multimorbidity?.risk_output_rationale">
+            <div class="meta-field">
+              <div class="meta-label">Multimorbidity Risk Output Rationale</div>
+              <div class="meta-value">
+                {{ modelCard.multimorbidity?.risk_output_rationale }}
+              </div>
+            </div>
+          </div>
+
           <div class="col-12">
             <div class="meta-field">
               <div class="meta-label">Cautioned / Out-of-Scope Uses</div>
@@ -277,12 +299,11 @@
           <h6 class="mb-3">Disease-specific Performance</h6>
 
           <p class="text-muted small">
-            Select a population group and disease to view the corresponding
-            model performance.
+            Select a population group to view disease-specific model performance.
           </p>
 
           <div class="row g-3">
-            <div class="col-12 col-md-3">
+            <div class="col-12 col-md-4">
               <label class="meta-label mb-1" for="modelCardSex">
                 Sex
               </label>
@@ -300,7 +321,7 @@
               </select>
             </div>
 
-            <div class="col-12 col-md-3">
+            <div class="col-12 col-md-4">
               <label class="meta-label mb-1" for="modelCardAgeGroup">
                 Age Group
               </label>
@@ -318,7 +339,7 @@
               </select>
             </div>
 
-            <div class="col-12 col-md-3">
+            <div class="col-12 col-md-4">
               <label class="meta-label mb-1" for="modelCardFeatureSet">
                 Feature Set
               </label>
@@ -336,108 +357,150 @@
               </select>
             </div>
 
-            <div class="col-12 col-md-3">
-              <label class="meta-label mb-1" for="modelCardDisease">
-                Disease
-              </label>
-              <select
-                id="modelCardDisease"
-                class="form-select"
-                [value]="selectedDiseaseName"
-                [disabled]="!selectedStratum"
-                (change)="onDiseaseChange($event)">
-                <option value="">Select disease</option>
-                <option
-                  *ngFor="let disease of availableDiseases"
-                  [value]="disease.disease">
-                  {{ disease.disease }}
-                </option>
-              </select>
+            <ng-container
+            *ngIf="selectedStratum?.deployment_policy as deploymentPolicy">
+
+            <div class="row g-3 mt-3">
+              <div
+                class="col-12 col-md-4"
+                *ngIf="deploymentPolicy.risk_output_validated">
+
+                <div class="meta-field">
+                  <div class="meta-label">Risk Output Validation</div>
+                  <div class="meta-value">
+                    {{ deploymentPolicy.risk_output_validated }}
+                  </div>
+                </div>
+              </div>
+
+              <div
+                class="col-12"
+                *ngIf="deploymentPolicy.risk_output_rationale">
+
+                <div class="meta-field">
+                  <div class="meta-label">Risk Output Rationale</div>
+                  <div class="meta-value">
+                    {{ deploymentPolicy.risk_output_rationale }}
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
+
+          </ng-container>
 
           <div
-            class="alert alert-light border mt-3 mb-0"
+            class="col-12 alert alert-light border mt-3 mb-0"
             *ngIf="!selectedStratum">
             Select sex, age group and feature set to continue.
           </div>
 
-          <div
-            class="alert alert-light border mt-3 mb-0"
-            *ngIf="selectedStratum && !selectedDisease">
-            Select a disease to view its performance.
+          <div class="col-12" *ngIf="selectedStratum">
+
+            <p class="text-muted small mb-2">
+              IMDRF risk categories are disease-specific and do not vary by the
+              selected population group. Performance metrics are shown for the
+              selected sex, age group and feature set.
+            </p>
+
+            <div class="table-responsive">
+              <table class="table table-sm table-bordered align-middle">
+                <thead>
+                  <tr>
+                    <th>Disease</th>
+                    <th>IMDRF Category (Disease-level)</th>
+                    <th>AUC</th>
+                    <th>95% Confidence Interval</th>
+                    <th>Calibration Method</th>
+                    <th>Brier Score</th>
+                    <th>Calibration Slope</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  <tr *ngFor="let disease of availableDiseases">
+                    <td>
+                      {{ disease.disease }}
+                    </td>
+
+                    <td>
+                      {{ getDiseaseImdrfCategory(disease.disease) }}
+                    </td>
+
+                    <td>
+                      {{ disease.discrimination?.auc ?? '-' }}
+                    </td>
+
+                    <td>
+                      <ng-container
+                        *ngIf="
+                          disease.discrimination?.ci_95_lo !== undefined &&
+                          disease.discrimination?.ci_95_hi !== undefined;
+                          else noDiseaseConfidenceInterval
+                        ">
+                        {{ disease.discrimination?.ci_95_lo }}
+                        –
+                        {{ disease.discrimination?.ci_95_hi }}
+                      </ng-container>
+
+                      <ng-template #noDiseaseConfidenceInterval>
+                        -
+                      </ng-template>
+                    </td>
+
+                    <td>
+                      {{ disease.calibration?.method || '-' }}
+                    </td>
+
+                    <td>
+                      {{ disease.calibration?.brier_score ?? '-' }}
+                    </td>
+
+                    <td>
+                      {{ disease.calibration?.calibration_slope ?? '-' }}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
 
-          <div class="row g-3 mt-1" *ngIf="selectedDisease">
-            <div class="col-12 col-md-4">
-              <div class="meta-field">
-                <div class="meta-label">IMDRF Category</div>
-                <div class="meta-value">
-                  {{ selectedDiseaseImdrfCategory }}
-                </div>
-              </div>
-            </div>
-
-            <div class="col-12 col-md-4">
-              <div class="meta-field">
-                <div class="meta-label">AUC</div>
-                <div class="meta-value">
-                  {{ selectedDisease.discrimination?.auc ?? '-' }}
-                </div>
-              </div>
-            </div>
-
-            <div class="col-12 col-md-4">
-              <div class="meta-field">
-                <div class="meta-label">95% Confidence Interval</div>
-                <div class="meta-value">
-                  <ng-container
-                    *ngIf="selectedDisease.discrimination?.ci_95_lo !== undefined &&
-                           selectedDisease.discrimination?.ci_95_hi !== undefined;
-                           else noConfidenceInterval">
-                    {{ selectedDisease.discrimination?.ci_95_lo }}
-                    –
-                    {{ selectedDisease.discrimination?.ci_95_hi }}
-                  </ng-container>
-                  <ng-template #noConfidenceInterval>-</ng-template>
-                </div>
-              </div>
-            </div>
-
-            <div class="col-12 col-md-4">
-              <div class="meta-field">
-                <div class="meta-label">Calibration Method</div>
-                <div class="meta-value">
-                  {{ selectedDisease.calibration?.method || '-' }}
-                </div>
-              </div>
-            </div>
-            <div class="col-12 col-md-4">
-              <div class="meta-field">
-                <div class="meta-label">Brier Score</div>
-                <div class="meta-value">
-                  {{ selectedDisease.calibration?.brier_score ?? '-' }}
-                </div>
-              </div>
-            </div>
-
-            <div class="col-12 col-md-4">
-              <div class="meta-field">
-                <div class="meta-label">Calibration Slope</div>
-                <div class="meta-value">
-                  {{ selectedDisease.calibration?.calibration_slope ?? '-' }}
-                </div>
-              </div>
-            </div>
-
-            <div class="col-12 mt-3">
+          <div class="col-12 mt-3" *ngIf="selectedStratum">
             <details class="metric-interpretation border rounded p-3">
               <summary class="fw-semibold">
                 Visualizing and Interpreting Performance Metrics
               </summary>
 
               <div class="pt-3">
-                <p class="text-muted mb-4">
+                <div class="mb-4">
+                  <label
+                    class="meta-label mb-1"
+                    for="visualizationDisease">
+                    Disease to Visualize
+                  </label>
+
+                  <select
+                    id="visualizationDisease"
+                    class="form-select"
+                    [value]="selectedDiseaseName"
+                    (change)="onDiseaseChange($event)">
+
+                    <option value="">Select disease</option>
+
+                    <option
+                      *ngFor="let disease of availableDiseases"
+                      [value]="disease.disease">
+                      {{ disease.disease }}
+                    </option>
+                  </select>
+                </div>
+
+                <div
+                  class="alert alert-light border"
+                  *ngIf="!selectedDisease">
+                  Select a disease to visualize its performance metrics.
+                </div>
+                <ng-container *ngIf="selectedDisease">
+                  <p class="text-muted mb-4">
                   The visualizations below correspond to the currently selected
                   stratum and disease. They provide contextual guidance and should
                   not be interpreted as evidence of clinical validity on their own.
@@ -695,6 +758,7 @@
                     closely correspond to observed outcome frequencies.
                   </div>
                 </div>
+                </ng-container>
               </div>
             </details>
           </div>
@@ -845,6 +909,10 @@
                         Disability:
                         {{ modelCard.fairness?.attributes_not_considered?.disability || '-' }}
                       </li>
+                      <li>
+                        Note:
+                        {{ modelCard.fairness?.attributes_not_considered?.note || '-' }}
+                      </li>
                     </ul>
                   </div>
                 </div>
@@ -902,6 +970,114 @@
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+
+          <hr>
+
+          <div *ngIf="modelCard.multimorbidity">
+            <h6>Multimorbidity</h6>
+
+            <div class="row g-3">
+
+              <div class="col-12">
+                <div class="meta-field">
+                  <div class="meta-label">Approach</div>
+                  <div class="meta-value">
+                    {{ modelCard.multimorbidity?.approach || '-' }}
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-12">
+                <div class="meta-field">
+                  <div class="meta-label">Pair Evidence</div>
+                  <div class="meta-value">
+                    {{ modelCard.multimorbidity?.pair_evidence?.definition || '-' }}
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-12">
+                <div class="meta-field">
+                  <div class="meta-label">Pair Evidence Coverage</div>
+                  <div class="meta-value">
+                    {{ modelCard.multimorbidity?.pair_evidence?.coverage || '-' }}
+                  </div>
+                </div>
+              </div>
+
+              <div
+                class="col-12"
+                *ngIf="modelCard.multimorbidity?.pair_evidence?.source">
+                <div class="meta-field">
+                  <div class="meta-label">Pair Evidence Source</div>
+                  <div class="meta-value">
+                    {{ modelCard.multimorbidity?.pair_evidence?.source }}
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-12">
+                <div class="meta-field">
+                  <div class="meta-label">Conditions Withheld</div>
+                  <div class="meta-value">
+                    <ng-container
+                      *ngIf="
+                        modelCard.multimorbidity?.conditions_withheld?.diseases?.length;
+                        else noWithheldConditions
+                      ">
+                      <ul class="mb-0">
+                        <li
+                          *ngFor="
+                            let disease of
+                            modelCard.multimorbidity?.conditions_withheld?.diseases
+                          ">
+                          {{ disease }}
+                        </li>
+                      </ul>
+                    </ng-container>
+
+                    <ng-template #noWithheldConditions>-</ng-template>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-12">
+                <div class="meta-field">
+                  <div class="meta-label">Withholding Rationale</div>
+                  <div class="meta-value">
+                    {{
+                      modelCard.multimorbidity?.conditions_withheld?.rationale || '-'
+                    }}
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-12">
+                <div class="meta-field">
+                  <div class="meta-label">Limitations</div>
+                  <div class="meta-value">
+                    <ng-container
+                      *ngIf="
+                        modelCard.multimorbidity?.limitations?.length;
+                        else noMultimorbidityLimitations
+                      ">
+                      <ul class="mb-0">
+                        <li
+                          *ngFor="
+                            let limitation of modelCard.multimorbidity?.limitations
+                          ">
+                          {{ limitation }}
+                        </li>
+                      </ul>
+                    </ng-container>
+
+                    <ng-template #noMultimorbidityLimitations>-</ng-template>
+                  </div>
+                </div>
+              </div>
+
             </div>
           </div>
 
@@ -1097,9 +1273,33 @@
             <div>
               <h6>Per-subgroup Fairness Results</h6>
 
+              <div class="mt-3 mb-3">
+                <label
+                  class="meta-label mb-1"
+                  for="fairnessDisease">
+                  Disease
+                </label>
+
+                <select
+                  id="fairnessDisease"
+                  class="form-select"
+                  [value]="selectedFairnessDiseaseName"
+                  [disabled]="!selectedStratum"
+                  (change)="onFairnessDiseaseChange($event)">
+
+                  <option value="">Select disease</option>
+
+                  <option
+                    *ngFor="let disease of availableDiseases"
+                    [value]="disease.disease">
+                    {{ disease.disease }}
+                  </option>
+                </select>
+              </div>
+
               <div
                 class="alert alert-primary border mt-3"
-                *ngIf="selectedDisease">
+                *ngIf="selectedFairnessDiseaseName">
                 <div class="small mb-2">
                   These subgroup fairness results correspond to the model
                   selection made above.
@@ -1121,18 +1321,17 @@
                   </span>
 
                   <span class="badge bg-light text-dark border">
-                    Disease: {{ selectedDiseaseName }}
+                    Disease: {{ selectedFairnessDiseaseName }}
                   </span>
                 </div>
               </div>
 
               <div
                 class="alert alert-light border"
-                *ngIf="!selectedDisease">
-                Select a population group and disease in
-                Disease-specific Performance to view subgroup fairness results.
+                *ngIf="!selectedFairnessDiseaseName">
+                Select a disease to view subgroup fairness results.
               </div>
-              <ng-container *ngIf="selectedDisease">
+              <ng-container *ngIf="selectedFairnessDiseaseName">
                 <h6 class="small">By Age</h6>
 
                 <div
@@ -1148,6 +1347,7 @@
                         <th>Calibration Slope</th>
                         <th>Positive Rate</th>
                         <th>Sample Size</th>
+                        <th>Events</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1160,6 +1360,7 @@
                         <td>{{ result.calibration_slope ?? '-' }}</td>
                         <td>{{ result.positive_rate ?? '-' }}</td>
                         <td>{{ result.n_samples ?? '-' }}</td>
+                        <td>{{ result.n_events ?? '-' }}</td>
                       </tr>
                     </tbody>
                   </table>
@@ -1183,6 +1384,7 @@
                         <th>Calibration Slope</th>
                         <th>Positive Rate</th>
                         <th>Sample Size</th>
+                        <th>Events</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1190,11 +1392,14 @@
                         *ngFor="let result of
                           selectedDiseaseEthnicityFairness">
                         <td>{{ result.subgroup }}</td>
-                        <td>{{ result.auc ?? '-' }}</td>
+                        <td>
+                          {{ result.auc === null ? 'Not estimable' : (result.auc ?? '-') }}
+                        </td>
                         <td>{{ result.tpr_at_fpr10 ?? '-' }}</td>
                         <td>{{ result.calibration_slope ?? '-' }}</td>
                         <td>{{ result.positive_rate ?? '-' }}</td>
                         <td>{{ result.n_samples ?? '-' }}</td>
+                        <td>{{ result.n_events ?? '-' }}</td>
                       </tr>
                     </tbody>
                   </table>
@@ -1205,6 +1410,76 @@
                   </p>
                 </ng-template>
               </ng-container>
+            </div>
+
+            <hr>
+
+            <div *ngIf="modelCard.multimorbidity">
+              <h6>Multimorbidity Technical Details</h6>
+
+              <div class="row g-3">
+
+                <div class="col-12">
+                  <div class="meta-field">
+                    <div class="meta-label">Independence Assumption</div>
+                    <div class="meta-value">
+                      {{ modelCard.multimorbidity?.independence_assumption || '-' }}
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-12">
+                  <h6 class="small mt-2">Derived Quantities</h6>
+                </div>
+
+                <div class="col-12 col-md-6">
+                  <div class="meta-field">
+                    <div class="meta-label">Expected Condition Count</div>
+                    <div class="meta-value">
+                      {{
+                        modelCard.multimorbidity?.quantities?.expected_condition_count || '-'
+                      }}
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-12 col-md-6">
+                  <div class="meta-field">
+                    <div class="meta-label">Count Distribution</div>
+                    <div class="meta-value">
+                      {{ modelCard.multimorbidity?.quantities?.count_distribution || '-' }}
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-12 col-md-6">
+                  <div class="meta-field">
+                    <div class="meta-label">Probability At Least</div>
+                    <div class="meta-value">
+                      {{ modelCard.multimorbidity?.quantities?.probability_at_least || '-' }}
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-12 col-md-6">
+                  <div class="meta-field">
+                    <div class="meta-label">Pair Ranking</div>
+                    <div class="meta-value">
+                      {{ modelCard.multimorbidity?.quantities?.pair_ranking || '-' }}
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-12">
+                  <div class="meta-field">
+                    <div class="meta-label">Causal Sequence Pairs</div>
+                    <div class="meta-value">
+                      {{ modelCard.multimorbidity?.causal_sequence_pairs?.note || '-' }}
+                    </div>
+                  </div>
+                </div>
+
+              </div>
             </div>
 
             <hr>
@@ -1591,6 +1866,22 @@
                       </tr>
 
                       <tr>
+                        <td>Delta CI</td>
+                        <td>
+                          {{ modelCardPipeline.environmental_impact
+                            ?.per_phase?.delta_ci?.energy_kwh ?? '-' }}
+                        </td>
+                        <td>
+                          {{ modelCardPipeline.environmental_impact
+                            ?.per_phase?.delta_ci?.emissions_kg_co2eq ?? '-' }}
+                        </td>
+                        <td>
+                          {{ modelCardPipeline.environmental_impact
+                            ?.per_phase?.delta_ci?.duration_s ?? '-' }}
+                        </td>
+                      </tr>
+
+                      <tr>
                         <td>Fairness Audit</td>
                         <td>
                           {{ modelCardPipeline.environmental_impact
@@ -1665,27 +1956,41 @@
                 </li>
               </ul>
               <div class="row g-3 mt-2">
-                <div class="col-12 col-md-3">
-                  <div class="meta-label">AUC Exclusion Threshold</div>
+                <div
+                class="col-12 col-md-4"
+                *ngIf="modelCard.ongoing_maintenance?.auc_reporting_threshold !== undefined"
+              >
+                <div class="meta-field">
+                  <div class="meta-label">AUC Reporting Threshold</div>
                   <div class="meta-value">
-                    <ng-container
-                      *ngIf="modelCard.ongoing_maintenance
-                        ?.auc_exclusion_threshold !== undefined;
-                        else noAucThreshold">
-                      {{ modelCard.ongoing_maintenance
-                        ?.auc_exclusion_threshold | number:'1.2-2' }}
-                    </ng-container>
-                    <ng-template #noAucThreshold>-</ng-template>
+                    {{ modelCard.ongoing_maintenance?.auc_reporting_threshold }}
                   </div>
                 </div>
+              </div>
 
-                <div class="col-12 col-md-9">
-                  <div class="meta-label">Exclusion Rationale</div>
+              <div
+                class="col-12 col-md-8"
+                *ngIf="modelCard.ongoing_maintenance?.auc_reporting_rationale"
+              >
+                <div class="meta-field">
+                  <div class="meta-label">AUC Reporting Rationale</div>
                   <div class="meta-value">
-                    {{ modelCard.ongoing_maintenance
-                      ?.auc_exclusion_rationale || '-' }}
+                    {{ modelCard.ongoing_maintenance?.auc_reporting_rationale }}
                   </div>
                 </div>
+              </div>
+              <div
+              class="col-12"
+              *ngIf="modelCard.ongoing_maintenance?.deployment_selection_basis"
+            >
+              <div class="meta-field">
+                <div class="meta-label">Deployment Selection Basis</div>
+                <div class="meta-value">
+                  {{ modelCard.ongoing_maintenance?.deployment_selection_basis }}
+                </div>
+              </div>
+            </div>
+
               </div>
             </div>
 

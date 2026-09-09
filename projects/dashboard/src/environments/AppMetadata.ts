@@ -76,6 +76,38 @@ export interface ModelCardMetadata {
 
   known_limitations?: string[];
 
+  multimorbidity?: {
+    approach?: string;
+    independence_assumption?: string;
+
+    quantities?: {
+      expected_condition_count?: string;
+      count_distribution?: string;
+      probability_at_least?: string;
+      pair_ranking?: string;
+    };
+
+    risk_output_validated?: string;
+    risk_output_rationale?: string;
+
+    pair_evidence?: {
+      definition?: string;
+      coverage?: string;
+      source?: string;
+    };
+
+    conditions_withheld?: {
+      diseases?: string[];
+      rationale?: string;
+    };
+
+    causal_sequence_pairs?: {
+      note?: string;
+    };
+
+    limitations?: string[];
+  };
+
   fairness?: {
     audit_design?: {
       protected_attributes?: string[];
@@ -183,8 +215,9 @@ export interface ModelCardMetadata {
     monitoring_validity?: string;
     monitoring_fairness?: string;
     update_triggers?: string[];
-    auc_exclusion_threshold?: number;
-    auc_exclusion_rationale?: string;
+    auc_reporting_threshold?: number;
+    auc_reporting_rationale?: string;
+    deployment_selection_basis?: string;
   };
 
   security_compliance?: {
@@ -267,6 +300,10 @@ export interface FairnessResult {
   positive_rate_difference?: number | null;
 
   n_samples?: number | null;
+
+  n_events?: number;
+
+  stable?: boolean;
 }
 
 export interface ModelCardStratum {
@@ -283,6 +320,13 @@ export interface ModelCardStratum {
   fairness?: {
     by_age?: FairnessResult[];
     by_ethnicity?: FairnessResult[];
+  };
+
+  deployment_policy?: {
+    cohort_deployed?: string;
+    cohort_rationale?: string;
+    risk_output_validated?: string;
+    risk_output_rationale?: string;
   };
 }
 
@@ -332,6 +376,11 @@ export interface ModelCardPipeline {
       };
 
       fairness_audit?: {
+        energy_kwh?: number;
+        emissions_kg_co2eq?: number;
+        duration_s?: number;
+      };
+      delta_ci?: {
         energy_kwh?: number;
         emissions_kg_co2eq?: number;
         duration_s?: number;

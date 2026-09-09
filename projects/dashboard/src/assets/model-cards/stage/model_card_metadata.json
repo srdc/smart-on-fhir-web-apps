@@ -2,7 +2,7 @@
   "_meta": {
     "description": "Transparency metadata for the STAGE WP6 multimorbidity prediction pipeline, structured following the CHAI Applied Model Card v0.2 with FUTURE-AI extensions. Complements model_card_pipeline.json (auto-generated performance data). Together they populate the CDS Hooks model card display.",
     "template_version": "0.2",
-    "last_updated": "2026-08-14",
+    "last_updated": "2026-09-07",
     "updated_by": "alvaro_passisolar@ub.edu",
     "chai_sections_covered": [
       "header", "summary", "intended_use", "cautioned_out_of_scope_uses",
@@ -11,7 +11,7 @@
       "model_architecture", "ongoing_maintenance", "security_compliance",
       "environmental_impact", "data_governance", "co_creation",
       "standards_interoperability", "robustness", "regulatory_landscape",
-      "references", "funding", "tier_display_mapping"
+      "references", "funding", "multimorbidity", "tier_display_mapping"
     ]
   },
 
@@ -27,14 +27,14 @@
     "version": "1.0",
     "version_date": "2026-08-01",
     "global_availability": "Research use within the STAGE consortium. Not publicly deployed. Planned proof-of-concept integration with CDS and health monitoring platforms.",
-    "regulatory_status": "Not applicable at current stage. Designed with EU AI Act (Articles 9, 13) and FUTURE-AI guideline alignment."
+    "regulatory_status": "Not applicable at current stage. Design informed by EU AI Act Articles 9 (risk management) and 13 (transparency) and by the FUTURE-AI guideline. No conformity assessment has been carried out and no claim of alignment is made."
   },
 
-  "summary": "The STAGE WP6 pipeline predicts 10-year incident risk for 24 chronic conditions (23 per sex) using UK Biobank data (N≈502,462; Application 295277). The architecture uses 22 independent LightGBM classifiers plus 1 XGBoost for Substance Use Disorder (with Depression out-of-fold augmentation), each trained on disease-specific top-50 features selected by gain importance. The pipeline includes Platt scaling calibration, SHAP explainability, per-subgroup fairness auditing, and was shaped by multi-stakeholder co-creation with clinicians, researchers, ethicists, and citizens.",
+  "summary": "The STAGE WP6 pipeline predicts 10-year incident risk for chronic conditions using UK Biobank data (N≈502,462; Application 295277). The architecture uses one independent LightGBM classifier per disease plus 1 XGBoost for Substance Use Disorder (with Depression out-of-fold augmentation), each trained on disease-specific top-50 features selected by gain importance. between 21 and 23 diseases are deployed per stratum; model_card_pipeline.json is authoritative. The pipeline includes Platt scaling calibration, SHAP explainability, per-subgroup fairness auditing, and was shaped by multi-stakeholder co-creation with clinicians, researchers, ethicists, and citizens.",
 
   "model_architecture": {
     "default_estimator": "LightGBM (gradient boosted decision trees)",
-    "n_diseases_deployed": 23,
+    "n_diseases_deployed": "varies by stratum (21-23) with the number of diseases retaining sufficient incident events after prevalent exclusion. see model_card_pipeline.json, which is authoritative for the deployed set of each stratum.",
     "exception": {
       "disease": "Substance Use Disorder",
       "estimator": "XGBoost",
@@ -72,12 +72,13 @@
   "cautioned_out_of_scope_uses": [
     "This is a research proof-of-concept. It has not been validated for clinical deployment and must not be used for real patient care decisions.",
     "Risk scores are population-level estimates and must not be used for individual diagnostic confirmation.",
+    "Absolute risk is not validated for display. Under the England-train / Scotland+Wales-test geographic split, expected-to-observed ratios run 2-3x for hospital-ascertained conditions while registry-ascertained cancers sit near 1.0. Calibration slope is near 1.0 throughout, so rank-based output (deciles, tiers) is supportable and percentages are not, pending recalibration in D6.3.",
     "Not validated for populations outside UK Biobank demographics (predominantly White British, UK-resident, aged 40–69 at recruitment).",
     "Not intended for use without clinician interpretation."
   ],
 
   "imdrf_risk_classification": {
-    "description": "IMDRF SaMD risk classification. All predictions serve an 'inform' purpose. Condition significance varies per disease.",
+    "description": "PROPOSED, NOT VALIDATED. This IMDRF SaMD risk classification was assigned by WP6 and has not been reviewed by a regulatory specialist or by the STAGE embedded ethics team. Several assignments are arguable, notably the Category I placement of Obesity and Cancer Other. It is provided for transparency and to support that review, not as a regulatory determination. All predictions serve an 'inform' purpose; condition significance varies per disease.",
     "intended_purpose": "inform",
     "per_disease": {
       "category_I_non_serious_inform": [
@@ -101,6 +102,7 @@
         "Chronic Liver Disease",
         "Substance Use Disorder",
         "Depression",
+        "Anxiety",
         "Osteoporosis",
         "Peripheral Vascular Disease",
         "Cancer Breast",
@@ -109,7 +111,7 @@
         "Cancer Prostate"
       ]
     },
-    "note": "Classification covers all 24 deployed diseases (7 Category I + 17 Category II). Each sex has 23 diseases: Cancer Breast is female-only, Cancer Prostate is male-only. Five conditions excluded from deployment due to insufficient discriminative performance: Dementia (ICD10), Parkinsons, Multiple Sclerosis, Severe Mental Illness, Sleep Disorders. Final IMDRF classification to be reviewed with the STAGE embedded ethics team."
+    "note": "Classification covers 25 conditions (7 Category I + 18 Category II). Cancer Breast is female-only and Cancer Prostate is male-only, and the number actually deployed varies by stratum with post-exclusion event counts. Five conditions are excluded from the deployed set because discrimination was too close to chance to support clinical display: Dementia (ICD10), Parkinsons, Multiple Sclerosis, Severe Mental Illness, Sleep Disorders. Final IMDRF classification to be reviewed with the STAGE embedded ethics team."
   },
 
   "training_data": {
@@ -122,7 +124,7 @@
     "outcome_ascertainment": "Hospital Episode Statistics (HES) ICD-10 codes; three-tier prevalent exclusion (ICD-10, medication-based, survey-based)",
     "split_strategy": "Geographic hold-out (training: England assessment centres; test: Scotland and Wales assessment centres)",
     "healthy_volunteer_bias": "UK Biobank participants are healthier, wealthier, and more educated than the UK general population. This is a known selection bias that affects generalisability.",
-    "ethnic_composition": "Approximately 94% White British. Non-White subgroups have smaller sample sizes, which may reduce model reliability for these populations."
+    "ethnic_composition": "Approximately 94% White British across UK Biobank as a whole. The Scotland and Wales assessment centres used as the geographic test set are 96.7-98.7% White, so non-White participants number 146-498 per deployed stratum and no disease reaches the 30-event minimum in that subgroup. Model reliability for these populations is unquantified rather than demonstrated."
   },
 
   "known_limitations": [
@@ -131,7 +133,10 @@
     "Healthy volunteer bias: UKB participants are not representative of the UK general population.",
     "Ethnic composition: ~94% White British — model performance for non-White subgroups requires careful interpretation.",
     "GP-linkage outcome validation is planned but not yet completed.",
-    "Five diseases excluded from deployment due to AUC below reporting threshold: Dementia (ICD10), Parkinsons, Multiple Sclerosis, Severe Mental Illness, Sleep Disorders."
+    "Geographic ascertainment: Scotland and Wales record a maximum of 6 diagnostic codes per hospital episode against England's 20 (Clifton et al. 2026), systematically undercounting hospital-ascertained conditions in the test set. Test-set discrimination is therefore a conservative lower bound for non-cancer outcomes and unbiased for registry-ascertained cancers.",
+    "Obesity is not deployable. After exclusion of participants with baseline BMI >= 30, incident ICD-10 E66 events in the Scotland+Wales test set fall below the 30-event minimum in every deployed stratum. E66 is recorded as a secondary hospital code and is the type most affected by the Scotland/Wales coding-depth cap. This is an outcome-ascertainment limit, not a model failure.",
+    "Ethnicity fairness is not assessable in the current test set. The geographic hold-out places Scotland and Wales in the test set, and those assessment centres are 96.7-98.7% White, leaving 146-498 non-White participants per deployed stratum. Against a minimum of 30 incident events per subgroup, 0 of 196 disease-by-stratum cells are estimable for the non-White subgroup in the deployed cohort; the closest was Coronary Heart Disease in Male_under60 at 25 events. The White subgroup is estimable in 734 of 736 cells across all strata and label tiers. No ethnicity fairness gap is reported and no fairness figure is produced: this is not evidence of parity, it is evidence that the test set cannot support the comparison. The England-only validation design planned for D6.3 restores an ethnically diverse test set and makes this audit tractable.",
+    "Five conditions are excluded from the deployed set because discrimination was too close to chance to support clinical display: Dementia (ICD10), Parkinsons, Multiple Sclerosis, Severe Mental Illness, Sleep Disorders. Their models were trained and evaluated; the results are reported in D6.2 for completeness."
   ],
 
   "validation_status": {
@@ -166,7 +171,7 @@
     },
     "attributes_considered": {
       "sex": "Addressed by architecture — separate models trained per sex eliminate within-stratum sex disparity by construction.",
-      "ethnicity": "Disaggregated evaluation by White/non-White subgroups. Ethnicity grouping variable programmatically excluded from model features to prevent direct discrimination; retained for post-hoc fairness auditing.",
+      "ethnicity": "Disaggregated evaluation by White / non-White subgroups, taken from the Ethnic_recode categorical variable (White = White_British or White_Other). Ethnicity is retained as a model feature: it is one-hot encoded with White_British as the dropped reference level, and the resulting indicators are eligible for gain-based feature selection. Removing it would not prevent proxy encoding through deprivation, diet and anthropometric variables, and retaining it can improve calibration in minority subgroups. Whether to exclude it, and the effect of doing so, is a bias-mitigation question deferred to D6.3 (Task 6.3). Gaps are computed within stratum and only where both subgroups have at least 30 events; cells below that are reported as not estimable rather than as a zero gap. In the current geographic hold-out no deployed disease-by-stratum cell clears that floor for the non-White subgroup, so no gap is reported for any deployed model.",
       "age_group": "Evaluated in all-ages strata (fairness_by_age). Age-stratified models (under60/60plus) also trained separately."
     },
     "attributes_not_considered": {
@@ -179,7 +184,7 @@
   },
 
   "bias_mitigation": {
-    "tautological_feature_exclusion": "For diseases where near-diagnostic biomarkers are available, those features are excluded before feature selection to prevent circular predictions (e.g., HbA1c excluded from Diabetes Mellitus, SBP/DBP from Hypertension, BMI from Obesity). Not all diseases require tautological exclusions.",
+    "tautological_feature_exclusion": "Tautological feature patterns are defined per disease (HbA1c and glucose for Diabetes Mellitus, blood pressure for Hypertension, creatinine and cystatin C for Chronic Kidney Disease, spirometry for COPD, BMI and anthropometrics for Obesity) but are NOT applied to the deployed survey-exclusion cohort. In that cohort the circularity is already removed at the cohort level: participants who self-reported the condition, were on a disease-specific medication, or met a diagnostic laboratory threshold at baseline are excluded from the model entirely, so a sub-diagnostic biomarker value in a retained participant is a legitimate continuous risk gradient rather than a restatement of the outcome. A sensitivity analysis applying the exclusions anyway (Arm D) cost 0.017 mean AUC across 67 of 88 disease-by-stratum cells, confirming the retained signal is predictive rather than circular. The deployed feature masks therefore do contain these biomarkers; the exclusion patterns are retained in the codebase and applied to the ICD-only and medication-exclusion sensitivity tiers, where cohort-level exclusion is weaker.",
     "prevalent_case_exclusion": "Three-tier exclusion (ICD-10, medication, survey-based) removes participants with prevalent conditions from training to prevent information leakage. Exclusion is label-specific, not union-based.",
     "co_creation_provenance": "Pipeline design informed by multi-stakeholder co-creation within the STAGE project: clinicians, researchers, ethicists, and citizens requested SHAP explainability, life-stage-specific models, clinician-mediated predictions, fairness auditing, and EHR integration."
   },
@@ -189,7 +194,7 @@
     "scope": "Per-prediction waterfall plots showing top feature attributions with directional contributions",
     "global_importance": "LightGBM gain-based feature importance used for top-k selection (k=50 per disease)",
     "modifiable_risk_factors": "Identified per disease; flagged for counterfactual scenario generation",
-    "design_rationale": "SHAP was selected through co-creation with clinical stakeholders who preferred feature-importance explanations over counterfactual explanations. LIME was considered but is less theoretically grounded for tree-based models."
+    "design_rationale": "SHAP was selected through co-creation with clinical stakeholders, who preferred feature-importance explanations over counterfactual explanations. TreeExplainer computes exact Shapley values for tree ensembles (Lundberg et al., Nature Machine Intelligence 2020), whereas LIME provides a local surrogate approximation; the exactness for this model class was the deciding factor. Counterfactual explainability is deferred to D6.3 (Task 6.5)."
   },
 
   "ongoing_maintenance": {
@@ -200,14 +205,15 @@
       "Identified performance drift",
       "Updated disease definitions"
     ],
-    "auc_exclusion_threshold": 0.70,
-    "auc_exclusion_rationale": "Standard reporting threshold per Hosmer-Lemeshow discrimination framework and TRIPOD guidelines (Collins et al. 2015). Diseases below threshold excluded from deployment."
+    "auc_reporting_threshold": 0.70,
+    "auc_reporting_rationale": "Standard reporting threshold per the Hosmer-Lemeshow discrimination framework and TRIPOD guidelines (Collins et al. 2015). It sets the Moderate/Low discrimination tier boundary and is not itself a deployment criterion.",
+    "deployment_selection_basis": "Every model in the deployed set is shipped. Discrimination is communicated by the discrimination_tier flag and the bootstrap confidence interval; no model is withheld on the basis of the reporting threshold alone."
   },
 
   "robustness": {
     "variation_sources_tested": [
       "Regional variation (geographic train/test split: England vs Scotland+Wales)",
-      "Metric stability (bootstrap resampling, n=2000)",
+      "Metric stability (bootstrap resampling; the resample count is recorded per disease in model_card_pipeline.json under per_disease.discrimination.bootstrap_resamples)",
       "Cross-national variation (NFBC1966 external validation, planned)"
     ],
     "variation_sources_not_tested": [
@@ -231,12 +237,13 @@
     "data_processing": "All model training and evaluation conducted on institutional on-premise infrastructure. No cloud computing used for model training.",
     "access_control": "Data access restricted to authorised researchers under UK Biobank and NFBC1966 data agreements.",
     "patient_data": "No patient-identifiable data leaves controlled research environments. CDS integration uses synthetic data for proof-of-concept.",
-    "gdpr": "GDPR-compliant data handling per institutional policies and UK Biobank Material Transfer Agreement. UB is independent data controller."
+    "gdpr": "GDPR-compliant data handling per institutional policies and the UK Biobank Material Transfer Agreement. UB is independent data controller.",
+    "_review_status": "PENDING LEGAL REVIEW. The statements in this section and in data_governance describe controllership, MTA compliance and GDPR handling. They were drafted by WP6 and require confirmation from the UB data protection officer and the institutional UK Biobank access holder before this card is released outside the consortium."
   },
 
   "regulatory_landscape": {
     "eu_ai_act": {
-      "status": "Pre-deployment. Pipeline designed with Articles 9 (risk management) and 13 (transparency) alignment.",
+      "status": "Pre-deployment. Design informed by Articles 9 (risk management) and 13 (transparency); no conformity assessment has been carried out.",
       "classification": "Likely high-risk (healthcare AI) if deployed as clinical tool"
     },
     "eu_mdr": {
@@ -244,7 +251,7 @@
       "classification": "Potentially Software as Medical Device (SaMD)"
     },
     "gdpr": {
-      "status": "Compliant. UB as independent controller; institutional ethics approval obtained.",
+      "status": "UB acts as independent controller; institutional ethics approval obtained. Compliance statement pending confirmation by the UB data protection officer (see security_compliance._review_status).",
       "classification": "Health data (special category under Article 9)"
     }
   },
@@ -282,21 +289,58 @@
 
   "funding": "European Union's Horizon Europe research and innovation programme under Grant Agreement No. 101137146 (STAGE).",
 
+  "multimorbidity": {
+    "approach": "Multimorbidity quantities are derived post hoc from the per-disease singleton probabilities rather than from a separate model. No additional training, artifacts or calibration are involved: deploy/multimorbidity.py is a stateless post-processor over the output of predict.py.",
+    "independence_assumption": "Joint quantities assume conditional independence GIVEN FEATURES, not independence in the population. Two conditions sharing risk factors produce correlated singleton predictions across individuals, which P(D_j, D_k | x) = p_j * p_k captures. Experiments on multi-label dependency strategies found that under 15% of the available inter-disease dependency signal is recoverable at all once the base estimator is controlled, so independent singletons are the honest baseline and the residual dependence is measurable rather than assumed away.",
+    "quantities": {
+      "expected_condition_count": "Sum of the eligible singleton probabilities.",
+      "count_distribution": "Exact P(N = k) via Poisson-binomial dynamic programming over the eligible probabilities.",
+      "probability_at_least": "Tail sums of that distribution, reported for k = 1 to 4.",
+      "pair_ranking": "Pairs ranked by p_j * p_k, each labelled validated or unvalidated."
+    },
+    "risk_output_validated": "rank_only",
+    "risk_output_rationale": "Absolute joint risk is LESS deployable than absolute singleton risk, not more. A pair probability multiplies two singleton estimates, so the 2-3x expected-to-observed error on hospital-ascertained conditions compounds to roughly 4-9x for pairs and 8-27x for triplets. Counts and pair scores rank a patient relative to the modelled population and must not be rendered as percentages.",
+    "pair_evidence": {
+      "definition": "A pair is reported as 'validated' only where that specific pair cleared a 30 co-event minimum in the D6.2 test-set evaluation for the patient's stratum, so that joint discrimination could be measured. Everything else is 'unvalidated': the arithmetic is identical but no empirical discrimination was measurable, and a consumer must not present it with the same confidence.",
+      "coverage": "Uneven by design, following the incident-event counts of the underlying strata: 29 evaluable pairs in Male 60+, 17 in Female 60+, 7 in Male under 60, 2 in Female under 60.",
+      "source": "deploy/multimorbidity/{stratum}/pair_evaluation.csv"
+    },
+    "conditions_withheld": {
+      "diseases": ["Cancer Breast", "Cancer Colorectal", "Cancer Prostate", "Cancer Other"],
+      "rationale": "Detection of these is governed by a national screening programme with defined eligibility. A lifestyle-derived score shown alongside a screening invitation invites both false reassurance and unwarranted anxiety and has no independent pathway to act on. Including them in a count compounds that: the patient sees a number they cannot act on, attached to conditions they are already screened for. This judgement rests on a UK screening context; where local screening coverage differs it should be revisited with the clinical lead. The list is explicit in deploy/multimorbidity.py rather than inherited from this card."
+    },
+    "causal_sequence_pairs": {
+      "note": "Some pairs are directional cascades rather than co-occurrence, and a 10-year binary window collapses that distinction. These carry a sequence note so a clinical interface can phrase them as progression: Stroke to Dementia, Atrial Fibrillation to Heart Failure, Diabetes to Chronic Kidney Disease, Hypertension to Chronic Kidney Disease, Coronary Heart Disease to Heart Failure. The list is not exhaustive and should be extended after clinical review."
+    },
+    "limitations": [
+      "Competing mortality is not modelled. Counts are risk-of-event counts, not expected disease burden among survivors.",
+      "Counts are unweighted: two conditions may differ greatly in clinical severity.",
+      "The count covers conditions ascertained from hospital episode records, not all incident disease, so it is a lower bound on clinical multimorbidity rather than an estimate of it.",
+      "Observed-to-expected co-occurrence ratios are interpretable only for the registry-ascertained cancers, which are uniformly ascertained UK-wide. Hospital-ascertained pairs show O/E well below 1 as an ascertainment artefact rather than as a genuine independence result."
+    ]
+  },
+
   "tier_display_mapping": {
-    "_description": "Maps fields to CDS Hooks display tiers as agreed with SRDC (July 2026). SRDC reads this to determine what surfaces where in the interface.",
+    "_description": "Maps fields to dashboard display tiers as agreed with SRDC (July 2026, revised September 2026). The tier names are internal to this file and are not shown in the interface: tier 1 renders as the initially visible Model Card content, tier 2 under 'Detailed Model Information', tier 3 under the nested 'Technical Documentation and Evidence' section.",
     "tier_1_always_visible": [
       "summary",
       "imdrf_risk_classification",
       "cautioned_out_of_scope_uses",
-      "per_disease.discrimination.auc",
-      "per_disease.discrimination.ci_95_lo",
-      "per_disease.discrimination.ci_95_hi",
-      "per_disease.calibration.method",
       "intended_use.human_oversight_required",
+      "deployment_policy.risk_output_validated",
+      "deployment_policy.risk_output_rationale",
+      "multimorbidity.risk_output_validated",
+      "multimorbidity.risk_output_rationale",
       "header.version",
       "header.version_date"
     ],
     "tier_2_on_demand": [
+      "per_disease.discrimination.auc",
+      "per_disease.discrimination.ci_95_lo",
+      "per_disease.discrimination.ci_95_hi",
+      "per_disease.calibration.method",
+      "per_disease.calibration.brier_score",
+      "per_disease.calibration.calibration_slope",
       "training_data.source",
       "training_data.n_participants_total",
       "training_data.healthy_volunteer_bias",
@@ -304,10 +348,12 @@
       "fairness.audit_design",
       "fairness.attributes_considered",
       "fairness.attributes_not_considered",
-      "per_disease.calibration.brier_score",
-      "per_disease.calibration.calibration_slope",
       "known_limitations",
-      "validation_status"
+      "validation_status",
+      "multimorbidity.approach",
+      "multimorbidity.pair_evidence",
+      "multimorbidity.conditions_withheld",
+      "multimorbidity.limitations"
     ],
     "tier_3_reference_link": [
       "training_data (full)",
@@ -323,7 +369,8 @@
       "security_compliance",
       "references",
       "funding",
-      "data_governance"
+      "data_governance",
+      "multimorbidity (full)"
     ]
   }
 }
