@@ -34,6 +34,7 @@ export class ApplicationMetadataComponent {
   selectedAgeGroup = '';
   selectedFeatureSet = '';
   selectedDiseaseName = '';
+  selectedFairnessDiseaseName = '';
 
   constructor(
     private route: ActivatedRoute,
@@ -209,43 +210,74 @@ export class ApplicationMetadataComponent {
     return '-';
   }
 
+  getDiseaseImdrfCategory(diseaseName: string): string {
+    const perDisease =
+      this.modelCard?.imdrf_risk_classification?.per_disease;
+
+    if (!perDisease) {
+      return '-';
+    }
+
+    if (
+      perDisease.category_I_non_serious_inform?.includes(diseaseName)
+    ) {
+      return 'Category I — Non-serious / Inform';
+    }
+
+    if (
+      perDisease.category_II_serious_inform?.includes(diseaseName)
+    ) {
+      return 'Category II — Serious / Inform';
+    }
+
+    return '-';
+  }
+
   get selectedDiseaseAgeFairness(): FairnessResult[] {
-    if (!this.selectedDiseaseName) {
+    if (!this.selectedFairnessDiseaseName) {
       return [];
     }
 
     return (this.selectedStratum?.fairness?.by_age || []).filter(
-      result => result.disease === this.selectedDiseaseName
+      result => result.disease === this.selectedFairnessDiseaseName
     );
   }
 
   get selectedDiseaseEthnicityFairness(): FairnessResult[] {
-    if (!this.selectedDiseaseName) {
+    if (!this.selectedFairnessDiseaseName) {
       return [];
     }
 
     return (this.selectedStratum?.fairness?.by_ethnicity || []).filter(
-      result => result.disease === this.selectedDiseaseName
+      result => result.disease === this.selectedFairnessDiseaseName
     );
   }
 
   onSexChange(event: Event): void {
     this.selectedSex = (event.target as HTMLSelectElement).value;
     this.selectedDiseaseName = '';
+    this.selectedFairnessDiseaseName = '';
   }
 
   onAgeGroupChange(event: Event): void {
     this.selectedAgeGroup = (event.target as HTMLSelectElement).value;
     this.selectedDiseaseName = '';
+    this.selectedFairnessDiseaseName = '';
   }
 
   onFeatureSetChange(event: Event): void {
     this.selectedFeatureSet = (event.target as HTMLSelectElement).value;
     this.selectedDiseaseName = '';
+    this.selectedFairnessDiseaseName = '';
   }
 
   onDiseaseChange(event: Event): void {
     this.selectedDiseaseName =
+      (event.target as HTMLSelectElement).value;
+  }
+
+  onFairnessDiseaseChange(event: Event): void {
+    this.selectedFairnessDiseaseName =
       (event.target as HTMLSelectElement).value;
   }
 
