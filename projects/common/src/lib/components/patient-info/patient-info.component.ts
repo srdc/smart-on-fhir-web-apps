@@ -25,6 +25,8 @@ export class PatientInfoComponent {
   @Input() logo: string | undefined;
   /** Route of the patient selection page (PatientSelectComponent), for user logins that can switch patients */
   @Input() selectPatientUrl: string | undefined;
+  /** The dashboard of the STAGE apps ("See all STAGE apps"; same origin, so the session is kept); empty: no button */
+  @Input() dashboardUrl: string | undefined = '/smart-apps/dashboard/';
 
   constructor(private router: Router) {
   }

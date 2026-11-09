@@ -24,6 +24,7 @@
         <ng-content></ng-content>
       </div>
       <button class="btn btn-primary btn-sidebar w-100 mt-2" *ngIf="launchUrl || selectPatientUrl" (click)="changePatient()">Change Patient</button>
+      <a class="btn btn-primary btn-sidebar w-100 mt-2" *ngIf="dashboardUrl" [href]="dashboardUrl">See all STAGE apps</a>
       <button class="btn btn-primary btn-sidebar w-100 mt-2" (click)="onLogout()">Logout</button>
     </ng-container>
   </div>
