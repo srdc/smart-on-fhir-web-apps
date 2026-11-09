@@ -1,8 +1,25 @@
-const appBaseUrl = 'http://localhost:4200';
-const cdsBaseUrl = 'http://localhost:8084';
+const appBaseUrl = 'http://localhost:4201';
+// CDS services of the local repositories (stage-fhir-repository, application-stage.conf / application-ehr.conf)
+const stageFhir = 'http://localhost:8080/fhir';
+const ehrFhir = 'http://localhost:8180/fhir';
 
 export const environment = {
   smart: {
+    shlServerBaseUrl: 'http://localhost:3000',
+    // one SHL server per repository (shl-server with .env.stage / .env.ehr)
+    shlServerBaseUrls: {
+      'http://localhost:8080/fhir': 'http://localhost:3000',
+      'http://localhost:8180/fhir': 'http://localhost:3001'
+    },
+    // issuers of Smart Health Cards shown by name when importing (the fhir.root-url of each repository)
+    trustedIssuers: [
+      {iss: 'http://127.0.0.1:8080/fhir', name: 'STAGE FHIR repository'},
+      {iss: 'http://127.0.0.1:8180/fhir', name: 'EHR'},
+    ],
+    // send the access token when creating links, so that users can list/revoke them with their account (needs SHL_OWNER_JWKS_URL on the SHL server)
+    shlOwnerAuth: false,
+    // canonical ValueSets of the CDS health card profiles, as held by stage-fhir-repository (fhir-conf/valueset/shc-<service>.json)
+    healthCardValueSetBaseUrl: 'http://stage-healthyaging.eu/fhir/ValueSet/',
     logo: 'assets/stage-outline-white-cropped.png',
     authStorage: <'localStorage'>'localStorage',
     title: 'QRISK3 CALCULATOR',
@@ -16,16 +33,9 @@ export const environment = {
     redirectUrl: appBaseUrl + '/callback',
     loginClients: [
       {
-        label: 'EPIC',
-        image: 'https://fhir.epic.com/Content/images/EpicOnFhir.png',
-        iss: 'https://fhir.epic.com/interconnect-fhir-oauth/api/FHIR/R4/',
-        redirectUri: appBaseUrl + '/callback',
-        clientId: '43a60ffa-242a-4bbe-bb17-97666be7189e',
-        scope: 'launch launch/patient patient/*.*'
-      },
-      {
         label: 'Kroniq',
-        image: 'https://kroniq.health/img/kroniq-colored.png',
+        // image: 'https://kroniq.health/img/kroniq-colored.png',
+        image: 'assets/stage-repofyr.png',
         iss: 'http://localhost:8080/fhir',
         redirectUri: appBaseUrl + '/callback',
         clientId: 'smart-test',
@@ -33,6 +43,32 @@ export const environment = {
         aud: 'fhir-repo',
         promptLogin: true,
         logoutUri: 'http://127.0.0.1:8091/api/smart/logout?post_logout_redirect_uri=' + appBaseUrl + '/login'
+      },
+      {
+        // second repository for the xShare tests (stage-fhir-repository, application-ehr.conf): clinicians log in without a patient
+        // (no launch/patient scope) and open patients by importing their Smart Health Cards/Links
+        label: 'EHR',
+        image: 'assets/xshare-repofyr.png',
+        color: 'white',
+        iss: 'http://localhost:8180/fhir',
+        isPublic: false,
+        redirectUri: appBaseUrl + '/callback',
+        clientId: 'smart-test',
+        scope: 'profile openid email roles offline_access user/*.*',
+        aud: 'fhir-repo',
+        promptLogin: true,
+        interventions: {
+          relatedObservationMethod: '_source',
+          value: 'http://stage-healthyageing.eu/data-source/LIVA'
+        }
+      },
+      {
+        label: 'EPIC',
+        image: 'https://fhir.epic.com/Content/images/EpicOnFhir.png',
+        iss: 'https://fhir.epic.com/interconnect-fhir-oauth/api/FHIR/R4/',
+        redirectUri: appBaseUrl + '/callback',
+        clientId: '43a60ffa-242a-4bbe-bb17-97666be7189e',
+        scope: 'launch launch/patient patient/*.*'
       }
     ],
     launchClients: [
@@ -51,6 +87,8 @@ export const environment = {
   },
   cds: {
     serviceName: 'qrisk3',
-    baseUrl: cdsBaseUrl
+    // <FHIR base>/cds-hooks of the repository the user is logged in to
+    baseUrl: stageFhir,
+    baseUrls: {[stageFhir]: stageFhir, [ehrFhir]: ehrFhir}
   }
 }

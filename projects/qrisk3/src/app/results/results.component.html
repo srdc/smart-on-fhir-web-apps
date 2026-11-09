@@ -24,5 +24,33 @@
   <div class="progress" style="height: 2.5em" role="progressbar" aria-label="QRISK3" [attr.aria-valuenow]="scores[0]" aria-valuemin="0" aria-valuemax="100">
     <div class="progress-bar bg-danger" [ngStyle]="{width: (scores[0] || 0) + '%', 'min-width': '3em'}">{{ scores[0] }}%</div>
   </div>
+  <button class="btn btn-secondary mt-4" routerLink="/"><i class="bi bi-arrow-left"></i> Back</button>
+  @if (canSaveInterventions) {
+    <button class="btn btn-primary mt-4 me-2" (click)="saveInterventions()" [disabled]="savingInterventions || !selectedObservations.length"
+            title="Add the selected suggestions as goals to the patient's care plan">
+      @if (savingInterventions) {
+        <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+      } @else {
+        <i class="bi bi-clipboard2-check"></i>
+      }
+      Save Interventions
+    </button>
+    @if (healthCardProfiles.length) {
+      <button class="btn btn-outline-dark mt-4 me-2" (click)="shareDialogOpen = true"
+              title="Share the patient's care plan as a Smart Health Card (QR code / link)">
+        <i class="bi bi-qr-code"></i> Share Care Plan
+      </button>
+    }
+    @if (interventionsMessage) {
+      <div class="alert mt-2 mb-0 py-2 small" [class.alert-success]="interventionsMessage.type === 'success'"
+           [class.alert-danger]="interventionsMessage.type === 'danger'" role="status">{{ interventionsMessage.text }}</div>
+    }
+  }
+} @else {
+  <button class="btn btn-secondary mt-4" routerLink="/"><i class="bi bi-arrow-left"></i> Back</button>
 }
-<button class="btn btn-secondary mt-4" routerLink="/"><i class="bi bi-arrow-left"></i> Back</button>
+@if (shareDialogOpen && patient?.id) {
+  <app-share-health-card-dialog [patientId]="patient!.id!" [profiles]="healthCardProfiles" title="Share Care Plan"
+                                (closed)="shareDialogOpen = false"></app-share-health-card-dialog>
+}
+
