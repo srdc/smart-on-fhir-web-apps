@@ -27,7 +27,7 @@ export class InterventionService {
     try {
       const bundle = await this.sof.search<any>('CarePlan', {
         status: 'active',
-        subject: 'Patient/' + patientId,
+        patient: 'Patient/' + patientId,
         _sort: '-date',
         _count: 1,
         _include: '*'
@@ -65,11 +65,11 @@ export class InterventionService {
         this.sof.search<fhir4.Observation>('Observation', {
           // TODO: update ng-smart-on-fhir to make selected client config public, then get the search params from the config
           _source: 'http://stage-healthyageing.eu/data-source/LIVA',
-          subject: 'Patient/' + patientId
+          patient: 'Patient/' + patientId
         }, {_sort: '-date', _count: 999}),
         codes.length ? this.sof.search<fhir4.Observation>('Observation', {
           code: codes.map(code => encodeURIComponent(code)).join(','),
-          subject: 'Patient/' + patientId
+          patient: 'Patient/' + patientId
         }, {_sort: '-date', _count: 999}).catch(err => {
           console.error(err);
           return undefined;

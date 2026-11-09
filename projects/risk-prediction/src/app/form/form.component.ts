@@ -179,7 +179,7 @@ export class FormComponent implements OnInit, OnDestroy {
     if (!this.patient?.id || !this.questionnaire?.id) return undefined;
     try {
       const bundle = await this.sof.search<fhir4.QuestionnaireResponse>('QuestionnaireResponse', {
-        subject: `Patient/${this.patient.id}`,
+        patient: `Patient/${this.patient.id}`,
         questionnaire: `Questionnaire/${this.questionnaire.id}`,
         _sort: '-authored',
         _count: 20

@@ -36,7 +36,7 @@ export class HistoryBuilderService {
   // ---------------- CONDITIONS ----------------
   private fetchConditions(subjectRef: string): Observable<HistoryEvent[]> {
     const params: any = {
-      subject: subjectRef,
+      patient: subjectRef,
       category: 'problem-list-item,encounter-diagnosis',
       _count: 200
     };
@@ -77,7 +77,7 @@ export class HistoryBuilderService {
   // ---------------- MEDICATIONS (NEW) ----------------
   private fetchMedications(subjectRef: string): Observable<HistoryEvent[]> {
     const params: any = {
-      subject: subjectRef,
+      patient: subjectRef,
       status: 'active,completed',
       _count: 100,
       _sort: '-date' // Get newest first so we can pick the latest refill
@@ -215,7 +215,7 @@ export class HistoryBuilderService {
   // ---------------- BMI ≥ 30 (DERIVED) ----------------
   private fetchBmiDerived(subjectRef: string): Observable<HistoryEvent[]> {
     const params: any = {
-      subject: subjectRef,
+      patient: subjectRef,
       code: 'http://loinc.org|39156-5',
       _count: 200,
       _sort: 'date'
@@ -247,7 +247,7 @@ export class HistoryBuilderService {
   // ---------------- LIFESTYLE (Smoking + Alcohol) ----------------
   private fetchLifestyle(subjectRef: string): Observable<HistoryEvent[]> {
     const params: any = {
-      subject: subjectRef,
+      patient: subjectRef,
       category: 'social-history',
       _count: 200,
       _sort: '-date'

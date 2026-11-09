@@ -177,7 +177,7 @@ export class IpsDocumentService {
     const now = new Date().toISOString();
 
     const existing = await this.sof.search<fhir4.Composition>('Composition', {
-      subject: patientRef,
+      patient: patientRef,
       type: IpsDocumentService.COMPOSITION_TYPE.system + '|' + IpsDocumentService.COMPOSITION_TYPE.code,
       _sort: '-date',
       _count: 1

@@ -92,12 +92,12 @@ export class PatientSummaryComponent implements OnInit {
 
       if (subjectRef && patientId) {
         const results = await Promise.allSettled([
-          this.sof.search<fhir4.Condition>('Condition', { subject: subjectRef }),
+          this.sof.search<fhir4.Condition>('Condition', { patient: subjectRef }),
           this.fetchMedications(patientId),
           this.sof.search<fhir4.FamilyMemberHistory>('FamilyMemberHistory', { patient: patientId, _count: 50 }),
-          this.sof.search<fhir4.Observation>('Observation', { subject: subjectRef, category: 'vital-signs',   _count: 50, _sort: '-date' }),
-          this.sof.search<fhir4.Observation>('Observation', { subject: subjectRef, category: 'laboratory',    _count: 50, _sort: '-date' }),
-          this.sof.search<fhir4.Observation>('Observation', { subject: subjectRef, category: 'social-history', _count: 50, _sort: '-date' }),
+          this.sof.search<fhir4.Observation>('Observation', { patient: subjectRef, category: 'vital-signs',   _count: 50, _sort: '-date' }),
+          this.sof.search<fhir4.Observation>('Observation', { patient: subjectRef, category: 'laboratory',    _count: 50, _sort: '-date' }),
+          this.sof.search<fhir4.Observation>('Observation', { patient: subjectRef, category: 'social-history', _count: 50, _sort: '-date' }),
           this.safeQRSearch(patientId),
           this.sof.search<fhir4.AllergyIntolerance>('AllergyIntolerance', { patient: subjectRef, _count: 50 })
         ]);
@@ -187,7 +187,7 @@ export class PatientSummaryComponent implements OnInit {
   private async fetchLastVisit(subject: string): Promise<string> {
     try {
       const b = await this.sof.search<fhir4.Encounter>('Encounter', {
-        subject,
+        patient: subject,
         _sort: '-date',
         _count: 1
       });

@@ -36,7 +36,7 @@ export class CarePlanService {
   /** The patient's latest active CarePlan with its goals */
   async findActiveCarePlan(patientId: string): Promise<{ carePlan?: fhir4.CarePlan, goals: fhir4.Goal[] }> {
     const bundle = await this.sof.search<fhir4.Resource>('CarePlan', {
-      subject: 'Patient/' + patientId,
+      patient: 'Patient/' + patientId,
       status: 'active',
       _sort: '-date',
       _count: 1,

@@ -91,7 +91,7 @@ export class ShcComponent {
   async loadCarePlan() {
     this.carePlanLoading = true;
     try {
-      const bundle = await this.sof.search<fhir4.Resource>('CarePlan', { subject: 'Patient/' + this.patient?.id, status: 'active', _sort: '-date', _count: 1, _include: '*' })
+      const bundle = await this.sof.search<fhir4.Resource>('CarePlan', { patient: 'Patient/' + this.patient?.id, status: 'active', _sort: '-date', _count: 1, _include: '*' })
       this.carePlan = <fhir4.CarePlan>bundle.entry?.find(entry => entry.resource?.resourceType === 'CarePlan')?.resource
       if (this.carePlan?.id) {
         this.goals[this.carePlan?.id] = <fhir4.Goal[]>bundle.entry?.filter(entry => entry.resource?.resourceType === 'Goal').map(entry => entry.resource)

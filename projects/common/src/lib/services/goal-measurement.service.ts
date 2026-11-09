@@ -106,7 +106,7 @@ export class GoalMeasurementService {
     codings.flatMap(c => cds.get(codingKey(c)) || []).forEach(coding => options.push({coding, source: 'cds'}));
     if (patientId && codings.length) {
       const bundle = await this.sof.search<fhir4.Observation>('Observation', {
-        subject: 'Patient/' + patientId,
+        patient: 'Patient/' + patientId,
         code: codings.map(c => encodeURIComponent(codingKey(c))).join(','),
         _count: 100
       }).catch(() => undefined);

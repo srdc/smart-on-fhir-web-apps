@@ -140,7 +140,7 @@ export class DiseaseSelectionComponent implements OnInit {
     }
     if (!this.patient?.id) return undefined;
     const bundle = await this.sof.search<fhir4.QuestionnaireResponse>('QuestionnaireResponse', {
-      subject: reference,
+      patient: reference,
       questionnaire: 'Questionnaire/stage_wp6_features',
       _sort: '-authored',
       _count: 20
