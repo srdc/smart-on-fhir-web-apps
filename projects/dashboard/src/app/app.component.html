@@ -15,7 +15,10 @@
     </div>
     <!-- one outlet for all pages (the callback page must not be created twice) -->
     <div [ngClass]="smartPage ? '' : loggedIn ? 'col-12 p-4 col-md-8 col-xl-10' : 'col-12 p-4'">
-      <router-outlet></router-outlet>
+      <!-- without the sidebar: in a container, not stretched on wide screens -->
+      <div [ngClass]="{'container': !loggedIn && !smartPage}">
+        <router-outlet></router-outlet>
+      </div>
     </div>
   </div>
 </div>
