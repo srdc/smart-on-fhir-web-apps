@@ -120,24 +120,8 @@
 <!--        </table>-->
         <div class="row">
           <div class="col-sm-12 col-md-6 d-flex align-items-center justify-content-center">
-            <div>
-              <h5 class="text-center mb-2">Beeswarm Plot</h5>
-              <img [src]="beeswarmUrl(disease.disease)" style="cursor:pointer;width: 100%; max-width: 600px"
-                   (click)="imageDisplay.src = beeswarmUrl(disease.disease)"
-                   data-bs-toggle="modal" data-bs-target="#imageModal">
-              <p class="text-light-emphasis text-center" style="font-size: .6em">Click on image to enlarge</p>
-            </div>
-          </div>
-          <div class="col-sm-12 col-md-6">
-            <!-- explanations are requested disease by disease by the results component (runExplanationQueue) -->
-            <rp-chatbot #chatbot [sessionId]="llmSessionId" [disease]="disease.disease" chart="beeswarm" [runOnInit]="false"
-                        [riskPredictionObservation]="riskObservations[disease.disease]" [localPlotResponse]="localPlotResponse"></rp-chatbot>
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-sm-12 col-md-6 d-flex align-items-center justify-content-center">
             <div style="width: 100%; max-width: 600px">
-              <h5 class="text-center mb-2">Waterfall Plot</h5>
+              <h5 class="text-center mb-2">Most Effecting Risk Factors</h5>
               <canvas baseChart type="bar" [options]="waterfallChartOptions" [data]="waterfallChartData[disease.disease]"></canvas>
             </div>
           </div>
@@ -145,6 +129,26 @@
             <rp-chatbot #chatbot [sessionId]="llmSessionId" [disease]="disease.disease" chart="waterfall" [runOnInit]="false"
                         [riskPredictionObservation]="riskObservations[disease.disease]" [localPlotResponse]="localPlotResponse"></rp-chatbot>
           </div>
+        </div>
+        <div class="row accordion">
+          <details class="accordion-item">
+            <summary>See top factors in population</summary>
+            <div class="row">
+              <div class="col-sm-12 col-md-6 d-flex align-items-center justify-content-center">
+                <div>
+                  <img [src]="beeswarmUrl(disease.disease)" style="cursor:pointer;width: 100%; max-width: 600px"
+                       (click)="imageDisplay.src = beeswarmUrl(disease.disease)"
+                       data-bs-toggle="modal" data-bs-target="#imageModal">
+                  <p class="text-light-emphasis text-center" style="font-size: .6em">Click on image to enlarge</p>
+                </div>
+              </div>
+              <div class="col-sm-12 col-md-6">
+                <!-- explanations are requested disease by disease by the results component (runExplanationQueue) -->
+                <rp-chatbot #chatbot [sessionId]="llmSessionId" [disease]="disease.disease" chart="beeswarm" [runOnInit]="false"
+                            [riskPredictionObservation]="riskObservations[disease.disease]" [localPlotResponse]="localPlotResponse"></rp-chatbot>
+              </div>
+            </div>
+          </details>
         </div>
       </div>
     </div>
