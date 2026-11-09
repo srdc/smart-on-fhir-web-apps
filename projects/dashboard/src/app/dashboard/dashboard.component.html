@@ -2,7 +2,7 @@
   <div class="col-12 fw-bold fs-5 mb-4">
     {{section.title}}
   </div>
-  <div class="col-6 col-xl-4 mb-4" *ngFor="let app of section.apps">
+  <div class="col-12 col-xl-6 col-xxl-4 mb-4" *ngFor="let app of section.apps">
     <div class="card h-100 bg-white app">
       <a [routerLink]="'/app/' + app.id" class="card-header h-100 bg-white d-flex gap-4 align-items-center text-decoration-none">
         <i *ngIf="app.icon; else img" class="fs-2 fw-bold text-danger" [ngClass]="app.icon"></i>
