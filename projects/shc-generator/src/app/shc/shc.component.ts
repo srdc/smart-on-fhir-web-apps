@@ -3,8 +3,7 @@ import {Router} from "@angular/router";
 import {CdsHooksService} from "cds-hooks";
 import {SmartOnFhirService} from "ng-smart-on-fhir";
 import {HttpClient} from "@angular/common/http";
-import {ShlApiService, SHLink} from "../services/shl-api.service";
-import { v4 as UUID } from "uuid";
+import {IpsContent, IpsDocument, IpsDocumentService, SharedLinkVaultService, SHLink, SmartHealthCardService, StoredLink, WrongVaultPasswordError} from "common";
 
 @Component({
   selector: 'app-shc',
@@ -27,34 +26,54 @@ export class ShcComponent {
   vsStatus: 'IDLE'|'LOADING'|'CREATING'|'CREATED'|'FOUND'|'ERROR' = 'IDLE';
   serviceValueSetUrls: {[serviceId: string]: string} = {};
   links: { [serviceId: string]: SHLink[] } = {};
-  stored: SHLink[] = [];
+  /** Encrypted link vault (SharedLinkVaultService) */
+  vaultPassword = '';
+  vaultConfirmation = '';
+  vaultBusy = false;
+  vaultError: string | undefined;
+  readonly minPasswordLength = SharedLinkVaultService.MIN_PASSWORD_LENGTH;
+  private rebuilt = new Map<string, SHLink>();
   passcode: string|undefined;
-  currentTab: 'cds'|'ips' = 'cds';
-  ips: {
-    allergies: fhir4.AllergyIntolerance[];
-    vitalSigns: fhir4.Observation[];
-    immunizations: fhir4.Immunization[];
-    medications: fhir4.MedicationStatement[];
-    labResults: fhir4.Observation[];
-    conditions: fhir4.Condition[]
-  } = {
+  currentTab: 'cds'|'ips'|'careplan' = 'cds';
+  ips: IpsContent = {
     allergies: [],
     vitalSigns: [],
     immunizations: [],
     medications: [],
     labResults: [],
-    conditions: []
+    conditions: [],
+    procedures: [],
+    devices: []
   };
   ipsCompositionLoading: boolean = false;
+  ipsDocument: IpsDocument|undefined;
   composition: fhir4.Composition|undefined;
   ipsBundle: fhir4.Bundle<fhir4.Resource> | undefined;
 
-  get storedExists() {
-    return this.selectedService && this.shl.checkStored(this.selectedService);
+  carePlanLoading: boolean = false;
+  carePlan: fhir4.CarePlan|undefined;
+  goals: { [carePlanId: string]: fhir4.Goal[] } = {};
+
+  get vaultState() {
+    return this.vault.state;
+  }
+
+  /** Service of the current tab: links are stored per service */
+  get currentService(): string | undefined {
+    return this.currentTab === 'cds' ? this.selectedService : this.currentTab === 'ips' ? 'IPS' : 'CarePlan';
+  }
+
+  /** Stored links of the current service (rebuilt once per link, so that the copy state survives change detection) */
+  get stored(): SHLink[] {
+    return this.vault.links
+      .filter(link => link.service === this.currentService && !link.revokedAt)
+      .map(link => this.rebuild(link))
+      .filter((link): link is SHLink => !!link);
   }
 
   constructor(private sof: SmartOnFhirService, private cdsHooksService: CdsHooksService<fhir4.Resource>,
-              private router: Router, private http: HttpClient, private shl: ShlApiService) {
+              private router: Router, private http: HttpClient, private vault: SharedLinkVaultService,
+              private healthCards: SmartHealthCardService, private ipsDocuments: IpsDocumentService) {
   }
 
   async ngOnInit() {
@@ -66,11 +85,25 @@ export class ShcComponent {
     }
     this.loading = false
     this.prepareIPS();
+    this.loadCarePlan();
+  }
+
+  async loadCarePlan() {
+    this.carePlanLoading = true;
+    try {
+      const bundle = await this.sof.search<fhir4.Resource>('CarePlan', { subject: 'Patient/' + this.patient?.id, status: 'active', _sort: '-date', _count: 1, _include: '*' })
+      this.carePlan = <fhir4.CarePlan>bundle.entry?.find(entry => entry.resource?.resourceType === 'CarePlan')?.resource
+      if (this.carePlan?.id) {
+        this.goals[this.carePlan?.id] = <fhir4.Goal[]>bundle.entry?.filter(entry => entry.resource?.resourceType === 'Goal').map(entry => entry.resource)
+      }
+    } catch (err) {
+      alert(err)
+    }
+    this.carePlanLoading = false;
   }
 
   async setService(selectedService: string) {
     this.loading = true;
-    this.stored = [];
     this.vsStatus = 'LOADING';
     const vsCard = await this.cdsHooksService.callService({
       serviceId: 'valueset',
@@ -105,97 +138,107 @@ export class ShcComponent {
   }
 
   async createSmartHealthCard() {
-    if (!this.selectedService) { return; }
+    if (!this.selectedService || !this.patient?.id) { return; }
     const service = this.selectedService;
     const definition = await this.cdsHooksService.getServiceDefinition(service);
     const resourceTypes = Object.keys(Object.values<string>(definition.prefetch)
       .map(query => query.split('?')[0].split('/')[0])
       .reduce((obj: any, rt) => { obj[rt] = true; return obj; }, {}));
-    this.sof.operation<fhir4.Parameters>({
-      resourceType: 'Patient',
-      resourceId: this.patient?.id,
-      operationName: 'health-cards-issue',
-      params: {
-        resourceType: 'Parameters',
-        parameter: [
-          ...resourceTypes.map(resourceType => ({
-            name: 'credentialType',
-            valueUri: resourceType
-          })),
-          {
-            name: 'credentialValueSet',
-            valueUrl: this.serviceValueSetUrls[service]
-          }
-        ]
-      }
-    }).then((data: fhir4.Parameters) => {
-      this.shl.create(data, service, this.passcode?.trim()).then(data => {
-        this.links[service] = [data, ...(this.links[service] || [])
-        ];
-      });
-    })
+    const verifiableCredentials = await this.healthCards.issue(this.patient.id, {
+      credentialType: resourceTypes,
+      credentialValueSet: [this.serviceValueSetUrls[service]]
+    });
+    await this.addLink(verifiableCredentials, service);
   }
 
-  async storeLink(link: SHLink) {
-    this.shl.setPassword(prompt('Enter password') || '');
-    if (this.storedExists && this.selectedService) {
-      try {
-        await this.shl.load(this.selectedService);
-      } catch (err) {
-        const deleteAll = confirm('Incorrect password! Would you like to delete all previously cards and continue with this password? This action could not be undone.')
-        if (!deleteAll) {
-          return;
-        } else {
-          this.shl.clearStore(this.selectedService);
-        }
-      }
+  /** Share the issued cards as a SMART Health Link and list it under the given service */
+  private async addLink(verifiableCredentials: string[], service: string) {
+    if (!verifiableCredentials.length) {
+      alert('No Smart Health Card was issued: the server found no data for ' + service + '.');
+      return;
     }
-    this.shl.store(link).then(() => {
-      this.stored.splice(0, 0, link)
-      if (link.serviceId) {
-        this.links[link.serviceId].splice(this.links[link.serviceId].indexOf(link), 1)
-      }
-    }, err => alert(err));
-  }
-
-  async unlock() {
-    if (!this.selectedService) return;
-    this.shl.setPassword(prompt('Enter password') || '');
     try {
-      this.stored = await this.shl.load(this.selectedService);
+      const link = await this.healthCards.createLink(verifiableCredentials, service, this.passcode?.trim());
+      this.links[service] = [link, ...(this.links[service] || [])];
     } catch (err) {
-      alert('Incorrect password!')
+      alert(err);
     }
+  }
+
+  /** Keep a link in the encrypted link vault (unlock it below first) */
+  async storeLink(link: SHLink) {
+    if (!this.vault.isUnlocked) {
+      this.vaultError = 'Unlock the stored links below (or create a password) to save links.';
+      return;
+    }
+    try {
+      await this.vault.add(link);
+      if (link.serviceId) {
+        this.links[link.serviceId].splice(this.links[link.serviceId].indexOf(link), 1);
+      }
+    } catch (err) {
+      alert(err);
+    }
+  }
+
+  async openVault() {
+    if (this.vaultBusy) return;
+    this.vaultError = undefined;
+    const creating = this.vault.state === 'none';
+    if (creating) {
+      this.vaultError = SharedLinkVaultService.passwordProblem(this.vaultPassword)
+        || (this.vaultPassword !== this.vaultConfirmation ? 'The passwords do not match.' : undefined);
+      if (this.vaultError) return;
+    }
+    this.vaultBusy = true;
+    try {
+      const result = creating ? await this.vault.create(this.vaultPassword) : await this.vault.unlock(this.vaultPassword);
+      this.vaultPassword = this.vaultConfirmation = '';
+      if (result.notImported) {
+        this.vaultError = result.notImported + ' older stored link(s) did not open with this password and were left as they were.';
+      }
+    } catch (err) {
+      this.vaultError = err instanceof WrongVaultPasswordError ? 'Wrong password.' : (err as Error)?.message || String(err);
+    } finally {
+      this.vaultBusy = false;
+    }
+  }
+
+  lockVault() {
+    this.rebuilt.clear();
+    this.vault.lock();
+  }
+
+  async deleteStored(link: SHLink) {
+    if (!link.id || !confirm('Delete this link from the stored links? It is not revoked and keeps working until it expires.')) return;
+    await this.vault.remove(link.id);
+    this.rebuilt.delete(link.id);
+  }
+
+  private rebuild(stored: StoredLink): SHLink | undefined {
+    if (!this.rebuilt.has(stored.id)) {
+      const link = SharedLinkVaultService.toSHLink(stored);
+      if (!link) return undefined;
+      this.rebuilt.set(stored.id, link);
+    }
+    return this.rebuilt.get(stored.id);
   }
 
   private async prepareIPS() {
+    if (!this.patient?.id) { return; }
     this.ipsLoading = true;
-    const distinctPages = async <T extends fhir4.Resource>(resourceType: string, codePath: string, dateParam: string, params?: fhir4.Parameters): Promise<T[]> =>
-      (await this.sof.operation<fhir4.Bundle<T>>({operationName: 'distinct-pages', resourceType, queryParams: [{
-        codePath: codePath, subject: 'Patient/' + this.patient?.id, dateParam, _count: 999
-      }], params
-    })).entry?.map(entry => <T>entry.resource) || []
-    const conditions = await distinctPages<fhir4.Condition>('Condition', 'code.coding.code', 'onset-date')
-    const medications = await distinctPages<fhir4.MedicationStatement>('MedicationStatement', 'medicationCodeableConcept.coding.code', 'effective')
-    const allergies = await distinctPages<fhir4.AllergyIntolerance>('AllergyIntolerance', 'code.coding.code', 'date')
-    const immunizations = await distinctPages<fhir4.Immunization>('Immunization', 'vaccineCode.coding.code', 'date')
-    const observationCategoryParams = (category: string) => distinctPages<fhir4.Observation>('Observation', 'code.coding.code', 'date', {
-        resourceType: 'Parameters',
-        parameter: [{
-          name: 'queryParams',
-          resource: {
-            resourceType: 'Parameters',
-            parameter: [{
-              name: 'category',
-              valueString: category
-            }]
-          }
-        }]
-      })
-    const labResults = await observationCategoryParams('laboratory')
-    const vitalSigns = await observationCategoryParams('vital-signs')
-    this.ips = { conditions, medications, immunizations, allergies, labResults, vitalSigns };
-    this.updateIPSComposition();
+    this.ipsCompositionLoading = true;
+    try {
+      this.ips = await this.ipsDocuments.collect(this.patient.id);
+      this.ipsDocument = await this.ipsDocuments.build(this.patient, this.ips);
+      this.composition = this.ipsDocument.composition;
+      this.ipsBundle = this.ipsDocument.bundle;
+    } catch (err) {
+      console.error('IPS could not be prepared', err);
+    } finally {
+      this.ipsLoading = false;
+      this.ipsCompositionLoading = false;
+    }
   }
 
   getDosageString(medication: fhir4.MedicationStatement): string {
@@ -216,204 +259,19 @@ export class ShcComponent {
     }).join(', ')
   }
 
-  private async updateIPSComposition() {
-    this.ipsCompositionLoading = true;
-    const bundle = await this.sof.search<fhir4.Composition>('Composition', {
-      subject: 'Patient/' + this.patient?.id,
-      type: 'http://loinc.org|60591-5',
-      _sort: '-date',
-      _count: 1
-    }).catch(() => undefined);
-    const userId = (await this.sof.getClient())?.getIdToken()?.sub
-    const composition = bundle?.entry?.at(0)?.resource || <fhir4.Composition>{
-      resourceType: 'Composition',
-      id: UUID(),
-      type: {
-        coding: [{
-          code: '60591-5',
-          system: 'http://loinc.org',
-          display: 'Patient Summary Document'
-        }]
-      },
-      subject: {
-        reference: 'Patient/' + this.patient?.id
-      },
-      status: 'final',
-      title: 'Patient Summary'
-    }
-    if (userId) {
-      composition.author = [{
-        reference: 'Practitioner/' + userId
-      }]
-    }
-    composition.date = new Date().toISOString();
-    composition.section = [
-      {
-        title: 'Active Problems',
-        text: { status: 'generated', div: '<div xmlns=\"http://www.w3.org/1999/xhtml\">Active conditions of the patient</div>' },
-        code: {
-          coding: [{
-            "system": "http://loinc.org",
-            "code": "11450-4",
-            "display": "Problem list Reported"
-          }]
-        },
-        entry: (this.ips.conditions || []).map(resource => ({ reference: resource.resourceType + '/' + resource.id }))
-      },
-      {
-        title: 'Medications',
-        text: { status: 'generated', div: '<div xmlns=\"http://www.w3.org/1999/xhtml\">Active medications of the patient</div>' },
-        code: {
-          coding: [{
-            "system": "http://loinc.org",
-            "code": "10160-0",
-            "display": "History of Medication use Narrative"
-          }]
-        },
-        entry: (this.ips.medications || []).map(resource => ({ reference: resource.resourceType + '/' + resource.id }))
-      },
-      {
-        title: 'Allergies and Intolerances',
-        text: { status: 'generated', div: '<div xmlns=\"http://www.w3.org/1999/xhtml\">Allergies and intolerances of the patient</div>' },
-        code: {
-          coding: [
-            {
-              system: 'http://loinc.org',
-              code: '48765-2',
-              display: 'Allergies and adverse reactions Document'
-            }
-          ]
-        },
-        entry: (this.ips.allergies || []).map(resource => ({ reference: resource.resourceType + '/' + resource.id }))
-      },
-      {
-        title: 'Immunizations',
-        text: { status: 'generated', div: '<div xmlns=\"http://www.w3.org/1999/xhtml\">Immunization history of the patient</div>' },
-        code: {
-          coding: [
-            {
-              system: 'http://loinc.org',
-              code: '11369-6',
-              display: 'History of Immunization Narrative'
-            }
-          ]
-        },
-        entry: (this.ips.immunizations || []).map(resource => ({ reference: resource.resourceType + '/' + resource.id }))
-      },
-      {
-        title: 'Results',
-        text: { status: 'generated', div: '<div xmlns=\"http://www.w3.org/1999/xhtml\">Lab results of the patient</div>' },
-        code: {
-          coding: [
-            {
-              "system": "http://loinc.org",
-              "code": "30954-2",
-              "display": "Relevant diagnostic tests/laboratory data Narrative"
-            }
-          ]
-        },
-        entry: (this.ips.labResults || []).map(resource => ({ reference: resource.resourceType + '/' + resource.id }))
-      },
-      {
-        title: 'Vitals',
-        text: { status: 'generated', div: '<div xmlns=\"http://www.w3.org/1999/xhtml\">Vital sign measurements of the patient</div>' },
-        code: {
-          coding: [
-            {
-              "system": "http://loinc.org",
-              "code": "8716-3",
-              "display": "Vital signs"
-            }
-          ]
-        },
-        entry: (this.ips.vitalSigns || []).map(resource => ({ reference: resource.resourceType + '/' + resource.id }))
-      },
-    ]
-    composition.section.forEach(section => {
-      if (!section.entry?.length) {
-        delete section.entry;
-        section.text = {
-          status: 'empty',
-          div: '<div xmlns=\"http://www.w3.org/1999/xhtml\"><b>No results</b></div>'
-        }
-      }
-    })
-    this.composition = composition;
-    // console.log(JSON.stringify(this.composition));
-    const ipsBundle: fhir4.Bundle<fhir4.Resource> = {
-      resourceType: 'Bundle',
-      identifier: {
-        system: 'urn:oid:2.16.724.4.8.10.200.10',
-        value: UUID()
-      },
-      type: 'document',
-      timestamp: new Date().toISOString(),
-      entry: [ this.composition ]
-    }
-    Object.values(this.ips).flat().forEach((resource: fhir4.Resource) => {
-      ipsBundle.entry?.push({
-        fullUrl: resource.resourceType + '/' + resource.id,
-        resource
-      })
-    })
-    if (this.patient) {
-      const patient = Object.assign({}, this.patient)
-      delete patient.photo;
-      ipsBundle.entry?.push({
-        fullUrl: 'Patient/' + this.patient.id,
-        resource: patient
-      })
-    }
-    if (userId) {
-      const practitioner = (await this.sof.search<fhir4.Practitioner>('Practitioner', {_id: userId})).entry?.at(0)?.resource
-      if (practitioner) {
-        delete practitioner.photo;
-        ipsBundle.entry?.push({
-          fullUrl: 'Practitioner/' + userId,
-          resource: practitioner
-        })
-      }
-    }
-    this.ipsBundle = ipsBundle;
-    this.ipsCompositionLoading = false;
-  }
-
   async createIPSCard() {
-    if (!this.composition) { return; }
-    await this.sof.create<fhir4.Composition>(this.composition, this.composition.id)
-    const data = await this.sof.operation<fhir4.Parameters>({
-      resourceType: 'Patient',
-      resourceId: this.patient?.id,
-      operationName: 'health-cards-issue',
-      params: {
-        resourceType: 'Parameters',
-        parameter: [
-          {
-            name: 'credentialType',
-            valueUri: '#ips'
-          }
-        ]
-      }
-    })
-    this.shl.create(data, 'IPS', this.passcode?.trim()).then(data => {
-      this.links['IPS'] = [data, ...(this.links['IPS'] || [])];
-    });
+    if (!this.ipsDocument) { return; }
+    await this.addLink(await this.ipsDocuments.issueHealthCard(this.ipsDocument), 'IPS');
   }
 
   downloadIPS() {
-    const jsonStr = JSON.stringify(this.ipsBundle, null, 2); // pretty-print with 2-space indentation
-    const blob = new Blob([jsonStr], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
+    if (this.ipsDocument) {
+      this.ipsDocuments.download(this.ipsDocument);
+    }
+  }
 
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'IPS.json';
-    a.style.display = 'none';
-
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-
-    URL.revokeObjectURL(url); // clean up
+  async createCarePlanCard() {
+    if (!this.patient?.id) { return; }
+    await this.addLink(await this.healthCards.issue(this.patient.id, {credentialType: ['CarePlan']}), 'CarePlan');
   }
 }

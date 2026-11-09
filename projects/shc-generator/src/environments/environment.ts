@@ -1,4 +1,4 @@
-const appBaseUrl = 'http://localhost:4201';
+const appBaseUrl = 'http://localhost:4200';
 const cdsBaseUrl = 'http://localhost:8084';
 
 export const environment = {
@@ -40,7 +40,8 @@ export const environment = {
         scope: 'profile openid email roles offline_access launch/patient user/*.* patient/*.*',
         aud: 'fhir-repo',
         promptLogin: true,
-        logoutUri: 'http://127.0.0.1:8091/api/smart/logout?post_logout_redirect_uri=' + appBaseUrl + '/login'
+        isPublic: false,
+        // logoutUri: 'http://127.0.0.1:8091/api/smart/logout?post_logout_redirect_uri=' + appBaseUrl + '/login'
       }
     ],
     launchClients: [

@@ -6,6 +6,9 @@
           <a class="nav-link" [class.active]="currentTab === 'cds'" style="cursor:pointer;" (click)="currentTab = 'cds'">CDS Related Data</a>
         </li>
         <li class="nav-item">
+          <a class="nav-link" [class.active]="currentTab === 'careplan'" style="cursor:pointer;" (click)="currentTab = 'careplan'">Care Plan</a>
+        </li>
+        <li class="nav-item">
           <a class="nav-link" [class.active]="currentTab === 'ips'" style="cursor:pointer;" (click)="currentTab = 'ips'">IPS</a>
         </li>
       </ul>
@@ -78,35 +81,65 @@
         </div>
       }
     </div>
-    <div class="col-md-12" *ngIf="storedExists">
-      <h5 class="mt-5">Stored Links in the Browser</h5>
-      @if (!stored.length) {
-        <button class="btn btn-primary" (click)="unlock()"><i class="bi bi-unlock"></i> Unlock</button>
-      } @else {
-        @for (link of stored; track link.url) {
-          <div class="card mt-2">
-            <div class="card-body">
-              <img style="vertical-align: top" width="250" [src]="link.qr">
-              <div class="d-inline-block">
-                <span class="ms-2"><b>Service: </b>{{link.serviceId}}</span><br>
-                <span class="ms-2"><b>Expiration: </b>{{link.exp || '-'}}</span><br>
-                <span class="ms-2"><b>Requires passcode: </b>{{link.isPasswordProtected}}</span><br>
-                <p class="ms-2 mt-2">
-                  <button class="btn btn-primary" (click)="link.copyToClipboard()">
-                    @if (!link.copied) {
-                      <i class="bi bi-link"></i> Copy Link
-                    } @else {
-                      <i class="bi bi-check"></i> Copied
-                    }
-                  </button>
-                  <button class="btn btn-danger ms-2">
-                    <i class="bi bi-trash"></i> Delete
-                  </button>
-                </p>
+  </ng-container>
+  <ng-container *ngIf="currentTab === 'careplan'">
+    <div class="col-12 p-2 text-end">
+      @if (carePlanLoading || carePlan) {
+<!--        @if (!carePlanLoading && carePlan) {-->
+<!--          <button (click)="downloadCarePlan()" class="sof-mr-1 sof-button sof-button-primary"><i class="sof-icon sof-icon-download"></i> Download Care Plan</button>-->
+<!--        }-->
+        <button class="btn btn-primary" [class.disabled]="carePlanLoading" (click)="createCarePlanCard()">
+          @if (carePlanLoading) {
+            <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+            <span role="status">&nbsp;Loading...</span>
+          } @else {
+            <i class="bi bi-qr-code"></i> Create Smart Health Card
+          }
+        </button>
+        <div class="col-12 p-2">
+          @for (link of links['CarePlan']; track link.url) {
+            <div class="card mt-2">
+              <div class="card-body">
+                <img style="vertical-align: top" width="250" [src]="link.qr">
+                <div class="d-inline-block">
+                  <span class="ms-2"><b>Service: </b>{{link.serviceId}}</span><br>
+                  <span class="ms-2"><b>Expiration: </b>{{link.exp || '-'}}</span><br>
+                  <span class="ms-2"><b>Requires passcode: </b>{{link.isPasswordProtected}}</span><br>
+                  <p class="ms-2 mt-2">
+                    <button class="btn btn-primary" (click)="link.copyToClipboard()">
+                      @if (!link.copied) {
+                        <i class="bi bi-link"></i> Copy Link
+                      } @else {
+                        <i class="bi bi-check"></i> Copied
+                      }
+                    </button>
+                    <button class="btn btn-secondary ms-2" (click)="storeLink(link)">
+                      <i class="bi bi-save"></i> Save
+                    </button>
+                  </p>
+                </div>
               </div>
             </div>
+          }
+        </div>
+        <div class="col-12 col-xl-6 p-2">
+          <div class="card">
+            <div class="card-header bg-panel-header text-panel-header-text fw-bold">
+              Goals
+            </div>
+            <div class="list-group rounded-top-0" *ngIf="carePlan">
+              @for (goal of goals[carePlan.id!]; track goal.id) {
+                <div class="list-group-item d-flex justify-content-between align-items-start">
+                  <div>{{goal.description?.coding?.at(0)?.display || goal.description?.text}}</div>
+                  <span class="badge text-bg-highlight-light text-highlight-light-text rounded-pill">
+                <i class="bi bi-calendar2"></i>
+                    {{goal.startDate | date:'short'}}
+              </span>
+                </div>
+              }
+            </div>
           </div>
-        }
+        </div>
       }
     </div>
   </ng-container>
@@ -273,4 +306,60 @@
       </div>
     </div>
   </ng-container>
+  <!-- Links kept in the encrypted link vault of this browser -->
+  <div class="col-md-12" *ngIf="currentService && vaultState !== 'unavailable'">
+    <h5 class="mt-5">Stored Links in the Browser</h5>
+    @if (vaultState === 'unlocked') {
+      <button class="btn btn-outline-secondary btn-sm mb-2" (click)="lockVault()"><i class="bi bi-lock"></i> Lock</button>
+      @for (link of stored; track link.url) {
+        <div class="card mt-2">
+          <div class="card-body">
+            <img style="vertical-align: top" width="250" [src]="link.qr">
+            <div class="d-inline-block">
+              <span class="ms-2"><b>Service: </b>{{link.serviceId}}</span><br>
+              <span class="ms-2"><b>Expiration: </b>{{link.exp || '-'}}</span><br>
+              <span class="ms-2"><b>Requires passcode: </b>{{link.isPasswordProtected}}</span><br>
+              <p class="ms-2 mt-2">
+                <button class="btn btn-primary" (click)="link.copyToClipboard()">
+                  @if (!link.copied) {
+                    <i class="bi bi-link"></i> Copy Link
+                  } @else {
+                    <i class="bi bi-check"></i> Copied
+                  }
+                </button>
+                <button class="btn btn-danger ms-2" (click)="deleteStored(link)">
+                  <i class="bi bi-trash"></i> Delete
+                </button>
+              </p>
+            </div>
+          </div>
+        </div>
+      } @empty {
+        <div class="text-muted small">No stored links for {{currentService}}.</div>
+      }
+    } @else {
+      <form class="d-flex flex-wrap align-items-end gap-2" (ngSubmit)="openVault()">
+        <input type="text" name="username" autocomplete="username" value="shared-links" class="d-none" aria-hidden="true" tabindex="-1">
+        <div>
+          <label for="vault-password" class="form-label small mb-1">{{ vaultState === 'none' ? 'New password (at least ' + minPasswordLength + ' characters)' : 'Password' }}</label>
+          <input id="vault-password" name="vaultPassword" type="password" class="form-control form-control-sm" [(ngModel)]="vaultPassword"
+                 [autocomplete]="vaultState === 'none' ? 'new-password' : 'current-password'" [disabled]="vaultBusy" required>
+        </div>
+        @if (vaultState === 'none') {
+          <div>
+            <label for="vault-confirmation" class="form-label small mb-1">Repeat the password</label>
+            <input id="vault-confirmation" name="vaultConfirmation" type="password" class="form-control form-control-sm"
+                   [(ngModel)]="vaultConfirmation" autocomplete="new-password" [disabled]="vaultBusy" required>
+          </div>
+        }
+        <button type="submit" class="btn btn-primary btn-sm" [disabled]="vaultBusy || !vaultPassword">
+          @if (vaultBusy) { <span class="spinner-border spinner-border-sm" aria-hidden="true"></span> }
+          <i class="bi bi-unlock"></i> {{ vaultState === 'none' ? 'Create' : 'Unlock' }}
+        </button>
+      </form>
+    }
+    @if (vaultError) {
+      <div class="alert alert-danger small py-1 px-2 mt-2">{{vaultError}}</div>
+    }
+  </div>
 </div>
