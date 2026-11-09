@@ -32,7 +32,7 @@
     "fhirpath": "^3.13.4",
     "lforms": "^38.3.0",
     "markdown-it": "^14.1.1",
-    "ng-smart-on-fhir": "^1.1.0",
+    "ng-smart-on-fhir": "^1.2.1",
     "ng2-charts": "^6.0.1",
     "ngx-pagination": "^6.0.3",
     "rxjs": "~7.8.0",

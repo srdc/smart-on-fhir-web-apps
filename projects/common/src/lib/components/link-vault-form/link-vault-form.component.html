@@ -1,0 +1,39 @@
+<form (ngSubmit)="submit()" autocomplete="on">
+  <p *ngIf="!compact" class="small text-muted mb-2">
+    <ng-container *ngIf="creating; else unlockText">
+      Choose a password to keep your shared links on this device. They are encrypted with it, and the password cannot be
+      recovered, so pick one you will remember.
+    </ng-container>
+    <ng-template #unlockText>Enter your password to see your shared links.</ng-template>
+  </p>
+  <!-- hidden user name field: lets password managers file the password for this vault -->
+  <input type="text" name="username" autocomplete="username" value="shared-links" class="d-none" aria-hidden="true" tabindex="-1">
+  <div class="mb-2">
+    <label [for]="uid + '-password'" class="form-label small mb-1">{{ creating ? 'New password' : 'Password' }}</label>
+    <div class="input-group input-group-sm">
+      <input [id]="uid + '-password'" name="password" class="form-control" [type]="showPassword ? 'text' : 'password'"
+             [autocomplete]="creating ? 'new-password' : 'current-password'" [(ngModel)]="password" [disabled]="busy" required>
+      <button type="button" class="btn btn-outline-secondary" (click)="showPassword = !showPassword"
+              [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'">
+        <i class="bi" [class.bi-eye]="!showPassword" [class.bi-eye-slash]="showPassword"></i>
+      </button>
+    </div>
+    <div *ngIf="creating" class="form-text">At least {{ minLength }} characters; a few words make a good password.</div>
+  </div>
+  <div *ngIf="creating" class="mb-2">
+    <label [for]="uid + '-confirmation'" class="form-label small mb-1">Repeat the password</label>
+    <input [id]="uid + '-confirmation'" name="confirmation" class="form-control form-control-sm" [type]="showPassword ? 'text' : 'password'"
+           autocomplete="new-password" [(ngModel)]="confirmation" [disabled]="busy" required>
+  </div>
+  <div *ngIf="error" class="alert alert-danger small py-1 px-2 mb-2" role="alert">{{ error }}</div>
+  <div class="d-flex align-items-center gap-2">
+    <button type="submit" class="btn btn-primary btn-sm" [disabled]="busy || !password">
+      <span *ngIf="busy" class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+      <i *ngIf="!busy" class="bi" [class.bi-shield-lock]="creating" [class.bi-unlock]="!creating"></i>
+      {{ submitLabel || (creating ? 'Create' : 'Unlock') }}
+    </button>
+    <button *ngIf="allowReset && !creating" type="button" class="btn btn-link btn-sm" (click)="forgot.emit()" [disabled]="busy">
+      Forgot password?
+    </button>
+  </div>
+</form>

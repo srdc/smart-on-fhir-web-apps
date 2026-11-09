@@ -1,0 +1,318 @@
+<ng-template #body>
+  @if (description && step === 'input') {
+    <p class="text-muted small">{{ description }}</p>
+  }
+
+  <!-- Link / card input -->
+  @if (step === 'input') {
+    <form (ngSubmit)="read()">
+      <label for="shc-import-link" class="form-label">Smart Health Link or Card</label>
+      <div class="input-group">
+        <input id="shc-import-link" name="link" class="form-control" placeholder="shlink:/… or shc:/…" autocomplete="off"
+               [(ngModel)]="link" [disabled]="loading" (paste)="pasted($event)">
+        <button type="submit" class="btn btn-primary" [disabled]="loading || !link.trim()">
+          @if (loading) {
+            <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+          }
+          Read
+        </button>
+      </div>
+      <div class="form-text">
+        Paste the link (or the address of a viewer page containing it) or a QR code screenshot, scan the QR code with the camera,
+        or open a file: a QR code image, a .smart-health-card file or a FHIR JSON file (e.g. a Patient Summary).
+      </div>
+      <div class="d-flex flex-wrap gap-2 mt-2">
+        <button type="button" class="btn btn-outline-dark btn-sm" (click)="scanning = !scanning" [disabled]="loading">
+          <i class="bi bi-qr-code-scan"></i> {{ scanning ? 'Stop scanning' : 'Scan QR code' }}
+        </button>
+        <label class="btn btn-outline-dark btn-sm mb-0" [class.disabled]="loading">
+          <i class="bi bi-image"></i> Open QR image
+          <input type="file" class="d-none" accept="image/*" (change)="readFile($event)">
+        </label>
+        <label class="btn btn-outline-dark btn-sm mb-0" [class.disabled]="loading">
+          <i class="bi bi-file-earmark-medical"></i> Open file
+          <input type="file" class="d-none" accept=".smart-health-card,.json,application/smart-health-card,application/fhir+json,application/json" (change)="readFile($event)">
+        </label>
+      </div>
+      @if (scanning) {
+        <div class="mt-3">
+          <sof-qr-reader #reader [navigate]="false" title="" (scanned)="scanned($event)"></sof-qr-reader>
+          @if (reader.error) {
+            <div class="alert alert-warning small mt-2 mb-0">{{ reader.error }}</div>
+          }
+        </div>
+      }
+    </form>
+  }
+
+  <!-- Passcode of a P link -->
+  @if (step === 'passcode') {
+    <form (ngSubmit)="submitPasscode()">
+      @if (passcode.label) {
+        <div class="fw-semibold mb-2">{{ passcode.label }}</div>
+      }
+      <label for="shc-import-passcode" class="form-label">Passcode</label>
+      <div class="input-group">
+        <input id="shc-import-passcode" name="passcode" class="form-control" autocomplete="off"
+               [type]="passcode.show ? 'text' : 'password'" [(ngModel)]="passcode.value" [disabled]="loading">
+        <button type="button" class="btn btn-outline-secondary" (click)="passcode.show = !passcode.show"
+                [attr.aria-label]="passcode.show ? 'Hide passcode' : 'Show passcode'">
+          <i class="bi" [class.bi-eye]="!passcode.show" [class.bi-eye-slash]="passcode.show"></i>
+        </button>
+      </div>
+      <div class="form-text">
+        The link is protected with a passcode; ask the person who shared it.
+        @if (passcode.remainingAttempts !== undefined) {
+          <b>{{ passcode.remainingAttempts }} attempt(s) left</b> before the link is disabled.
+        }
+      </div>
+      <div class="d-flex gap-2 mt-3">
+        <button type="submit" class="btn btn-primary" [disabled]="loading || !passcode.value">
+          @if (loading) {
+            <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+          }
+          Open link
+        </button>
+        <button type="button" class="btn btn-outline-secondary" (click)="submitPasscode(true)" [disabled]="loading">Cancel</button>
+      </div>
+    </form>
+  }
+
+  <!-- What will be imported -->
+  @if (step === 'preview' && preview) {
+    @if (preview.content.label) {
+      <h6 class="mb-3">{{ preview.content.label }}</h6>
+    }
+    <table class="table table-sm align-middle">
+      <tbody>
+        @for (card of preview.content.cards || []; track card.jws; let i = $index) {
+          <tr>
+            <th class="text-nowrap w-25">Issued by</th>
+            <td>
+              <div class="d-flex flex-wrap align-items-center gap-2">
+                <span class="fw-semibold">{{ card.issuerName || card.issuer }}</span>
+                @if (card.trusted) {
+                  <span class="badge text-bg-success"><i class="bi bi-patch-check-fill"></i> Trusted issuer</span>
+                } @else {
+                  <span class="badge text-bg-secondary">Not a trusted issuer</span>
+                }
+                @if (card.verified) {
+                  <span class="badge text-bg-success"><i class="bi bi-shield-check"></i> Signature verified</span>
+                } @else {
+                  <span class="badge text-bg-danger"><i class="bi bi-shield-exclamation"></i> Signature not verified</span>
+                }
+                @if (preview.alreadyImported.includes(i)) {
+                  <span class="badge text-bg-info">{{ saveTo === 'wallet' ? 'Saved before' : 'Imported before' }}</span>
+                }
+              </div>
+              @if (card.issuerName) {
+                <div class="small text-muted text-break">{{ card.issuer }}</div>
+              }
+              @if (card.issuedAt) {
+                <div class="small text-muted">Issued {{ card.issuedAt | date: 'medium' }}</div>
+              }
+            </td>
+          </tr>
+        }
+        @for (group of preview.groups; track $index) {
+          @if (group.kind === 'fhir') {
+            <tr>
+              <th class="text-nowrap w-25">Source</th>
+              <td>
+                <span class="text-break">{{ sourceLabel(group.source) }}</span>
+                <span class="badge text-bg-warning ms-1">Not signed</span>
+              </td>
+            </tr>
+          }
+        }
+        <tr>
+          <th>Patient</th>
+          <td>
+            @if (preview.cardPatient) {
+              {{ patientName(preview.cardPatient) || 'Unnamed' }}
+              <span class="text-muted small">
+                @if (preview.cardPatient.birthDate) { · born {{ preview.cardPatient.birthDate }} }
+                @if (preview.cardPatient.gender) { · {{ preview.cardPatient.gender }} }
+              </span>
+            } @else {
+              <span class="text-muted">No patient in the card</span>
+            }
+          </td>
+        </tr>
+        <tr>
+          <th>Content</th>
+          <td>
+            @for (item of counts; track item.type) {
+              <span class="badge rounded-pill text-bg-light border me-1">{{ item.type }} <b>{{ item.count }}</b></span>
+            } @empty {
+              <span class="text-muted">Nothing to import{{ resourceTypes ? ' (' + resourceTypes.join(', ') + ')' : '' }}</span>
+            }
+            @if (notImportedCount) {
+              <div class="small text-muted mt-1">{{ notImportedCount }} other resource(s) in the card are not imported here.</div>
+            }
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    @if (unsignedFiles) {
+      <div class="alert alert-warning small">
+        {{ unsignedFiles }} shared file(s) are not signed Smart Health Cards; their origin cannot be verified{{ saveTo === 'wallet' ? ', so they are not kept' : '' }}.
+      </div>
+    }
+    @if (!preview.verified) {
+      <div class="alert alert-danger small">
+        The signature of the card could not be verified with the keys published by its issuer, so the data may have been changed.
+        <div class="form-check mt-2">
+          <input class="form-check-input" type="checkbox" id="shc-import-unverified" name="allowUnverified" [(ngModel)]="choice.allowUnverified">
+          <label class="form-check-label" for="shc-import-unverified">{{ saveTo === 'wallet' ? 'Save' : 'Import' }} it anyway</label>
+        </div>
+      </div>
+    }
+
+    <!-- Patient of the record -->
+    @if (target) {
+      @switch (preview.targetMatch) {
+        @case ('match') {
+          <div class="alert alert-success small">The card is about {{ patientName(target) }}.</div>
+        }
+        @case ('mismatch') {
+          <div class="alert alert-danger small">
+            The card is about another person ({{ patientName(preview.cardPatient) || 'unknown' }}) than {{ patientName(target) }}.
+            <div class="form-check mt-2">
+              <input class="form-check-input" type="checkbox" id="shc-import-mismatch" name="acceptMismatch" [(ngModel)]="choice.acceptMismatch">
+              <label class="form-check-label" for="shc-import-mismatch">{{ saveTo === 'wallet' ? 'Save it anyway' : 'Import it into the record of ' + patientName(target) + ' anyway' }}</label>
+            </div>
+          </div>
+        }
+        @default {
+          <div class="alert alert-warning small">It could not be checked that the card is about {{ patientName(target) }}; check the name above.</div>
+        }
+      }
+    } @else {
+      <fieldset class="mb-3">
+        <legend class="form-label fs-6 fw-semibold">Import into</legend>
+        @for (candidate of preview.candidates; track candidate.id) {
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="patient" [id]="'shc-import-patient-' + candidate.id"
+                   [value]="candidate.id" [(ngModel)]="choice.patient">
+            <label class="form-check-label" [for]="'shc-import-patient-' + candidate.id">
+              {{ patientName(candidate) }} <span class="text-muted small">· born {{ candidate.birthDate }} · record {{ candidate.id }}</span>
+            </label>
+          </div>
+        }
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="patient" id="shc-import-patient-create" [value]="CREATE"
+                 [(ngModel)]="choice.patient" [disabled]="!preview.cardPatient">
+          <label class="form-check-label" for="shc-import-patient-create">A new patient record</label>
+        </div>
+        @if (preview.candidates.length > 1) {
+          <div class="form-text">Several patients of the record match the card; choose the right one.</div>
+        }
+      </fieldset>
+    }
+
+    <!-- options of the page using the dialog, e.g. <div importOptions>...</div> -->
+    <ng-content select="[importOptions]"></ng-content>
+
+    @if (preview.alreadyImported.length) {
+      <div class="form-check mb-3">
+        <input class="form-check-input" type="checkbox" id="shc-import-again" name="importAgain" [(ngModel)]="choice.importAgain">
+        <label class="form-check-label" for="shc-import-again">
+          {{ saveTo === 'wallet' ? 'Save the card(s) saved before again' : 'Import the card(s) imported before again' }}
+          <span class="text-muted small">(otherwise they are skipped)</span>
+        </label>
+      </div>
+    }
+  }
+
+  <!-- Result -->
+  @if (step === 'done' && saved !== undefined) {
+    @if (saved) {
+      <div class="alert alert-success">
+        {{ saved }} card{{ saved > 1 ? 's were' : ' was' }} saved to your Shared Links. You can share {{ saved > 1 ? 'them' : 'it' }}
+        again from "Received cards", as signed by the issuer.
+      </div>
+    } @else {
+      <div class="alert alert-info">Nothing new was saved: the card was saved before.</div>
+    }
+  }
+  @if (step === 'done' && result) {
+    @if (importedCounts.length) {
+      <div class="alert alert-success">
+        Imported into the record of <b>{{ patientName(result.patient) }}</b>{{ result.patientCreated ? ' (new patient record)' : '' }}:
+        <div class="mt-2">
+          @for (item of importedCounts; track item.type) {
+            <span class="badge rounded-pill text-bg-light border me-1">{{ item.type }} <b>{{ item.count }}</b></span>
+          }
+        </div>
+        @if (result.documentReferences.length) {
+          <div class="small mt-2">The original signed card is kept in the record and can be shared again unchanged.</div>
+        }
+      </div>
+    } @else {
+      <div class="alert alert-info">Nothing new was imported{{ result.skipped ? ': the card was imported before' : '' }}.</div>
+    }
+  }
+
+  @if (error) {
+    <div class="alert alert-danger small mt-3 mb-0">{{ error }}</div>
+  }
+</ng-template>
+
+<ng-template #actions>
+  @if (step === 'preview') {
+    <button type="button" class="btn btn-outline-secondary" (click)="restart()" [disabled]="loading">Back</button>
+    <button type="button" class="btn btn-primary" (click)="import()" [disabled]="!canImport">
+      @if (loading) {
+        <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+      }
+      <i class="bi" [class.bi-box-arrow-in-down]="saveTo === 'record'" [class.bi-wallet2]="saveTo === 'wallet'"></i>
+      {{ saveTo === 'wallet' ? 'Save to Shared Links' : 'Import' }}
+    </button>
+  }
+  @if (step === 'done') {
+    <button type="button" class="btn btn-outline-secondary" (click)="restart()">{{ saveTo === 'wallet' ? 'Add another' : 'Import another' }}</button>
+    @if (!dialog && canSelectPatient && result) {
+      <button type="button" class="btn btn-primary" (click)="openPatient()">Open patient <i class="bi bi-caret-right-fill"></i></button>
+    } @else if (dialog) {
+      <button type="button" class="btn btn-primary" (click)="close()">Close</button>
+    }
+  }
+</ng-template>
+
+@if (dialog) {
+  <div class="modal d-block" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="shc-import-title" (keydown.escape)="close()">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="shc-import-title"><i class="bi bi-box-arrow-in-down"></i> {{ title }}</h5>
+          <button type="button" class="btn-close" aria-label="Close" (click)="close()" [disabled]="loading"></button>
+        </div>
+        <div class="modal-body">
+          <ng-container *ngTemplateOutlet="body"></ng-container>
+        </div>
+        @if (step === 'preview' || step === 'done') {
+          <div class="modal-footer">
+            <ng-container *ngTemplateOutlet="actions"></ng-container>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+  <div class="modal-backdrop show"></div>
+} @else {
+  <div class="card bg-white mx-auto" style="max-width: 48rem">
+    <div class="card-header bg-white">
+      <h5 class="mb-0"><i class="bi bi-box-arrow-in-down"></i> {{ title }}</h5>
+    </div>
+    <div class="card-body">
+      <ng-container *ngTemplateOutlet="body"></ng-container>
+    </div>
+    @if (step === 'preview' || step === 'done') {
+      <div class="card-footer bg-white d-flex justify-content-end gap-2">
+        <ng-container *ngTemplateOutlet="actions"></ng-container>
+      </div>
+    }
+  </div>
+}

@@ -1,10 +1,25 @@
 import {ModuleWithProviders, NgModule, Provider} from '@angular/core';
 import { CdsHooksModule, CdsHooksServiceConfig } from 'cds-hooks'
 import { SmartOnFhirModule, SmartOnFhirConfig } from 'ng-smart-on-fhir';
-import {CdsPanelsComponent, PatientInfoComponent} from "./components";
+import {
+  CdsPanelsComponent, ImportHealthCardComponent, LinkVaultFormComponent, PatientInfoComponent, PatientSelectComponent,
+  ShareHealthCardDialogComponent
+} from "./components";
 import {FormsModule} from "@angular/forms";
-import {JsonPipe, KeyValuePipe, NgForOf, NgIf} from "@angular/common";
-import {CdsDataService, StatefulCdsService} from "./services";
+import {CommonModule, JsonPipe, KeyValuePipe, NgForOf, NgIf} from "@angular/common";
+import {
+  CdsDataService,
+  CarePlanHealthCardProfileProvider,
+  ImportedHealthCardProfileProvider,
+  ReceivedHealthCardProfileProvider,
+  CdsHealthCardProfileProvider,
+  HEALTH_CARD_CONFIG,
+  HEALTH_CARD_PROFILE_PROVIDERS,
+  HealthCardConfig,
+  IpsHealthCardProfileProvider,
+  SharedLinkVaultService,
+  StatefulCdsService
+} from "./services";
 import {RouterModule} from "@angular/router";
 /**
  * Will be replaced with FHIR path sorting
@@ -32,7 +47,11 @@ const sorting = {
 @NgModule({
   declarations: [
     CdsPanelsComponent,
-    PatientInfoComponent
+    PatientInfoComponent,
+    ImportHealthCardComponent,
+    PatientSelectComponent,
+    ShareHealthCardDialogComponent,
+    LinkVaultFormComponent
   ],
   imports: [
     CdsHooksModule,
@@ -42,16 +61,21 @@ const sorting = {
     NgForOf,
     JsonPipe,
     NgIf,
+    CommonModule,
     RouterModule
   ],
   exports: [
     CdsPanelsComponent,
-    PatientInfoComponent
+    PatientInfoComponent,
+    ImportHealthCardComponent,
+    PatientSelectComponent,
+    ShareHealthCardDialogComponent,
+    LinkVaultFormComponent
   ],
   providers: []
 })
 export class SmartCdsCommonModule {
-  public static forRoot(env: { smart: SmartOnFhirConfig, cds: CdsHooksServiceConfig<fhir4.Resource> }): ModuleWithProviders<SmartCdsCommonModule> {
+  public static forRoot(env: { smart: SmartOnFhirConfig & HealthCardConfig, cds: CdsHooksServiceConfig<fhir4.Resource> }): ModuleWithProviders<SmartCdsCommonModule> {
     if (!env.cds.sort) {
       env.cds.sort = sorting;
     }
@@ -59,9 +83,29 @@ export class SmartCdsCommonModule {
       ngModule: SmartCdsCommonModule,
       providers: <Provider[]>[
         CdsHooksModule.forRoot(env.cds).providers,
-        SmartOnFhirModule.forRoot(env.smart).providers,
+        // the encrypted link vaults (Shared Links) are kept across logins
+        SmartOnFhirModule.forRoot({...env.smart, keepOnLogout: [...(env.smart.keepOnLogout || []), SharedLinkVaultService.STORAGE_PREFIX]}).providers,
         StatefulCdsService,
-        CdsDataService
+        CdsDataService,
+        {provide: HEALTH_CARD_CONFIG, useValue: <HealthCardConfig>{
+          shlServerBaseUrl: env.smart.shlServerBaseUrl,
+          shlServerBaseUrls: env.smart.shlServerBaseUrls,
+          shlOwnerAuth: env.smart.shlOwnerAuth,
+          healthCardValueSetBaseUrl: env.smart.healthCardValueSetBaseUrl,
+          linkVaultAutoLockMinutes: env.smart.linkVaultAutoLockMinutes,
+          healthCardProfiles: env.smart.healthCardProfiles
+        }},
+        // health card profiles offered for the patient (IPS first, then one per CDS service); apps may register more providers
+        env.smart.healthCardProfiles?.ips !== false
+          ? {provide: HEALTH_CARD_PROFILE_PROVIDERS, useClass: IpsHealthCardProfileProvider, multi: true} : [],
+        env.smart.healthCardProfiles?.cds !== false
+          ? {provide: HEALTH_CARD_PROFILE_PROVIDERS, useClass: CdsHealthCardProfileProvider, multi: true} : [],
+        env.smart.healthCardProfiles?.carePlan === true
+          ? {provide: HEALTH_CARD_PROFILE_PROVIDERS, useExisting: CarePlanHealthCardProfileProvider, multi: true} : [],
+        env.smart.healthCardProfiles?.imported !== false
+          ? {provide: HEALTH_CARD_PROFILE_PROVIDERS, useExisting: ImportedHealthCardProfileProvider, multi: true} : [],
+        env.smart.healthCardProfiles?.received !== false
+          ? {provide: HEALTH_CARD_PROFILE_PROVIDERS, useExisting: ReceivedHealthCardProfileProvider, multi: true} : []
       ]
     }
   }

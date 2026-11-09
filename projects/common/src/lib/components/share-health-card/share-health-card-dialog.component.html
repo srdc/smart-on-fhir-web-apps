@@ -1,0 +1,130 @@
+<div class="modal d-block" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="shc-dialog-title"
+     (keydown.escape)="close()">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="shc-dialog-title"><i class="bi bi-qr-code"></i> {{ title }}</h5>
+        <button type="button" class="btn-close" aria-label="Close" (click)="close()" [disabled]="loading"></button>
+      </div>
+
+      <!-- Options -->
+      <form *ngIf="!content; else result" (ngSubmit)="create()">
+        <div class="modal-body">
+          <div class="mb-3">
+            <ng-container *ngIf="profiles.length > 1; else singleProfile">
+              <label for="shc-profile" class="form-label">Content</label>
+              <select id="shc-profile" name="profile" class="form-select" [(ngModel)]="form.profileId" [disabled]="loading" required>
+                <option *ngFor="let profile of profiles" [ngValue]="profile.id">{{ profile.label }}</option>
+              </select>
+            </ng-container>
+            <ng-template #singleProfile>
+              <span class="form-label d-block">Content</span>
+              <div class="fw-semibold">{{ selectedProfile?.label }}</div>
+            </ng-template>
+            <div *ngIf="selectedProfile?.description" class="form-text">{{ selectedProfile?.description }}</div>
+          </div>
+
+          <ng-container *ngIf="linksEnabled; else noLinks">
+            <div class="mb-3">
+              <label for="shc-passcode" class="form-label">Passcode <span class="text-muted small">(optional)</span></label>
+              <div class="input-group">
+                <input id="shc-passcode" name="passcode" class="form-control" autocomplete="new-password"
+                       [type]="form.showPasscode ? 'text' : 'password'" [(ngModel)]="form.passcode" [disabled]="loading">
+                <button type="button" class="btn btn-outline-secondary" (click)="form.showPasscode = !form.showPasscode"
+                        [attr.aria-label]="form.showPasscode ? 'Hide passcode' : 'Show passcode'">
+                  <i class="bi" [class.bi-eye]="!form.showPasscode" [class.bi-eye-slash]="form.showPasscode"></i>
+                </button>
+              </div>
+              <div class="form-text">The receiver enters it to open the link. After a few wrong attempts the link is disabled.</div>
+            </div>
+
+            <div>
+              <span class="form-label d-block" id="shc-expiry-label">Link expires in</span>
+              <div class="btn-group btn-group-sm" role="radiogroup" aria-labelledby="shc-expiry-label">
+                <ng-container *ngFor="let option of expiryOptions">
+                  <input type="radio" class="btn-check" name="expiry" [id]="'shc-expiry-' + option.days" [value]="option.days"
+                         [(ngModel)]="form.expiresInDays" [disabled]="loading">
+                  <label class="btn btn-outline-primary" [for]="'shc-expiry-' + option.days">{{ option.label }}</label>
+                </ng-container>
+              </div>
+            </div>
+          </ng-container>
+          <ng-template #noLinks>
+            <div class="alert alert-info small mb-0">
+              No SMART Health Links server is configured, so the card can only be downloaded as a file, without a passcode or expiry.
+            </div>
+          </ng-template>
+
+          <div *ngIf="error" class="alert alert-danger small mt-3 mb-0">{{ error }}</div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="close()" [disabled]="loading">Cancel</button>
+          <button type="submit" class="btn btn-primary" [disabled]="loading || !form.profileId">
+            <span *ngIf="loading" class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+            <i *ngIf="!loading" class="bi bi-qr-code"></i> Create
+          </button>
+        </div>
+      </form>
+
+      <!-- Result -->
+      <ng-template #result>
+        <div class="modal-body text-center">
+          <img *ngIf="link && !link.revoked" [src]="link.qr" width="240" height="240" class="mb-2" alt="SMART Health Link QR code">
+          <div *ngIf="link?.revoked" class="alert alert-secondary small">The link was revoked; it can no longer be opened.</div>
+          <h6 class="mb-1">{{ profile?.label }}</h6>
+          <p *ngIf="fileCount > 1" class="small text-muted mb-1">{{ fileCount }} files shared in one link</p>
+          <p *ngIf="profile && !profile.signed" class="form-text mt-0 mb-1">
+            Shared as a FHIR document, not signed: the receiver cannot verify that it comes from your organisation.
+          </p>
+          <ul *ngIf="link" class="list-unstyled small text-muted mb-0">
+            <li><i class="bi bi-calendar-x"></i>
+              Expires {{ link.exp ? (link.exp | date: 'dd/MM/yyyy HH:mm') : 'never' }}</li>
+            <li><i class="bi" [class.bi-lock]="link.isPasswordProtected" [class.bi-unlock]="!link.isPasswordProtected"></i>
+              {{ link.isPasswordProtected ? 'Protected with a passcode' : 'No passcode' }}</li>
+          </ul>
+          <p *ngIf="link?.isPasswordProtected" class="form-text mb-0">The passcode protects the link; a downloaded file is not protected.</p>
+          <div *ngIf="error" class="alert alert-warning small mt-3 mb-0 text-start">{{ error }}</div>
+
+          <!-- Keep the link in the encrypted link vault -->
+          <div *ngIf="link && !link.revoked && !sharedLinksUrl" class="form-text text-start mt-3">
+            <i class="bi bi-info-circle"></i> The link is not kept here: copy or download it now, and revoke it here if needed.
+          </div>
+          <div *ngIf="link && !link.revoked && sharedLinksUrl && vault.state !== 'unavailable'" class="border-top mt-3 pt-3 text-start">
+            <div *ngIf="saved; else notSaved" class="small text-success">
+              <i class="bi bi-check-circle"></i> Saved in <a [routerLink]="sharedLinksUrl" (click)="close()">Shared Links</a>, where you can
+              show it again or revoke it.
+            </div>
+            <ng-template #notSaved>
+              <div class="small fw-semibold mb-1">Keep this link on this device</div>
+              <p class="small text-muted mb-2">
+                {{ vault.state === 'none' ? 'Choose a password to save your links encrypted,' : 'Enter your password,' }}
+                so that you can show this link again or revoke it later.
+                <ng-container *ngIf="!link.ownerBound">If you don't save it, it cannot be revoked later.</ng-container>
+              </p>
+              <app-link-vault-form [compact]="true" [submitLabel]="vault.state === 'none' ? 'Create and save' : 'Unlock and save'"
+                                   (opened)="saveLink()"></app-link-vault-form>
+              <div *ngIf="saveError" class="alert alert-danger small py-1 px-2 mt-2 mb-0">{{ saveError }}</div>
+            </ng-template>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" (click)="download()">
+            <i class="bi bi-download"></i> Download {{ profile?.signed === false ? 'Document' : (fileCount > 1 ? 'Cards' : 'Card') }}
+          </button>
+          <button *ngIf="link?.managementToken && !link?.revoked" type="button" class="btn btn-outline-danger me-auto"
+                  (click)="revokeLink(link!)" [disabled]="!!revoking">
+            <span *ngIf="revoking" class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+            <i *ngIf="!revoking" class="bi bi-x-octagon"></i> Revoke Link
+          </button>
+          <span *ngIf="!link?.managementToken || link?.revoked" class="me-auto"></span>
+          <button *ngIf="link && !link.revoked" type="button" class="btn btn-outline-primary" (click)="link.copyToClipboard()">
+            <ng-container *ngIf="!link.copied"><i class="bi bi-link"></i> Copy Link</ng-container>
+            <ng-container *ngIf="link.copied"><i class="bi bi-check"></i> Copied</ng-container>
+          </button>
+          <button type="button" class="btn btn-primary" (click)="close()">Done</button>
+        </div>
+      </ng-template>
+    </div>
+  </div>
+</div>
+<div class="modal-backdrop fade show"></div>

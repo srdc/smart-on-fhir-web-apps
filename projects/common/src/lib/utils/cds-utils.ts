@@ -2,6 +2,15 @@ import {Signal} from "@angular/core";
 import {FhirUtils} from "./fhir-utils";
 
 export class CdsUtils {
+
+  /** Parse the JSON carried (HTML-escaped) in a CDS card's detail, e.g. the response of the 'definition' service */
+  public static parseCardDetail<T = any>(detail: string): T {
+    return JSON.parse(detail
+      .replaceAll('&quot;', '"')
+      .replaceAll('&gt;', '>')
+      .replaceAll('&lt;', '<'));
+  }
+
   public static stateToPrefetch(state: any, conceptDefinitions: { id: string, value: Signal<any>, [key: string]: any }[], patient: fhir4.Patient, includePatient?: boolean) {
     const prefetch: any = {}
     Object.entries(state).map(([conceptId, value]) => {

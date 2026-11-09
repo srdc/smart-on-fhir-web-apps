@@ -23,7 +23,7 @@
       <div class="flex-grow-1 fw-normal">
         <ng-content></ng-content>
       </div>
-      <button class="btn btn-primary btn-sidebar w-100 mt-2" *ngIf="launchUrl" (click)="changePatient()">Change Patient</button>
+      <button class="btn btn-primary btn-sidebar w-100 mt-2" *ngIf="launchUrl || selectPatientUrl" (click)="changePatient()">Change Patient</button>
       <button class="btn btn-primary btn-sidebar w-100 mt-2" (click)="onLogout()">Logout</button>
     </ng-container>
   </div>

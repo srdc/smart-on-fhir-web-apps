@@ -23,6 +23,8 @@ export class PatientInfoComponent {
   @Input() title: string|undefined;
   @Input() title2: string|undefined;
   @Input() logo: string | undefined;
+  /** Route of the patient selection page (PatientSelectComponent), for user logins that can switch patients */
+  @Input() selectPatientUrl: string | undefined;
 
   constructor(private router: Router) {
   }
@@ -38,6 +40,10 @@ export class PatientInfoComponent {
   }
 
   changePatient() {
-    window.location.href = <string>this.launchUrl
+    if (this.launchUrl) {
+      window.location.href = this.launchUrl
+    } else if (this.selectPatientUrl) {
+      this.router.navigateByUrl(this.selectPatientUrl)
+    }
   }
 }

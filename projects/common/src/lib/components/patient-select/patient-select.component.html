@@ -1,0 +1,84 @@
+<div class="mx-auto" style="max-width: 48rem">
+  <div class="d-flex align-items-center gap-2 mb-3">
+    <h2 class="h4 mb-0 flex-grow-1">{{ title || (canSelectPatient ? 'Select a patient' : 'Import a Smart Health Card') }}</h2>
+    <button type="button" class="btn btn-outline-secondary btn-sm" (click)="logout()"><i class="bi bi-box-arrow-right"></i> Log out</button>
+  </div>
+
+  @if (canSelectPatient) {
+    @if (current) {
+      <div class="alert alert-secondary small d-flex align-items-center gap-2">
+        <span class="flex-grow-1">Current patient: <b>{{ patientName(current) || current.id }}</b></span>
+        <button type="button" class="btn btn-sm btn-outline-dark" (click)="select(current)">Continue with this patient</button>
+      </div>
+    } @else {
+      <p class="text-muted small">No patient is selected. Import the patient's Smart Health Card or Link, or choose a patient already in the record.</p>
+    }
+
+    <ul class="nav nav-tabs mb-3">
+      <li class="nav-item">
+        <button type="button" class="nav-link" [class.active]="tab === 'import'" (click)="tab = 'import'">
+          <i class="bi bi-qr-code-scan"></i> Import Smart Health Card / Link
+        </button>
+      </li>
+      <li class="nav-item">
+        <button type="button" class="nav-link" [class.active]="tab === 'search'" (click)="tab = 'search'">
+          <i class="bi bi-people"></i> Patients in the record
+        </button>
+      </li>
+    </ul>
+  }
+
+  @if (!canSelectPatient || tab === 'import') {
+    <app-import-health-card [openPatientUrl]="pageUrl"
+                            description="Scan the QR code, paste the link, or open the .smart-health-card file the patient shared. The patient is matched to the record (or added), the data is imported with its origin, and the original signed card is kept."></app-import-health-card>
+  } @else {
+    <div class="card bg-white">
+      <div class="card-body">
+        <form class="row g-2 align-items-end mb-3" (ngSubmit)="search()">
+          <div class="col-12 col-sm">
+            <label for="patient-select-name" class="form-label small mb-1">Name</label>
+            <input id="patient-select-name" name="name" class="form-control" autocomplete="off" [(ngModel)]="query.name">
+          </div>
+          <div class="col-12 col-sm-4">
+            <label for="patient-select-birthdate" class="form-label small mb-1">Birth date</label>
+            <input id="patient-select-birthdate" name="birthDate" type="date" class="form-control" [(ngModel)]="query.birthDate">
+          </div>
+          <div class="col-12 col-sm-auto">
+            <button type="submit" class="btn btn-primary w-100" [disabled]="searching">
+              @if (searching) {
+                <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+              }
+              Search
+            </button>
+          </div>
+        </form>
+
+        @if (searchError) {
+          <div class="alert alert-danger small">{{ searchError }}</div>
+        }
+        @if (patients) {
+          <div class="list-group">
+            @for (patient of patients; track patient.id) {
+              <button type="button" class="list-group-item list-group-item-action d-flex align-items-center gap-2" (click)="select(patient)">
+                <div class="flex-grow-1">
+                  <div class="fw-semibold">{{ patientName(patient) || 'Unnamed' }}</div>
+                  <div class="small text-muted">
+                    @if (patient.birthDate) { born {{ patient.birthDate }} · }
+                    @if (patient.gender) { {{ patient.gender }} · }
+                    record {{ patient.id }}
+                  </div>
+                  @if (origin(patient); as source) {
+                    <div class="small text-muted"><i class="bi bi-box-arrow-in-down"></i> Imported from {{ source }}</div>
+                  }
+                </div>
+                <i class="bi bi-chevron-right text-muted"></i>
+              </button>
+            } @empty {
+              <div class="text-muted small">No patients found.</div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>
