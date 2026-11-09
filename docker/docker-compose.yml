@@ -5,8 +5,9 @@ services:
     image: srdc/smart-apps
     container_name: smart-apps
     environment:
-      - SERVER_NAME=localhost
+      - SERVER_NAME=kroniq.srdc.com.tr
       - SERVER_PATH=/smart-apps/
     ports:
-      - "4800:80"
+      # kroniq.srdc.com.tr nginx: location /smart-apps -> 127.0.0.1:7700 (4800 is another application)
+      - "127.0.0.1:7700:80"
     restart: always

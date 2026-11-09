@@ -24,6 +24,7 @@ export const environment = {
         label: 'Kroniq',
         image: 'https://kroniq.health/img/kroniq-colored.png',
         iss: 'https://kroniq.srdc.com.tr/fhir',
+        isPublic: false,
         redirectUri: appBaseUrl + '/callback',
         clientId: 'smart-test',
         scope: 'profile openid email roles offline_access launch/patient user/*.* patient/*.*',

@@ -79,6 +79,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:application",
           "options": {
+            "preserveSymlinks": true,
             "outputPath": "dist/acc_aha",
             "index": "projects/acc_aha/src/index.html",
             "browser": "projects/acc_aha/src/main.ts",
@@ -130,6 +131,13 @@
         },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
+          "options": {
+            "prebundle": {
+              "exclude": [
+                "ng-smart-on-fhir"
+              ]
+            }
+          },
           "configurations": {
             "production": {
               "buildTarget": "acc_aha:build:production"
@@ -193,6 +201,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:application",
           "options": {
+            "preserveSymlinks": true,
             "outputPath": "dist/qrisk2",
             "index": "projects/qrisk2/src/index.html",
             "browser": "projects/qrisk2/src/main.ts",
@@ -245,6 +254,13 @@
         },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
+          "options": {
+            "prebundle": {
+              "exclude": [
+                "ng-smart-on-fhir"
+              ]
+            }
+          },
           "configurations": {
             "production": {
               "buildTarget": "qrisk2:build:production"
@@ -298,6 +314,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:application",
           "options": {
+            "preserveSymlinks": true,
             "outputPath": "dist/advance",
             "index": "projects/advance/src/index.html",
             "browser": "projects/advance/src/main.ts",
@@ -349,6 +366,13 @@
         },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
+          "options": {
+            "prebundle": {
+              "exclude": [
+                "ng-smart-on-fhir"
+              ]
+            }
+          },
           "configurations": {
             "production": {
               "buildTarget": "advance:build:production"
@@ -447,18 +471,39 @@
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true
+            },
+            "xshare": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true,
+              "fileReplacements": [
+                {
+                  "replace": "projects/qrisk3/src/environments/environment.ts",
+                  "with": "projects/qrisk3/src/environments/environment-xshare.ts"
+                }
+              ]
             }
           },
           "defaultConfiguration": "production"
         },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
+          "options": {
+            "prebundle": {
+              "exclude": [
+                "ng-smart-on-fhir"
+              ]
+            }
+          },
           "configurations": {
             "production": {
               "buildTarget": "qrisk3:build:production"
             },
             "development": {
               "buildTarget": "qrisk3:build:development"
+            },
+            "xshare": {
+              "buildTarget": "qrisk3:build:xshare"
             }
           },
           "defaultConfiguration": "development"
@@ -516,6 +561,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:application",
           "options": {
+            "preserveSymlinks": true,
             "outputPath": "dist/score",
             "index": "projects/score/src/index.html",
             "browser": "projects/score/src/main.ts",
@@ -568,6 +614,13 @@
         },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
+          "options": {
+            "prebundle": {
+              "exclude": [
+                "ng-smart-on-fhir"
+              ]
+            }
+          },
           "configurations": {
             "production": {
               "buildTarget": "score:build:production"
@@ -669,6 +722,14 @@
                 }
               ],
               "outputHashing": "all",
+              "optimization": {
+                "scripts": true,
+                "styles": {
+                  "minify": true,
+                  "inlineCritical": false
+                },
+                "fonts": true
+              },
               "fileReplacements": [{
                 "replace": "projects/shc-generator/src/environments/environment.ts",
                 "with": "projects/shc-generator/src/environments/environment-docker.ts"
@@ -684,6 +745,13 @@
         },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
+          "options": {
+            "prebundle": {
+              "exclude": [
+                "ng-smart-on-fhir"
+              ]
+            }
+          },
           "configurations": {
             "production": {
               "buildTarget": "shc-generator:build:production"
@@ -770,6 +838,12 @@
           },
           "configurations": {
             "production": {
+              "fileReplacements": [
+                {
+                  "replace": "projects/risk-prediction/src/environments/environment.ts",
+                  "with": "projects/risk-prediction/src/environments/environment-docker.ts"
+                }
+              ],
               "budgets": [
                 {
                   "type": "initial",
@@ -782,24 +856,53 @@
                   "maximumError": "4kb"
                 }
               ],
-              "outputHashing": "all"
+              "outputHashing": "all",
+              "optimization": {
+                "scripts": true,
+                "styles": {
+                  "minify": true,
+                  "inlineCritical": false
+                },
+                "fonts": true
+              }
             },
             "development": {
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true
+            },
+            "xshare": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true,
+              "fileReplacements": [
+                {
+                  "replace": "projects/risk-prediction/src/environments/environment.ts",
+                  "with": "projects/risk-prediction/src/environments/environment-xshare.ts"
+                }
+              ]
             }
           },
           "defaultConfiguration": "production"
         },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
+          "options": {
+            "prebundle": {
+              "exclude": [
+                "ng-smart-on-fhir"
+              ]
+            }
+          },
           "configurations": {
             "production": {
               "buildTarget": "risk-prediction:build:production"
             },
             "development": {
               "buildTarget": "risk-prediction:build:development"
+            },
+            "xshare": {
+              "buildTarget": "risk-prediction:build:xshare"
             }
           },
           "defaultConfiguration": "development"
@@ -960,6 +1063,13 @@
         },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
+          "options": {
+            "prebundle": {
+              "exclude": [
+                "ng-smart-on-fhir"
+              ]
+            }
+          },
           "configurations": {
             "production": {
               "buildTarget": "medical-summary:build:production"
@@ -1055,11 +1165,17 @@
           },
           "configurations": {
             "production": {
+              "fileReplacements": [
+                {
+                  "replace": "projects/dashboard/src/environments/environment.ts",
+                  "with": "projects/dashboard/src/environments/environment-docker.ts"
+                }
+              ],
               "budgets": [
                 {
                   "type": "initial",
                   "maximumWarning": "500kb",
-                  "maximumError": "1mb"
+                  "maximumError": "2mb"
                 },
                 {
                   "type": "anyComponentStyle",
@@ -1079,6 +1195,13 @@
         },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
+          "options": {
+            "prebundle": {
+              "exclude": [
+                "ng-smart-on-fhir"
+              ]
+            }
+          },
           "configurations": {
             "production": {
               "buildTarget": "dashboard:build:production"
