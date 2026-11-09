@@ -9,6 +9,8 @@ const onAuth = host + '/stage-onauth/api/smart';
 
 export const environment = {
   smart: {
+    // the session is shared with the other STAGE apps on this origin (e.g. opened from the dashboard)
+    authStorage: <'localStorage'>'localStorage',
     shcLoginEnabled: true,
     shcCallbackUrl: '/shl',
     clientIds: {
