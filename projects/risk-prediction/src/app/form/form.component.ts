@@ -86,22 +86,31 @@ export class FormComponent implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   * The risk questionnaire, from the FHIR server the user is logged in to (stage-fhir-repository stores it from
+   * fhir-conf/questionnaire/stage-wp6-features.json: onfhir-feast's $as-questionnaire of the stage_wp6_features FeatureSet)
+   */
   private async loadQuestionnaire(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      this.http.get('http://localhost:8085/onfhir-feast/api/definition/FeatureSet/stage_wp6_features/$as-questionnaire?outcome=false')
-        .subscribe({
-        next: (q: any) => {
-          this.questionnaire = <fhir4.Questionnaire>q;
-          this.groups = q.item;
-          this.selectedGroup = this.groups[0];
-          resolve();
-        },
-        error: (err) => {
-          console.error('Error loading questionnaire:', err);
-          reject(err);
-        }
-      });
-    });
+    try {
+      const client = await this.sof.getClient();
+      if (!client) {
+        throw new Error('Not logged in to a FHIR server');
+      }
+      // by its canonical URL: its id (stage_wp6_features, referenced by the saved responses and onfhir-feast's
+      // stage_wp6_model_features) is not a valid FHIR id, so the server does not serve it at Questionnaire/<id>
+      const bundle = await client.request<fhir4.Bundle>('Questionnaire?url=' +
+        encodeURIComponent('https://stage-healthy-aging.eu/feature-sets/stage_wp6_features'));
+      const q = <fhir4.Questionnaire | undefined>bundle.entry?.[0]?.resource;
+      if (!q) {
+        throw new Error('The risk questionnaire (stage_wp6_features) is not on the FHIR server');
+      }
+      this.questionnaire = q;
+      this.groups = <any[]>(q.item ?? []);
+      this.selectedGroup = this.groups[0];
+    } catch (err) {
+      console.error('Error loading questionnaire:', err);
+      throw err;
+    }
   }
 
   /**
