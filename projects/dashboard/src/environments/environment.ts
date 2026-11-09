@@ -55,6 +55,7 @@ export const environment = {
     apps: [
       {
         id: 'advance',
+        requiresPatient: true,
         title: 'ADVANCE',
         description: 'The ADVANCE risk model is derived from the ADVANCE trial and is specifically designed for individuals with type 2 diabetes. It predicts the risk of major cardiovascular events (such as myocardial infarction or stroke) and mortality using variables like age, duration of diabetes, HbA1c, blood pressure, lipid levels, and renal function.',
         url: 'http://localhost:4203/',
@@ -73,6 +74,7 @@ export const environment = {
         // }]
       }, {
         id: 'score2',
+        requiresPatient: true,
         title: 'SCORE2',
         description: 'SCORE is a European risk estimation system used to calculate the 10-year risk of fatal cardiovascular disease. It is based on large European cohort data and uses factors such as age, sex, smoking status, systolic blood pressure, and total cholesterol. Variants exist for high- and low-risk European populations.',
         url: 'http://localhost:4204/',
@@ -92,6 +94,7 @@ export const environment = {
         // }]
       }, {
         id: 'acc-aha',
+        requiresPatient: true,
         title: 'ACC/AHA ASCVD Risk Calculator',
         description: 'Developed by the American College of Cardiology and American Heart Association, this algorithm estimates the 10-year and lifetime risk of atherosclerotic cardiovascular disease (ASCVD).',
         url: 'http://localhost:4205/',
@@ -162,6 +165,8 @@ export const environment = {
   smart: {
     shcLoginEnabled: false,
     authStorage: <'localStorage'>'localStorage',
+    // the encrypted Shared Link vaults of the other apps (same origin) are kept on logout (SharedLinkVaultService)
+    keepOnLogout: ['shl-vault.'],
     redirectUrl: appBaseUrl + '/callback',
     loginClients: [
       {

@@ -11,7 +11,10 @@
         </div>
       </div>
       <button routerLink="/" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Back</button>
-      <a [href]="app?.url" class="btn btn-dark text-light">Launch <i class="bi bi-box-arrow-right"></i></a>
+      <a *ngIf="!(noPatient && app?.requiresPatient); else selectPatient" [href]="app?.url" class="btn btn-dark text-light">Launch <i class="bi bi-box-arrow-right"></i></a>
+      <ng-template #selectPatient>
+        <span class="text-muted small">Needs a patient: select one in STAGE Multi-morbidity Risk Prediction</span>
+      </ng-template>
     </div>
 
     <!-- Identity -->

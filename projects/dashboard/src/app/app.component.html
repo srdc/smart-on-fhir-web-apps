@@ -1,15 +1,20 @@
-<!-- HEADER (on all pages) -->
-<div [ngClass]="{'d-flex flex-column min-vh-100': patient}">
-  <ui-header *ngIf="patient"
+<!-- HEADER (on all pages but the login, callback and launch pages); the patient/user of the session, if logged in -->
+<div [ngClass]="{'d-flex flex-column min-vh-100': !smartPage}">
+  <ui-header *ngIf="!smartPage"
     class="flex-shrink-0"
     [logoSrc]="'assets/stage-circle-white.png'"
-    brandText="STAGE SMART Apps">
+    brandText="STAGE SMART Apps"
+    [showLogout]="loggedIn"
+    [showLogin]="!loggedIn"
+    (login)="login()"
+    (logout)="logout()">
   </ui-header>
-  <div [ngClass]="{'row flex-grow-1': patient}">
-    <div class="col-12 col-md-4 col-xl-2 p-4 bg-white flex-grow-1" *ngIf="patient">
-      <ui-sidebar title="Patient Demographics" [rows]="sidebarRows"></ui-sidebar>
+  <div [ngClass]="{'row flex-grow-1 g-0': !smartPage}">
+    <div class="col-12 col-md-4 col-xl-2 p-4 bg-white" *ngIf="loggedIn && !smartPage">
+      <ui-sidebar [title]="sidebarTitle" [rows]="sidebarRows"></ui-sidebar>
     </div>
-    <div [ngClass]="{'col-12 p-4 col-md-8 col-xl-10': patient}">
+    <!-- one outlet for all pages (the callback page must not be created twice) -->
+    <div [ngClass]="smartPage ? '' : loggedIn ? 'col-12 p-4 col-md-8 col-xl-10' : 'col-12 p-4'">
       <router-outlet></router-outlet>
     </div>
   </div>

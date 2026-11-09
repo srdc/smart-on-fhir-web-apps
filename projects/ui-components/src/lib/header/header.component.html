@@ -27,6 +27,14 @@
       </li>
     </ul>
 
+    <!-- Right side: Login button -->
+    <div class="ms-auto" *ngIf="showLogin">
+      <button class="btn btn-outline-light btn-sm" (click)="login.emit()">
+        <i class="bi bi-box-arrow-in-right me-1"></i>
+        <span>Login</span>
+      </button>
+    </div>
+
     <!-- Right side: Logout button -->
     <div class="ms-auto" *ngIf="showLogout">
       <button

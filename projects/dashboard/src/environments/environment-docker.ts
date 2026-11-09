@@ -4,6 +4,7 @@ import {AppMetadata} from "./AppMetadata";
 // (stage-fhir-repository/deploy/testing)
 const host = window.location.origin;
 const appBaseUrl = host + '/smart-apps/dashboard';
+const onAuth = host + '/stage-onauth/api/smart';
 
 export const environment = {
   appSections: <{title: string, apps: AppMetadata[]}[]>[{
@@ -59,6 +60,7 @@ export const environment = {
     apps: [
       {
         id: 'advance',
+        requiresPatient: true,
         title: 'ADVANCE',
         description: 'The ADVANCE risk model is derived from the ADVANCE trial and is specifically designed for individuals with type 2 diabetes. It predicts the risk of major cardiovascular events (such as myocardial infarction or stroke) and mortality using variables like age, duration of diabetes, HbA1c, blood pressure, lipid levels, and renal function.',
         url: host + '/smart-apps/advance/',
@@ -77,6 +79,7 @@ export const environment = {
         // }]
       }, {
         id: 'score2',
+        requiresPatient: true,
         title: 'SCORE2',
         description: 'SCORE is a European risk estimation system used to calculate the 10-year risk of fatal cardiovascular disease. It is based on large European cohort data and uses factors such as age, sex, smoking status, systolic blood pressure, and total cholesterol. Variants exist for high- and low-risk European populations.',
         url: host + '/smart-apps/score2/',
@@ -96,6 +99,7 @@ export const environment = {
         // }]
       }, {
         id: 'acc-aha',
+        requiresPatient: true,
         title: 'ACC/AHA ASCVD Risk Calculator',
         description: 'Developed by the American College of Cardiology and American Heart Association, this algorithm estimates the 10-year and lifetime risk of atherosclerotic cardiovascular disease (ASCVD).',
         url: host + '/smart-apps/acc_aha/',
@@ -166,6 +170,8 @@ export const environment = {
   smart: {
     shcLoginEnabled: false,
     authStorage: <'localStorage'>'localStorage',
+    // the encrypted Shared Link vaults of the other apps (same origin) are kept on logout (SharedLinkVaultService)
+    keepOnLogout: ['shl-vault.'],
     redirectUrl: appBaseUrl + '/callback',
     loginClients: [
       {
@@ -177,8 +183,10 @@ export const environment = {
         scope: 'launch launch/patient patient/*.*'
       },
       {
-        label: 'Kroniq',
-        image: 'https://kroniq.health/img/kroniq-colored.png',
+        // STAGE: patients (and clinicians) log in with a patient context
+        label: 'STAGE',
+        background: '#2c5f2d',
+        color: 'white',
         iss: host + '/stage-fhir',
         isPublic: false,
         redirectUri: appBaseUrl + '/callback',
@@ -186,7 +194,21 @@ export const environment = {
         scope: 'profile openid email roles offline_access launch/patient user/*.* patient/*.*',
         aud: 'fhir-repo',
         promptLogin: true,
-        logoutUri: host + '/stage-onauth/api/smart/logout?post_logout_redirect_uri=' + appBaseUrl + '/login'
+        logoutUri: onAuth + '/logout?post_logout_redirect_uri=' + appBaseUrl + '/'
+      },
+      {
+        // EHR: clinicians log in without a patient (they choose one in the apps)
+        label: 'EHR',
+        background: '#1f4e79',
+        color: 'white',
+        iss: host + '/ehr',
+        isPublic: false,
+        redirectUri: appBaseUrl + '/callback',
+        clientId: 'smart-test',
+        scope: 'profile openid email roles offline_access user/*.*',
+        aud: 'fhir-repo',
+        promptLogin: true,
+        logoutUri: onAuth + '/logout?post_logout_redirect_uri=' + appBaseUrl + '/'
       }
     ]
   }

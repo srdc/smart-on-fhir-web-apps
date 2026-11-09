@@ -35,5 +35,8 @@ export interface AppMetadata {
   url: string,
   icon?: string,
   img?: string,
+  // the app works on a patient of the session only (no patient selection of its own): not opened from a session
+  // without a patient (e.g. a clinician logged in to EHR)
+  requiresPatient?: boolean,
   metadata: SmartAppMetadata
 }
