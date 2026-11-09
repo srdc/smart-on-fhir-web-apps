@@ -4,6 +4,10 @@ import { Router } from '@angular/router';
 import { CdsHooksService } from 'cds-hooks';
 import { SmartOnFhirService } from "ng-smart-on-fhir";
 import {MenuService} from "../menu.service";
+import {environment} from "../../environments/environment";
+
+/** sessionStorage key of the response saved last; the disease selection page sends it to risk_prediction */
+export const SAVED_RESPONSE_KEY = 'risk_prediction_qr';
 
 @Component({
   selector: 'risk-prediction-form',
@@ -22,6 +26,12 @@ export class FormComponent implements OnInit, OnDestroy {
   prefilledAnswers: { [linkId: string]: boolean } = {};
   saving: boolean = false;
   loading: boolean = true;
+  /** EHR feature extraction (risk_prediction_form) running - takes 20-30 s */
+  prefillLoading: boolean = false;
+  prefillError: string | undefined;
+  /** The shown answers come from this saved response (instead of a new EHR extraction) */
+  savedResponse: fhir4.QuestionnaireResponse | undefined;
+  readonly savedResponseMaxAgeDays: number = environment.riskPrediction?.savedResponseMaxAgeDays ?? 7;
 
   constructor(
     private http: HttpClient,
@@ -56,12 +66,18 @@ export class FormComponent implements OnInit, OnDestroy {
         })))
       })
 
-      // Load pre-filled answers via CDS service
-      await this.loadPrefilledAnswersFromCDS();
+      // Show the last saved response when it is recent enough; otherwise collect the data from the EHR
+      // (feature extraction via the risk_prediction_form CDS service)
+      const saved = await this.findLatestSavedResponse();
+      if (saved && this.isRecent(saved)) {
+        this.applySavedResponse(saved);
+      } else {
+        await this.loadPrefilledAnswersFromCDS();
 
-      // If no pre-filled data, restore from localStorage
-      if (Object.keys(this.answers).length === 0) {
-        this.loadAnswersFromLocalStorage();
+        // If no pre-filled data, restore the draft from localStorage
+        if (Object.keys(this.answers).length === 0) {
+          this.loadAnswersFromLocalStorage();
+        }
       }
     } catch (error) {
       console.error('Error in ngOnInit:', error);
@@ -91,12 +107,14 @@ export class FormComponent implements OnInit, OnDestroy {
   /**
    * Load pre-filled answers from CDS service
    */
-  private async loadPrefilledAnswersFromCDS(): Promise<void> {
+  private async loadPrefilledAnswersFromCDS(): Promise<boolean> {
     if (!this.patient?.id) {
       console.log('No patient ID, skipping pre-fill');
-      return;
+      return false;
     }
 
+    this.prefillLoading = true;
+    this.prefillError = undefined;
     try {
       console.log('Patient ID:', this.patient.id);
       const client = await this.sof.getClient()
@@ -144,45 +162,151 @@ export class FormComponent implements OnInit, OnDestroy {
         console.log('No cards in CDS response');
       }
 
+      return true;
     } catch (error) {
       console.error('Error loading pre-filled answers from CDS:', error);
+      this.prefillError = 'The patient\'s data could not be collected from the EHR. Please try again or fill in the questionnaire manually.';
+      return false;
+    } finally {
+      this.prefillLoading = false;
+    }
+  }
+
+  /**
+   * Latest QuestionnaireResponse saved for this patient against the risk questionnaire (or undefined)
+   */
+  private async findLatestSavedResponse(): Promise<fhir4.QuestionnaireResponse | undefined> {
+    if (!this.patient?.id || !this.questionnaire?.id) return undefined;
+    try {
+      const bundle = await this.sof.search<fhir4.QuestionnaireResponse>('QuestionnaireResponse', {
+        subject: `Patient/${this.patient.id}`,
+        questionnaire: `Questionnaire/${this.questionnaire.id}`,
+        _sort: '-authored',
+        _count: 20
+      });
+      const responses = (bundle?.entry ?? [])
+        .map((e: any) => e.resource as fhir4.QuestionnaireResponse)
+        .filter((r: fhir4.QuestionnaireResponse) => r?.resourceType === 'QuestionnaireResponse' && !!r.authored);
+      // newest first (also when the server ignores _sort)
+      responses.sort((a: fhir4.QuestionnaireResponse, b: fhir4.QuestionnaireResponse) => Date.parse(b.authored!) - Date.parse(a.authored!));
+      return responses[0];
+    } catch (e) {
+      console.error('Error searching the saved questionnaire responses:', e);
+      return undefined;
+    }
+  }
+
+  /** Whether the saved response is recent enough to be shown instead of a new EHR extraction */
+  private isRecent(qr: fhir4.QuestionnaireResponse): boolean {
+    const authored = qr.authored ? Date.parse(qr.authored) : NaN;
+    return !Number.isNaN(authored) && Date.now() - authored <= this.savedResponseMaxAgeDays * 24 * 60 * 60 * 1000;
+  }
+
+  /** Show the answers of a saved response */
+  private applySavedResponse(qr: fhir4.QuestionnaireResponse): void {
+    this.answers = {};
+    this.prefilledAnswers = {};
+    this.extractAnswersFromResponse(qr.item ?? [], false);
+    this.savedResponse = qr;
+    sessionStorage.setItem(SAVED_RESPONSE_KEY, JSON.stringify(qr));
+    console.log(`Showing the response saved on ${qr.authored} (${Object.keys(this.answers).length} answers)`);
+  }
+
+  /**
+   * Collect the data from the EHR again (feature extraction). Answers to questions the EHR has no data for
+   * (e.g. the ones only asked on the form) are kept.
+   */
+  async refreshFromEhr(): Promise<void> {
+    const previousAnswers = this.answers;
+    this.answers = {};
+    this.prefilledAnswers = {};
+    const ok = await this.loadPrefilledAnswersFromCDS();
+    for (const [linkId, value] of Object.entries(previousAnswers)) {
+      if (!(linkId in this.answers)) {
+        this.answers[linkId] = value;
+      }
+    }
+    if (ok) {
+      this.savedResponse = undefined;
+      this.saveAnswers();
     }
   }
 
   /**
    * Extract answers from QuestionnaireResponse items
    */
-  private extractAnswersFromResponse(items: any[]): void {
+  private extractAnswersFromResponse(items: any[], markPrefilled: boolean = true): void {
     items.forEach(item => {
-      if (item.answer && item.answer.length > 0) {
-        const answer = item.answer[0];
-
-        // Handle different answer types
-        if (answer.valueInteger !== undefined && answer.valueInteger !== null) {
-          this.answers[item.linkId] = answer.valueInteger;
-          this.prefilledAnswers[item.linkId] = true;
-          console.log(`  ✓ ${item.linkId} = ${answer.valueInteger} (integer)`);
-        } else if (answer.valueCoding) {
-          const codes = item.answer
-            .filter((a: any) => a.valueCoding)
-            .map((a: any) => a.valueCoding.code);
-        
-          this.answers[item.linkId] = codes.length > 1 ? codes : codes[0];
-          this.prefilledAnswers[item.linkId] = true;
-        
-          console.log(`  ✓ ${item.linkId} = ${this.answers[item.linkId]} (coding)`);
-        } else if (answer.valueDecimal !== undefined && answer.valueDecimal !== null) {
-          this.answers[item.linkId] = answer.valueDecimal;
-          this.prefilledAnswers[item.linkId] = true;
-          console.log(`  ✓ ${item.linkId} = ${answer.valueDecimal} (decimal)`);
+      const itemAnswers: any[] = item.answer ?? [];
+      if (itemAnswers.length > 0) {
+        let value: any;
+        if (itemAnswers[0].valueCoding) {
+          // Coded answers: keep the codes (an array for repeating questions)
+          const codes = itemAnswers.filter((a: any) => a.valueCoding).map((a: any) => a.valueCoding.code);
+          value = (codes.length > 1 || this.findItem(item.linkId)?.repeats) ? codes : codes[0];
+        } else {
+          // valueDecimal / valueInteger / valueBoolean / valueString / valueDate ... (false and 0 are answers too)
+          const key = Object.keys(itemAnswers[0]).find(k => k.startsWith('value'));
+          value = key !== undefined ? itemAnswers[0][key] : undefined;
+        }
+        if (value !== undefined && value !== null) {
+          this.answers[item.linkId] = value;
+          this.prefilledAnswers[item.linkId] = markPrefilled;
+          console.log(`  ✓ ${item.linkId} = ${JSON.stringify(value)}`);
         }
       }
 
       // Recursively process nested items
       if (item.item && item.item.length > 0) {
-        this.extractAnswersFromResponse(item.item);
+        this.extractAnswersFromResponse(item.item, markPrefilled);
       }
     });
+  }
+
+  /** Questionnaire item (question) with the given linkId */
+  private findItem(linkId: string, items: any[] = this.questionnaire?.item ?? []): any {
+    for (const it of items) {
+      if (it.linkId === linkId) return it;
+      const found = it.item ? this.findItem(linkId, it.item) : undefined;
+      if (found) return found;
+    }
+    return undefined;
+  }
+
+  /** Whether a form value counts as an answer for the given question */
+  private hasAnswer(q: any, value: any): boolean {
+    if (value === undefined || value === null || value === '') return false;
+    if (Array.isArray(value)) return value.length > 0;
+    if (q.type === 'decimal' || q.type === 'integer') return !Number.isNaN(Number(value));
+    return true;
+  }
+
+  /**
+   * FHIR answers for a question, typed by the question's type (the generated Questionnaire declares it;
+   * hop 2 reads the saved answers with the same types: valueCoding.code, valueDecimal, valueBoolean, ...)
+   */
+  private toAnswers(q: any, value: any): any[] {
+    const values = Array.isArray(value) ? value : [value];
+    switch (q.type) {
+      case 'choice':
+      case 'open-choice':
+        return values.map((code: any) => {
+          const opt = (q.answerOption ?? []).find((o: any) => String(o.valueCoding?.code) === String(code));
+          return { valueCoding: opt?.valueCoding ? { ...opt.valueCoding } : { code: String(code) } };
+        });
+      case 'boolean':
+        return [{ valueBoolean: value === true || value === 'true' }];
+      case 'integer':
+        return [{ valueInteger: Math.round(Number(value)) }];
+      case 'decimal':
+        return [{ valueDecimal: Number(value) }];
+      case 'date':
+        return [{ valueDate: String(value) }];
+      case 'dateTime':
+        return [{ valueDateTime: String(value) }];
+      default:
+        return [{ valueString: String(value) }];
+    }
   }
 
   isPrefilled(linkId: string): boolean {
@@ -191,7 +315,7 @@ export class FormComponent implements OnInit, OnDestroy {
 
   private loadAnswersFromLocalStorage(): void {
     try {
-      const saved = localStorage.getItem('questionnaire_answers');
+      const saved = localStorage.getItem(this.draftStorageKey());
       if (saved) {
         this.answers = JSON.parse(saved);
         console.log('Restored answers from localStorage:', this.answers);
@@ -203,10 +327,15 @@ export class FormComponent implements OnInit, OnDestroy {
 
   private saveAnswers(): void {
     try {
-      localStorage.setItem('questionnaire_answers', JSON.stringify(this.answers));
+      localStorage.setItem(this.draftStorageKey(), JSON.stringify(this.answers));
     } catch (e) {
       console.error('Error saving answers:', e);
     }
+  }
+
+  /** Draft answers are kept per patient */
+  private draftStorageKey(): string {
+    return `questionnaire_answers_${this.patient?.id ?? 'unknown'}`;
   }
 
   selectGroup(group: any): void {
@@ -246,7 +375,7 @@ export class FormComponent implements OnInit, OnDestroy {
     return age;
   }
 
-  generateResponse() {
+  generateResponse(): fhir4.QuestionnaireResponse|null {
     const age = this.calculateAge(this.patient?.birthDate);
     if (!this.patient?.id) return null;
 
@@ -254,16 +383,10 @@ export class FormComponent implements OnInit, OnDestroy {
       .map((group: any) => ({
         linkId: group.linkId,
         item: (group.item ?? [])
-          .filter((q: any) => this.answers[q.linkId] !== undefined)
+          .filter((q: any) => this.hasAnswer(q, this.answers[q.linkId]))
           .map((q: any) => ({
             linkId: q.linkId,
-            answer: q.type === "choice"
-            ? (
-                Array.isArray(this.answers[q.linkId])
-                  ? this.answers[q.linkId].map((code: any) => ({ valueCoding: { code } }))
-                  : [{ valueCoding: { code: this.answers[q.linkId] } }]
-              )
-            : [{ valueDecimal: Number(this.answers[q.linkId]) }]
+            answer: this.toAnswers(q, this.answers[q.linkId])
           }))
       }))
       .filter((g: any) => g.item && g.item.length > 0);
@@ -300,26 +423,15 @@ export class FormComponent implements OnInit, OnDestroy {
         return;
       }
 
-      const patientId = this.patient?.id;
-      const qrId = qr.id;
-
-      // Call risk calculation service
-      const response = await this.cdsHooksService.callService({
-        serviceId: "risk_prediction",
-        language: "en",
-        context: { patientId, qrId },
-        prefetch: { patient: this.patient, qr: qr, observations: { resourceType: 'Bundle', entry: [] } }
-      });
-
-      console.log('Risk Calculation Response:', response);
-
-      localStorage.setItem('questionnaire_results', JSON.stringify(response?.cards ?? []));
-
-      this.router.navigate(['/results']);
+      await this.sof.create<fhir4.QuestionnaireResponse>(qr, qr.id);
+      this.savedResponse = qr;
+      // The risks are calculated on the next page, for the diseases the user selects there
+      sessionStorage.setItem(SAVED_RESPONSE_KEY, JSON.stringify(qr));
+      this.router.navigate(['/diseases']);
 
     } catch (error) {
       console.error('Error in save:', error);
-      alert('Error processing questionnaire. Check console for details.');
+      alert('Error saving the questionnaire. Check console for details.');
     } finally {
       this.saving = false;
     }
@@ -329,7 +441,7 @@ export class FormComponent implements OnInit, OnDestroy {
     if (confirm('Are you sure you want to clear all answers?')) {
       this.answers = {};
       this.prefilledAnswers = {};
-      localStorage.removeItem('questionnaire_answers');
+      localStorage.removeItem(this.draftStorageKey());
     }
   }
 

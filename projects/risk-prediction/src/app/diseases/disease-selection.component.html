@@ -1,0 +1,57 @@
+<div class="card shadow-sm">
+  <div class="card-body">
+    <h4 class="card-title">Select the diseases to calculate the risk for</h4>
+    <p class="text-muted mb-3" *ngIf="questionnaireResponse?.authored">
+      Using the questionnaire responses saved on {{ questionnaireResponse?.authored | date:'medium' }}.
+    </p>
+
+    <!-- Loading the disease list -->
+    <div *ngIf="loading" class="text-center py-5">
+      <div class="spinner-border text-primary" role="status"></div>
+      <p class="mt-3">Loading the available diseases...</p>
+    </div>
+
+    <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+
+    <ng-container *ngIf="!loading && diseases.length">
+      <div class="d-flex flex-wrap gap-2 mb-3">
+        <button type="button" class="btn btn-outline-secondary btn-sm" (click)="setAll(true)" [disabled]="calculating">Select all</button>
+        <button type="button" class="btn btn-outline-secondary btn-sm" (click)="setAll(false)" [disabled]="calculating">Clear selection</button>
+        <span class="ms-auto align-self-center text-muted">{{ selectedCount }} of {{ diseases.length }} selected</span>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6 col-xl-4 mb-3" *ngFor="let group of groups">
+          <div class="border rounded p-3 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <h6 class="mb-0">{{ group.name }}</h6>
+              <div class="btn-group btn-group-sm">
+                <button type="button" class="btn btn-link btn-sm p-0 me-2" (click)="setGroup(group, true)" [disabled]="calculating">All</button>
+                <button type="button" class="btn btn-link btn-sm p-0" (click)="setGroup(group, false)" [disabled]="calculating">None</button>
+              </div>
+            </div>
+            <div class="form-check" *ngFor="let disease of group.diseases">
+              <input class="form-check-input" type="checkbox" [id]="'disease-' + disease.id"
+                     [checked]="disease.selected" [disabled]="calculating"
+                     (change)="disease.selected = $any($event.target).checked">
+              <label class="form-check-label" [for]="'disease-' + disease.id">{{ disease.name }}</label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+
+    <div class="d-flex flex-wrap gap-2 mt-3">
+      <button type="button" class="btn btn-outline-secondary" (click)="backToQuestionnaire()" [disabled]="calculating">
+        <i class="bi bi-arrow-left me-1"></i>Back to questionnaire
+      </button>
+      <button type="button" class="btn text-white ms-auto" style="background-color:#e26d35;"
+              (click)="calculate()" [disabled]="loading || calculating || !selectedCount || !questionnaireResponse">
+        <span *ngIf="!calculating">Calculate risks</span>
+        <span *ngIf="calculating">
+          <span class="spinner-border spinner-border-sm me-2" role="status"></span>Calculating risks...
+        </span>
+      </button>
+    </div>
+  </div>
+</div>

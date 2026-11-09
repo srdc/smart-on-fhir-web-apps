@@ -1,0 +1,189 @@
+<div class="d-flex flex-wrap gap-2 align-items-start">
+  <h2 class="h4 mb-3 flex-grow-1">Shared Links</h2>
+  <ng-container *ngIf="state === 'unlocked'">
+    <button class="btn btn-outline-primary btn-sm mb-2" (click)="receiveDialogOpen = true" [disabled]="!patient">
+      <i class="bi bi-qr-code-scan"></i> Add received card
+    </button>
+    <button class="btn btn-outline-dark btn-sm mb-2" (click)="changingPassword = !changingPassword">
+      <i class="bi bi-key"></i> Change password
+    </button>
+    <button class="btn btn-dark btn-sm mb-2" (click)="lock()"><i class="bi bi-lock"></i> Lock</button>
+  </ng-container>
+</div>
+
+<div *ngIf="notice" class="alert alert-info alert-dismissible small py-2" role="status">
+  {{ notice }}
+  <button type="button" class="btn-close py-2" aria-label="Close" (click)="notice = undefined"></button>
+</div>
+<div *ngIf="error" class="alert alert-danger alert-dismissible small py-2" role="alert">
+  {{ error }}
+  <button type="button" class="btn-close py-2" aria-label="Close" (click)="error = undefined"></button>
+</div>
+
+<ng-container [ngSwitch]="state">
+  <div *ngSwitchCase="'unavailable'" class="alert alert-secondary small">
+    Shared links can only be kept when you are signed in to your health record.
+  </div>
+
+  <!-- No vault yet, or locked -->
+  <div *ngSwitchDefault class="card bg-white" style="max-width: 32rem">
+    <div class="card-body">
+      <h5 class="card-title h6">
+        <i class="bi" [class.bi-shield-lock]="state === 'none'" [class.bi-lock]="state === 'locked'"></i>
+        {{ state === 'none' ? 'Keep your shared links on this device' : 'Your shared links are locked' }}
+      </h5>
+      <p *ngIf="state === 'none'" class="small text-muted">
+        Links you create with "Create Smart Health Card" can be kept here, so that you can show them again or revoke them.
+        They are encrypted on this device and only you can open them.
+      </p>
+      <p *ngIf="legacyCount" class="small">
+        <i class="bi bi-info-circle"></i> {{ legacyCount }} link{{ legacyCount > 1 ? 's' : '' }} saved earlier will be moved
+        into your encrypted list.
+      </p>
+      <app-link-vault-form [allowReset]="true" (opened)="opened($event)" (forgot)="forgotPassword()"></app-link-vault-form>
+    </div>
+  </div>
+
+  <!-- Unlocked -->
+  <ng-container *ngSwitchCase="'unlocked'">
+    <div *ngIf="changingPassword" class="card bg-white mb-3" style="max-width: 32rem">
+      <form class="card-body" (ngSubmit)="changePassword()">
+        <h5 class="card-title h6">Change password</h5>
+        <input type="text" name="username" autocomplete="username" value="shared-links" class="d-none" aria-hidden="true" tabindex="-1">
+        <label for="vault-current" class="form-label small mb-1">Current password</label>
+        <input id="vault-current" name="current" type="password" class="form-control form-control-sm mb-2" autocomplete="current-password"
+               [(ngModel)]="passwordForm.current" [disabled]="passwordBusy" required>
+        <label for="vault-next" class="form-label small mb-1">New password</label>
+        <input id="vault-next" name="next" type="password" class="form-control form-control-sm mb-2" autocomplete="new-password"
+               [(ngModel)]="passwordForm.next" [disabled]="passwordBusy" required>
+        <label for="vault-confirmation" class="form-label small mb-1">Repeat the new password</label>
+        <input id="vault-confirmation" name="confirmation" type="password" class="form-control form-control-sm mb-2" autocomplete="new-password"
+               [(ngModel)]="passwordForm.confirmation" [disabled]="passwordBusy" required>
+        <div *ngIf="passwordError" class="alert alert-danger small py-1 px-2 mb-2">{{ passwordError }}</div>
+        <button type="submit" class="btn btn-primary btn-sm me-2" [disabled]="passwordBusy || !passwordForm.current || !passwordForm.next">
+          <span *ngIf="passwordBusy" class="spinner-border spinner-border-sm" aria-hidden="true"></span> Change
+        </button>
+        <button type="button" class="btn btn-link btn-sm" (click)="changingPassword = false" [disabled]="passwordBusy">Cancel</button>
+      </form>
+    </div>
+
+    <div *ngIf="!links.length" class="alert alert-secondary small">
+      No shared links yet. Create one with "Create Smart Health Card" on the Summary or Interventions page.
+    </div>
+
+    <div class="list-group">
+      <div *ngFor="let link of links; trackBy: trackById" class="list-group-item">
+        <div class="d-flex flex-wrap align-items-start gap-2">
+          <div class="flex-grow-1">
+            <div class="fw-semibold">{{ link.service || link.label || 'Shared link' }}</div>
+            <div class="small text-muted">
+              Created {{ link.createdAt | date: 'dd/MM/yyyy HH:mm' }}
+              &middot; expires {{ link.exp ? ((link.exp * 1000) | date: 'dd/MM/yyyy HH:mm') : 'never' }}
+              <ng-container *ngIf="link.passcodeProtected"> &middot; <i class="bi bi-lock"></i> passcode</ng-container>
+            </div>
+            <div *ngIf="!link.link" class="small text-muted fst-italic">Saved before encryption: it can be revoked, but not shown again.</div>
+          </div>
+          <ng-container [ngSwitch]="status(link)">
+            <span *ngSwitchCase="'active'" class="badge text-bg-success">Active</span>
+            <span *ngSwitchCase="'revoked'" class="badge text-bg-secondary">Revoked</span>
+            <span *ngSwitchDefault class="badge text-bg-secondary">Expired</span>
+          </ng-container>
+        </div>
+        <div class="d-flex flex-wrap gap-2 mt-2">
+          <ng-container *ngIf="status(link) === 'active' && link.link">
+            <button type="button" class="btn btn-outline-primary btn-sm" (click)="toggleQr(link)">
+              <i class="bi bi-qr-code"></i> {{ shown[link.id] ? 'Hide QR code' : 'Show QR code' }}
+            </button>
+            <button type="button" class="btn btn-outline-primary btn-sm" (click)="copy(link)"><i class="bi bi-link"></i> Copy link</button>
+          </ng-container>
+          <button *ngIf="canRevoke(link)" type="button" class="btn btn-outline-danger btn-sm" (click)="revoke(link)" [disabled]="!!busy">
+            <span *ngIf="busy === link.id" class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+            <i *ngIf="busy !== link.id" class="bi bi-x-octagon"></i> Revoke
+          </button>
+          <button type="button" class="btn btn-link btn-sm text-muted ms-auto" (click)="remove(link)" [disabled]="!!busy">
+            <i class="bi bi-trash"></i> Remove from list
+          </button>
+        </div>
+        <div *ngIf="shown[link.id] as rebuilt" class="text-center mt-2">
+          <img [src]="rebuilt.qr" width="240" height="240" alt="SMART Health Link QR code">
+          <div *ngIf="link.passcodeProtected" class="form-text">The receiver also needs the passcode you chose.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cards received from others (e.g. a care plan from a clinician), shared again as signed by their issuer -->
+    <h3 class="h6 mt-4">Received cards</h3>
+    <div *ngIf="!received.length" class="alert alert-secondary small">
+      No received cards yet. Use "Add received card" to scan the QR code or paste the link a clinician gave you,
+      then share it with other clinicians from here.
+    </div>
+    <div class="list-group">
+      <div *ngFor="let card of received" class="list-group-item">
+        <div class="d-flex flex-wrap align-items-start gap-2">
+          <div class="flex-grow-1">
+            <div class="fw-semibold">{{ card.label }}</div>
+            <div class="small text-muted">
+              Signed by {{ issuerName(card) }}
+              <i *ngIf="isTrusted(card)" class="bi bi-patch-check-fill text-success" title="Trusted issuer"></i>
+              <ng-container *ngIf="card.issuedAt"> on {{ card.issuedAt | date: 'dd/MM/yyyy' }}</ng-container>
+              &middot; received {{ card.receivedAt | date: 'dd/MM/yyyy HH:mm' }}
+            </div>
+            <div class="small text-muted">{{ card.resourceTypes.join(', ') }}</div>
+          </div>
+          <span *ngIf="!card.verified" class="badge text-bg-danger">Signature not verified</span>
+        </div>
+        <div class="d-flex flex-wrap gap-2 mt-2">
+          <button type="button" class="btn btn-outline-primary btn-sm" (click)="share(card)" [disabled]="!patient?.id">
+            <i class="bi bi-qr-code"></i> Share
+          </button>
+          <button type="button" class="btn btn-link btn-sm text-muted ms-auto" (click)="removeReceived(card)" [disabled]="!!busy">
+            <i class="bi bi-trash"></i> Remove from list
+          </button>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+</ng-container>
+
+<app-import-health-card *ngIf="receiveDialogOpen && patient && state === 'unlocked'" [dialog]="true" saveTo="wallet"
+                       title="Add Received Card" [target]="patient"
+                       description="Scan the QR code or paste the link a clinician shared with you (for example your intervention plan). The signed card is kept in your Shared Links, encrypted on this device, so you can share it with other clinicians as signed by the issuer."
+                       (closed)="receiveDialogOpen = false; reload()"></app-import-health-card>
+<app-share-health-card-dialog *ngIf="sharing && patient?.id" [patientId]="patient!.id!" [profiles]="sharing.profiles"
+                              title="Share Received Card" sharedLinksUrl="/shared-links" (closed)="sharingClosed()"></app-share-health-card-dialog>
+
+<!-- Links bound to the user's account on the SHL server (e.g. after a forgotten password) -->
+<div *ngIf="shl.ownerAuthEnabled && state !== 'unavailable'" class="mt-4">
+  <h3 class="h6">Links on your account</h3>
+  <p class="small text-muted mb-2">
+    Links created while signed in are also known to the sharing server. It cannot show them again, but you can revoke them,
+    for example after forgetting your password or when you shared from another device.
+  </p>
+  <button *ngIf="!ownedLinks" type="button" class="btn btn-outline-dark btn-sm" (click)="loadOwnedLinks()" [disabled]="ownedLoading">
+    <span *ngIf="ownedLoading" class="spinner-border spinner-border-sm" aria-hidden="true"></span> Show links on my account
+  </button>
+  <div *ngIf="ownedError" class="alert alert-danger small py-2 mt-2">{{ ownedError }}</div>
+  <ng-container *ngIf="ownedLinks">
+    <div *ngIf="!otherOwnedLinks.length" class="small text-muted">
+      {{ ownedLinks.length ? 'All links on your account are in the list above.' : 'There are no links on your account.' }}
+    </div>
+    <ul *ngIf="otherOwnedLinks.length" class="list-group list-group-flush small">
+      <li *ngFor="let link of otherOwnedLinks" class="list-group-item px-0 d-flex align-items-center gap-2">
+        <div class="flex-grow-1">
+          <div class="fw-semibold">{{ link.label || 'Shared link' }}</div>
+          <div class="text-muted">
+            Created {{ link.createdAt | date: 'dd/MM/yyyy HH:mm' }}
+            &middot; expires {{ link.exp ? ((link.exp * 1000) | date: 'dd/MM/yyyy HH:mm') : 'never' }}
+          </div>
+        </div>
+        <ng-container *ngIf="link.active; else inactive">
+          <span class="badge text-bg-success">Active</span>
+          <button type="button" class="btn btn-outline-danger btn-sm py-0" (click)="revokeOwned(link)" [disabled]="!!busy">
+            <span *ngIf="busy === link.id" class="spinner-border spinner-border-sm" aria-hidden="true"></span> Revoke
+          </button>
+        </ng-container>
+        <ng-template #inactive><span class="badge text-bg-secondary">{{ link.revokedAt ? 'Revoked' : 'Expired' }}</span></ng-template>
+      </li>
+    </ul>
+  </ng-container>
+</div>

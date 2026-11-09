@@ -13,6 +13,9 @@ export class QuestionComponent {
 
   enabled = true;
 
+  // Answer options of yes/no (boolean) questions
+  readonly booleanOptions = [{ value: true, label: 'Yes' }, { value: false, label: 'No' }];
+
   isExclusiveOption(opt: any): boolean {
     return !isNaN(opt) && opt < 0;
   }
@@ -59,6 +62,16 @@ export class QuestionComponent {
   onNumericChange(value: any) {
     const num = value === '' ? null : Number(value);
     this.answerChanged.emit({ linkId: this.q.linkId, value: num });
+  }
+
+  //yes / no input
+  onBooleanChange(value: boolean) {
+    this.answerChanged.emit({ linkId: this.q.linkId, value });
+  }
+
+  //free text / date input
+  onTextChange(value: string) {
+    this.answerChanged.emit({ linkId: this.q.linkId, value: value === '' ? null : value });
   }
 
 }

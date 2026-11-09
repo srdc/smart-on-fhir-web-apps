@@ -1,0 +1,81 @@
+<div class="modal d-block" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="measurement-dialog-title" (keydown.escape)="close()">
+  <div class="modal-dialog modal-dialog-centered">
+    <form class="modal-content" (ngSubmit)="save()">
+      <div class="modal-header">
+        <h5 class="modal-title" id="measurement-dialog-title"><i class="bi bi-plus-circle"></i> Add Measurement</h5>
+        <button type="button" class="btn-close" aria-label="Close" (click)="close()" [disabled]="saving"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label for="measurement-code" class="form-label">Measurement</label>
+          <select id="measurement-code" name="key" class="form-select" [ngModel]="form.key" (ngModelChange)="select($event)" [disabled]="saving">
+            @for (m of measurements; track m.key) {
+              <option [ngValue]="m.key">{{ m.label }}</option>
+            }
+          </select>
+          @if (measurement?.target) {
+            <div class="form-text">Goal: {{ measurement?.target }}</div>
+          }
+        </div>
+
+        @if (measurement?.kind === 'quantity') {
+          <div class="mb-3">
+            <label for="measurement-value" class="form-label">Value</label>
+            <div class="input-group">
+              <input id="measurement-value" name="value" type="number" step="any" class="form-control" required
+                     [(ngModel)]="form.value" [disabled]="saving">
+              @if (unitLabel) {
+                <span class="input-group-text">{{ unitLabel }}</span>
+              }
+            </div>
+          </div>
+        } @else if (measurement?.kind === 'concept') {
+          <div class="mb-3">
+            <label for="measurement-answer" class="form-label">Value</label>
+            @if (loadingOptions) {
+              <div class="small text-muted"><span class="spinner-border spinner-border-sm" aria-hidden="true"></span> Loading the answers…</div>
+            } @else {
+              <select id="measurement-answer" name="answer" class="form-select" [(ngModel)]="form.answer" [disabled]="saving">
+                <option value="" disabled>Choose…</option>
+                @for (group of optionGroups; track group.label) {
+                  <optgroup [label]="group.label">
+                    @for (option of group.options; track $index) {
+                      <option [value]="'' + optionIndex(option)">{{ option.coding.display || option.coding.code }}</option>
+                    }
+                  </optgroup>
+                }
+                <option [value]="OTHER">Other (type the answer)</option>
+              </select>
+              @if (form.answer === OTHER) {
+                <input name="text" class="form-control mt-2" placeholder="Answer" [(ngModel)]="form.text" [disabled]="saving">
+                <div class="form-text">
+                  {{ options.length ? 'Use this only when none of the answers fits;' : 'No answer list is known for this measurement;' }}
+                  the answer is saved as text, without a code.
+                </div>
+              }
+            }
+          </div>
+        }
+
+        <div class="mb-1">
+          <label for="measurement-effective" class="form-label">Date and time</label>
+          <input id="measurement-effective" name="effective" type="datetime-local" class="form-control" required
+                 [(ngModel)]="form.effective" [disabled]="saving">
+        </div>
+        @if (error) {
+          <div class="alert alert-danger small mt-3 mb-0">{{ error }}</div>
+        }
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" (click)="close()" [disabled]="saving">Cancel</button>
+        <button type="submit" class="btn btn-primary" [disabled]="!canSave">
+          @if (saving) {
+            <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+          }
+          Save
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+<div class="modal-backdrop fade show"></div>

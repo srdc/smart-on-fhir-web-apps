@@ -29,7 +29,10 @@
   <!-- Header -->
   <div class="d-flex justify-content-between align-items-center mb-4">
     <h2 class="mb-0">Risk Assessment Results</h2>
-    <button class="btn btn-outline-secondary" (click)="goBack()">← Back</button>
+    <div class="d-flex gap-2">
+      <button class="btn btn-outline-secondary" (click)="changeDiseases()">Change diseases</button>
+      <button class="btn btn-outline-secondary" (click)="goBack()">← Back</button>
+    </div>
   </div>
 
   <!-- Overall Risk -->
@@ -55,14 +58,14 @@
       <div class="row">
         <div class="col-md-6">
           <h5>Disease Risks</h5>
-          <canvas baseChart style="max-width: 600px; margin: auto" type="radar" [data]="chartData" [options]="chartOptions"></canvas>
+          <canvas baseChart style="min-width: 600px; margin: auto" type="radar" [data]="chartData" [options]="chartOptions"></canvas>
         </div>
         <div class="col-md-6">
           <div class="alert alert-info small">
             <p>This radar chart presents the patient’s estimated risk levels (%) across multiple chronic conditions, calculated by the STAGE algorithms.
               Each axis represents a specific disease area, and the distance from the center indicates the relative risk magnitude.</p>
             <p>The predictions are as following:</p>
-            <ul>
+            <ul class="diseases-list">
               <li *ngFor="let disease of diseases"><b>{{disease.disease}}:</b> {{(disease.riskScore * 100) | number:'1.0-0'}}%</li>
             </ul>
           </div>
@@ -77,6 +80,7 @@
     <div *ngFor="let disease of diseases; let i = index" class="accordion-item shadow-sm">
       <div class="accordion-header">
         <button class="accordion-button bg-white" [ngClass]="{collapsed: i}" type="button" data-bs-toggle="collapse" [attr.id]="'accordion-btn-' + disease.diseaseId"
+                (click)="prioritizeExplanation(disease.disease)"
                 [attr.data-bs-target]="'#accordion-' + disease.diseaseId" aria-expanded="true" [attr.aria-controls]="'accordion-' + disease.diseaseId">
           <div class="d-flex justify-content-between d-flex justify-content-between align-items-center w-100">
             <h5>{{disease.disease}}</h5>
@@ -118,14 +122,15 @@
           <div class="col-sm-12 col-md-6 d-flex align-items-center justify-content-center">
             <div>
               <h5 class="text-center mb-2">Beeswarm Plot</h5>
-              <img [src]="'assets/beeswarm/' + disease.disease + '_beeswarm.png'" style="cursor:pointer;width: 100%; max-width: 600px"
-                   (click)="imageDisplay.src = ('assets/beeswarm/' + disease.disease + '_beeswarm.png')"
+              <img [src]="beeswarmUrl(disease.disease)" style="cursor:pointer;width: 100%; max-width: 600px"
+                   (click)="imageDisplay.src = beeswarmUrl(disease.disease)"
                    data-bs-toggle="modal" data-bs-target="#imageModal">
               <p class="text-light-emphasis text-center" style="font-size: .6em">Click on image to enlarge</p>
             </div>
           </div>
           <div class="col-sm-12 col-md-6">
-            <rp-chatbot #chatbot [sessionId]="llmSessionId" [disease]="disease.disease" chart="beeswarm"
+            <!-- explanations are requested disease by disease by the results component (runExplanationQueue) -->
+            <rp-chatbot #chatbot [sessionId]="llmSessionId" [disease]="disease.disease" chart="beeswarm" [runOnInit]="false"
                         [riskPredictionObservation]="riskObservations[disease.disease]" [localPlotResponse]="localPlotResponse"></rp-chatbot>
           </div>
         </div>
@@ -137,7 +142,7 @@
             </div>
           </div>
           <div class="col-sm-12 col-md-6">
-            <rp-chatbot #chatbot [sessionId]="llmSessionId" [disease]="disease.disease" chart="waterfall"
+            <rp-chatbot #chatbot [sessionId]="llmSessionId" [disease]="disease.disease" chart="waterfall" [runOnInit]="false"
                         [riskPredictionObservation]="riskObservations[disease.disease]" [localPlotResponse]="localPlotResponse"></rp-chatbot>
           </div>
         </div>

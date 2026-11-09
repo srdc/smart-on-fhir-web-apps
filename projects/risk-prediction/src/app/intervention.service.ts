@@ -3,6 +3,9 @@ import {SmartOnFhirService} from "ng-smart-on-fhir";
 import {environment} from "../environments/environment";
 import {v4} from "uuid";
 
+/** Origin of a care plan activity added from another care plan (activities have no meta.source of their own) */
+export const ACTIVITY_SOURCE_EXTENSION = 'http://stage-healthyaging.eu/fhir/StructureDefinition/activity-source';
+
 @Injectable({
   providedIn: "root"
 })
@@ -49,15 +52,35 @@ export class InterventionService {
     return this.activeCarePlan;
   }
 
-  async loadRelatedMeasurements(patientId: string) {
+  /**
+   * Measurements shown with the plan: the observations of the LIVA data source, and the observations of the codes the
+   * goals measure (e.g. recorded with "Add measurement")
+   * @param codes - system|code of the goal measurements
+   */
+  async loadRelatedMeasurements(patientId: string, codes: string[] = []) {
     try {
       this.observationMap = {}
       this.observationNameMap = {}
-      const observations = (await this.sof.search<fhir4.Observation>('Observation', {
-        // TODO: update ng-smart-on-fhir to make selected client config public, then get the search params from the config
-        _source: 'http://stage-healthyageing.eu/data-source/LIVA',
-        subject: 'Patient/' + patientId
-      }, {_sort: '-date', _count: 999}))?.entry?.map(_ => _.resource!) || [];
+      const [liva, measured] = await Promise.all([
+        this.sof.search<fhir4.Observation>('Observation', {
+          // TODO: update ng-smart-on-fhir to make selected client config public, then get the search params from the config
+          _source: 'http://stage-healthyageing.eu/data-source/LIVA',
+          subject: 'Patient/' + patientId
+        }, {_sort: '-date', _count: 999}),
+        codes.length ? this.sof.search<fhir4.Observation>('Observation', {
+          code: codes.map(code => encodeURIComponent(code)).join(','),
+          subject: 'Patient/' + patientId
+        }, {_sort: '-date', _count: 999}).catch(err => {
+          console.error(err);
+          return undefined;
+        }) : Promise.resolve(undefined)
+      ]);
+      const byId = new Map<string, fhir4.Observation>();
+      [...(liva?.entry || []), ...(measured?.entry || [])].map(entry => entry.resource)
+        .filter((resource): resource is fhir4.Observation => resource?.resourceType === 'Observation')
+        .forEach(observation => byId.set(observation.id || Math.random().toString(), observation));
+      const date = (observation: fhir4.Observation) => observation.effectiveDateTime || observation.effectivePeriod?.start || observation.issued || '';
+      const observations = [...byId.values()].sort((a, b) => date(b).localeCompare(date(a)));
       observations.forEach(observation => {
         const code = observation.code.coding?.at(0)?.code || observation.code.text || '';
         const display = observation.code.coding?.at(0)?.display || observation.code.text || 'Unknown';
@@ -68,6 +91,39 @@ export class InterventionService {
     } catch (err) {
       console.error(err);
     }
+  }
+
+  /**
+   * Add the goals and activities of another care plan (e.g. one received from a clinician as a Smart Health Card) to a
+   * care plan; the ones it has already are skipped. Activities described inline (activity.detail) get the source of the
+   * other plan in ACTIVITY_SOURCE_EXTENSION, unless they tell their source already.
+   * @return the merged care plan (not saved)
+   */
+  static mergeCarePlan(target: fhir4.CarePlan, other: fhir4.CarePlan): fhir4.CarePlan {
+    const merged: fhir4.CarePlan = JSON.parse(JSON.stringify(target));
+    const source = other.meta?.source;
+    const goals = new Set((merged.goal || []).map(goal => goal.reference || goal.display));
+    for (const goal of other.goal || []) {
+      const key = goal.reference || goal.display;
+      if (key && !goals.has(key)) {
+        merged.goal = [...(merged.goal || []), goal];
+        goals.add(key);
+      }
+    }
+    const activities = new Set((merged.activity || []).map(activity => activity.reference?.reference || JSON.stringify(activity.detail || {})));
+    for (const activity of other.activity || []) {
+      const key = activity.reference?.reference || (activity.detail ? JSON.stringify(activity.detail) : undefined);
+      if (!key || activities.has(key)) {
+        continue;
+      }
+      const added: fhir4.CarePlanActivity = JSON.parse(JSON.stringify(activity));
+      if (!added.reference?.reference && source && !added.extension?.some(extension => extension.url === ACTIVITY_SOURCE_EXTENSION)) {
+        added.extension = [...(added.extension || []), {url: ACTIVITY_SOURCE_EXTENSION, valueUri: source}];
+      }
+      merged.activity = [...(merged.activity || []), added];
+      activities.add(key);
+    }
+    return merged;
   }
 
   async createOrUpdateCarePlan(patientId: string, goals: fhir4.Goal[]) {

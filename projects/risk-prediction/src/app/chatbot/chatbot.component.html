@@ -18,6 +18,22 @@
           </ng-container>
         </ul>
       </ng-container>
+      <ng-container *ngIf="importantFeatures?.length">
+        <p>Most important features are:</p>
+        <ul>
+          <ng-container *ngFor="let f of importantFeatures">
+            <li>{{f}}</li>
+          </ng-container>
+        </ul>
+      </ng-container>
+      <ng-container *ngIf="directionalPatterns?.length">
+        <p>Patterns:</p>
+        <ul>
+          <ng-container *ngFor="let f of directionalPatterns">
+            <li>{{f}}</li>
+          </ng-container>
+        </ul>
+      </ng-container>
       <ng-container *ngIf="decreasingFactors?.length">
         <p>Top decreasing factors are:</p>
         <ul>

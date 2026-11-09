@@ -1,7 +1,23 @@
-<div class="d-flex">
+<div class="d-flex flex-wrap gap-2 align-items-start">
   <h2 class="h4 mb-3 flex-grow-1">Patient Summary</h2>
+  <button class="btn btn-outline-dark btn-sm mb-2" (click)="downloadIPS()" [disabled]="!patient || ipsLoading">
+    <span *ngIf="ipsLoading" class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+    <i *ngIf="!ipsLoading" class="bi bi-file-earmark-medical"></i> Download IPS
+  </button>
+  <button *ngIf="healthCardProfiles.length" class="btn btn-outline-dark btn-sm mb-2" (click)="shareDialogOpen = true" [disabled]="!patient">
+    <i class="bi bi-qr-code"></i> Create Smart Health Card
+  </button>
   <button class="btn btn-dark btn-sm mb-2" routerLink="/form"><i class="bi bi-clipboard2-pulse"></i> Calculate Multi-morbidity Risks</button>
 </div>
+
+<div *ngIf="sharingError" class="alert alert-danger alert-dismissible small py-2" role="alert">
+  {{ sharingError }}
+  <button type="button" class="btn-close py-2" aria-label="Close" (click)="sharingError = undefined"></button>
+</div>
+
+<!-- Create Smart Health Card dialog -->
+<app-share-health-card-dialog *ngIf="shareDialogOpen && patient?.id" [patientId]="patient!.id!" [profiles]="healthCardProfiles"
+                              sharedLinksUrl="/shared-links" (closed)="shareDialogOpen = false"></app-share-health-card-dialog>
 
 <div class="d-flex justify-content-end mb-2">
   <label class="me-2 small text-muted">Items per page</label>
@@ -14,8 +30,8 @@
   </select>
 </div>
 
-<div class="row g-4">
-  <div class="col-lg-6">
+<div class="panels-container">
+  <div class="panel-wrapper">
     <ui-summary-panel
       [title]="'Conditions'"
       [items]="conditionItems! | paginate: { id: 'conditions', itemsPerPage: itemsPerPage, currentPage: conditionPage }">
@@ -30,67 +46,7 @@
     </pagination-controls>
   </div>
 
-  <div class="col-lg-6">
-    <ui-summary-panel
-      [title]="'Symptoms'"
-      [items]="symptomItems! | paginate: { id: 'symptoms', itemsPerPage: itemsPerPage, currentPage: symptomPage }">
-    </ui-summary-panel>
-    <pagination-controls
-      id="symptoms"
-      *ngIf="(symptomItems?.length || 0) > itemsPerPage"
-      (pageChange)="symptomPage = $event"
-      previousLabel="Prev"
-      nextLabel="Next"
-      class="mt-2">
-    </pagination-controls>
-  </div>
-
-  <div class="col-lg-6">
-    <ui-summary-panel
-      [title]="'Family History'"
-      [items]="familyItems! | paginate: { id: 'family', itemsPerPage: itemsPerPage, currentPage: familyPage }">
-    </ui-summary-panel>
-    <pagination-controls
-      id="family"
-      *ngIf="(familyItems?.length || 0) > itemsPerPage"
-      (pageChange)="familyPage = $event"
-      previousLabel="Prev"
-      nextLabel="Next"
-      class="mt-2">
-    </pagination-controls>
-  </div>
-
-  <div class="col-lg-6">
-    <ui-summary-panel
-      [title]="'Medications'"
-      [items]="medicationItems! | paginate: { id: 'meds', itemsPerPage: itemsPerPage, currentPage: medicationPage }">
-    </ui-summary-panel>
-    <pagination-controls
-      id="meds"
-      *ngIf="(medicationItems?.length || 0) > itemsPerPage"
-      (pageChange)="medicationPage = $event"
-      previousLabel="Prev"
-      nextLabel="Next"
-      class="mt-2">
-    </pagination-controls>
-  </div>
-
-  <div class="col-lg-6">
-    <ui-summary-panel
-      [title]="'Laboratory'"
-      [items]="labItems! | paginate: { id: 'labs', itemsPerPage: itemsPerPage, currentPage: labPage }">
-    </ui-summary-panel>
-    <pagination-controls
-      id="labs"
-      *ngIf="(labItems?.length || 0) > itemsPerPage"
-      (pageChange)="labPage = $event"
-      previousLabel="Prev"
-      nextLabel="Next"
-      class="mt-2">
-    </pagination-controls>
-  </div>
-
-  <div class="col-lg-6">
+  <div class="panel-wrapper">
     <ui-summary-panel
       [title]="'Vitals'"
       [items]="vitalItems! | paginate: { id: 'vitals', itemsPerPage: itemsPerPage, currentPage: vitalPage }">
@@ -105,7 +61,67 @@
     </pagination-controls>
   </div>
 
-  <div class="col-lg-6">
+  <div class="panel-wrapper">
+    <ui-summary-panel
+      [title]="'Family History'"
+      [items]="familyItems! | paginate: { id: 'family', itemsPerPage: itemsPerPage, currentPage: familyPage }">
+    </ui-summary-panel>
+    <pagination-controls
+      id="family"
+      *ngIf="(familyItems?.length || 0) > itemsPerPage"
+      (pageChange)="familyPage = $event"
+      previousLabel="Prev"
+      nextLabel="Next"
+      class="mt-2">
+    </pagination-controls>
+  </div>
+
+  <div class="panel-wrapper">
+    <ui-summary-panel
+      [title]="'Medications'"
+      [items]="medicationItems! | paginate: { id: 'meds', itemsPerPage: itemsPerPage, currentPage: medicationPage }">
+    </ui-summary-panel>
+    <pagination-controls
+      id="meds"
+      *ngIf="(medicationItems?.length || 0) > itemsPerPage"
+      (pageChange)="medicationPage = $event"
+      previousLabel="Prev"
+      nextLabel="Next"
+      class="mt-2">
+    </pagination-controls>
+  </div>
+
+  <div class="panel-wrapper">
+    <ui-summary-panel
+      [title]="'Laboratory'"
+      [items]="labItems! | paginate: { id: 'labs', itemsPerPage: itemsPerPage, currentPage: labPage }">
+    </ui-summary-panel>
+    <pagination-controls
+      id="labs"
+      *ngIf="(labItems?.length || 0) > itemsPerPage"
+      (pageChange)="labPage = $event"
+      previousLabel="Prev"
+      nextLabel="Next"
+      class="mt-2">
+    </pagination-controls>
+  </div>
+
+  <div class="panel-wrapper">
+    <ui-summary-panel
+      [title]="'Allergies'"
+      [items]="allergyItems! | paginate: { id: 'allergies', itemsPerPage: itemsPerPage, currentPage: allergyPage }">
+    </ui-summary-panel>
+    <pagination-controls
+      id="allergies"
+      *ngIf="(allergyItems?.length || 0) > itemsPerPage"
+      (pageChange)="allergyPage = $event"
+      previousLabel="Prev"
+      nextLabel="Next"
+      class="mt-2">
+    </pagination-controls>
+  </div>
+
+  <div class="panel-wrapper">
     <ui-summary-panel
       [title]="'Lifestyle'"
       [items]="lifestyleItems! | paginate: { id: 'lifestyle', itemsPerPage: itemsPerPage, currentPage: lifestylePage }">
@@ -120,7 +136,7 @@
     </pagination-controls>
   </div>
 
-  <div class="col-lg-6">
+  <div class="panel-wrapper">
     <ui-summary-panel
       [title]="'Questionnaires & Surveys'"
       [items]="surveyItems! | paginate: { id: 'surveys', itemsPerPage: itemsPerPage, currentPage: surveyPage }">

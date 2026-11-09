@@ -1,0 +1,16 @@
+.panels-container {
+  columns: 2;
+  column-gap: 16px;
+  column-fill: balance;
+}
+
+.panel-wrapper {
+  break-inside: avoid;
+  margin-bottom: 16px;
+}
+
+@media (max-width: 768px) {
+  .panels-container {
+    columns: 1;
+  }
+}

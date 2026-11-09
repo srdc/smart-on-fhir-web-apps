@@ -1,10 +1,11 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
+import {AfterViewInit, Component, OnDestroy, OnInit, QueryList, ViewChildren} from '@angular/core';
 import { Router } from '@angular/router';
 import {Chart, ChartData, ChartOptions, LegendItem} from "chart.js";
 import {CdsHooksService} from "cds-hooks";
 import {SmartOnFhirService} from "ng-smart-on-fhir";
 import {MenuService} from "../menu.service";
-import {LocalPlotResponse} from "./llm-models";
+import {beeswarmAssetUrl, LocalPlotResponse} from "./llm-models";
+import {ChatbotComponent} from "../chatbot/chatbot.component";
 
 interface ShapFeature {
   name: string;
@@ -35,7 +36,14 @@ interface SummaryItem {
   templateUrl: './results.component.html',
   styleUrls: ['./results.component.scss']
 })
-export class ResultsComponent implements OnInit, OnDestroy {
+export class ResultsComponent implements OnInit, OnDestroy, AfterViewInit {
+  /** Explanation boxes (beeswarm and waterfall of every disease); their explanations are requested one disease at a time */
+  @ViewChildren(ChatbotComponent) chatbots!: QueryList<ChatbotComponent>;
+  /** diseases the user expanded, explained before the others */
+  private explanationPriority: string[] = [];
+  private explanationQueueRunning = false;
+  private destroyed = false;
+
 
   diseases: DiseaseRisk[] = [];
   overallRiskScore: number = 0;
@@ -52,7 +60,7 @@ export class ResultsComponent implements OnInit, OnDestroy {
   allItems: SummaryItem[] = [];
   chartData: ChartData|undefined;
   chartOptions: ChartOptions | undefined = {
-    aspectRatio: 1.5,
+    aspectRatio: 1.25,
     plugins: {
       tooltip: {
         backgroundColor: 'rgba(144, 144, 255, 0.5)',
@@ -102,6 +110,11 @@ export class ResultsComponent implements OnInit, OnDestroy {
   riskObservations: { [diseaseId: string]: fhir4.Observation } = {};
   localPlotResponse!: LocalPlotResponse;
 
+  /** Beeswarm image of the disease for the patient's model stratum */
+  beeswarmUrl(disease: string): string {
+    return beeswarmAssetUrl(this.localPlotResponse?.resolved_stratum, disease);
+  }
+
   constructor(private router: Router, private sof: SmartOnFhirService,
               private cds: CdsHooksService<fhir4.Resource>, private menuService: MenuService) {}
 
@@ -110,7 +123,38 @@ export class ResultsComponent implements OnInit, OnDestroy {
     this.loading = false;
   }
 
+  ngAfterViewInit() {
+    this.chatbots.changes.subscribe(() => this.runExplanationQueue());
+    this.runExplanationQueue();
+  }
+
+  /** The user expanded a disease: explain it next (after the disease currently being explained) */
+  prioritizeExplanation(disease: string) {
+    this.explanationPriority = [disease, ...this.explanationPriority.filter(d => d !== disease)];
+  }
+
+  /**
+   * Request the LLM explanations disease by disease, in the order of the risk (or the order the user expanded them):
+   * the next disease starts when both explanations (beeswarm and waterfall) of the previous one are received.
+   */
+  private async runExplanationQueue() {
+    if (this.explanationQueueRunning || !this.chatbots?.length) return;
+    this.explanationQueueRunning = true;
+    try {
+      while (!this.destroyed) {
+        const pending = (disease: string) => this.chatbots.filter(c => c.disease === disease && !c.started);
+        const order = [...this.explanationPriority, ...this.diseases.map(d => d.disease)];
+        const next = order.find(disease => pending(disease).length);
+        if (!next) break;
+        await Promise.all(pending(next).map(chatbot => chatbot.init()));
+      }
+    } finally {
+      this.explanationQueueRunning = false;
+    }
+  }
+
   ngOnDestroy() {
+    this.destroyed = true;
     this.menuService.menuItems = []
   }
 
@@ -301,6 +345,11 @@ export class ResultsComponent implements OnInit, OnDestroy {
     return value > 0 ? 'shap-positive' : 'shap-negative';
   }
 
+  /** Back to the disease selection (same saved questionnaire response) */
+  changeDiseases() {
+    this.router.navigate(['/diseases']);
+  }
+
   goBack() {
     this.router.navigate(['/form']);
   }
@@ -319,9 +368,13 @@ export class ResultsComponent implements OnInit, OnDestroy {
 
   private async getShapExplanation(resource: fhir4.Bundle<fhir4.Observation>) {
     const patient = await this.sof.getPatient()
+    const client = await this.sof.getClient();
     this.cds.callService({
       language: 'en',
       serviceId: 'shap_explain',
+      // The CDS services read the patient's data with the app's FHIR access token
+      fhirServer: client?.state?.serverUrl,
+      fhirAuthorization: client?.state?.tokenResponse,
       context: {
         patientId: patient?.id,
       },

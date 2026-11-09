@@ -4,7 +4,7 @@ import {CdsHooksService} from "cds-hooks";
 import {Router} from "@angular/router";
 import {DomSanitizer} from "@angular/platform-browser";
 import MarkdownIt from 'markdown-it';
-import {LocalPlotResponse} from "../results/llm-models";
+import {beeswarmAssetUrl, LocalPlotResponse} from "../results/llm-models";
 import {HttpClient} from "@angular/common/http";
 import {firstValueFrom} from "rxjs";
 
@@ -33,26 +33,63 @@ export class ChatbotComponent implements OnInit {
   summary: boolean = true;
   increasingFactors: string[]|undefined;
   decreasingFactors: string[]|undefined;
+  /** beeswarm (global) explanations: most important features and their directional patterns */
+  importantFeatures: string[]|undefined;
+  directionalPatterns: string[]|undefined;
   plotSummary: string|undefined;
   plotOverview: string|undefined;
 
   constructor(private router: Router, private sof: SmartOnFhirService, private http: HttpClient,
               private cds: CdsHooksService<fhir4.Resource>, private sanitizer: DomSanitizer) {}
 
+  private patientReady: Promise<void> | undefined;
+  private initPromise: Promise<void> | undefined;
+
   async ngOnInit() {
-    this.patient = await this.sof.getPatient()
     this.loading = true;
+    this.patientReady = this.sof.getPatient().then((patient: fhir4.Patient | undefined) => { this.patient = patient });
+    await this.patientReady;
     if (this.runOnInit) this.init()
   }
 
-  async init() {
-    this.cds.callService({
+  /** true once the explanation has been requested */
+  get started(): boolean {
+    return !!this.initPromise;
+  }
+
+  /**
+   * Request the explanation of the chart (only once; later calls return the same promise).
+   * Resolves when the answer, or an error, is received.
+   */
+  init(): Promise<void> {
+    if (!this.initPromise) {
+      this.initPromise = this.requestExplanation().catch(err => {
+        // e.g. the beeswarm summary could not be loaded
+        console.error(err);
+        this.loading = false;
+        this.history.push({
+          user: false,
+          error: true,
+          text: this.sanitizer.sanitize(SecurityContext.HTML, 'Something went wrong, please try again...')
+        })
+      });
+    }
+    return this.initPromise;
+  }
+
+  private async requestExplanation(): Promise<void> {
+    await this.patientReady;
+    const client = await this.sof.getClient();
+    return this.cds.callService({
       language: 'en',
       serviceId: 'shap_explain',
+      // The CDS services read the patient's data with the app's FHIR access token
+      fhirServer: client?.state?.serverUrl,
+      fhirAuthorization: client?.state?.tokenResponse,
       context: {
         patientId: this.patient?.id,
         sessionId: this.sessionId,
-        riskPredictions: this.chart === 'beeswarm' ? await firstValueFrom(this.http.get("assets/beeswarm/" + this.disease + "_beeswarm.json"))
+        riskPredictions: this.chart === 'beeswarm' ? await firstValueFrom(this.http.get(beeswarmAssetUrl(this.localPlotResponse?.resolved_stratum, this.disease ?? '', 'json')))
           : this.localPlotResponse.results.find(result => result.disease === this.disease)?.plots['waterfall']
       },
       prefetch: {
@@ -67,6 +104,8 @@ export class ChatbotComponent implements OnInit {
       this.possibleNextQuestions = response.cards?.at(0)?.suggestions?.filter((suggestion: any) => suggestion.uuid.startsWith("suggested-question")).map((suggestion: any) => suggestion.label) || []
       this.increasingFactors = JSON.parse(response.cards?.at(0)?.suggestions?.find((suggestion: any) => suggestion.uuid === 'increasing-factors')?.label || '[]')
       this.decreasingFactors = JSON.parse(response.cards?.at(0)?.suggestions?.find((suggestion: any) => suggestion.uuid === 'decreasing-factors')?.label || '[]')
+      this.importantFeatures = JSON.parse(response.cards?.at(0)?.suggestions?.find((suggestion: any) => suggestion.uuid === 'important-features')?.label || '[]')
+      this.directionalPatterns = JSON.parse(response.cards?.at(0)?.suggestions?.find((suggestion: any) => suggestion.uuid === 'directional-patterns')?.label || '[]')
       this.plotOverview = response.cards?.at(0)?.suggestions?.find((suggestion: any) => suggestion.uuid === 'overview')?.label
       this.plotSummary = response.cards?.at(0)?.suggestions?.find((suggestion: any) => suggestion.uuid === 'summary')?.label
       this.sessionId = response.cards?.at(0)?.summary
@@ -81,13 +120,17 @@ export class ChatbotComponent implements OnInit {
     }).finally(() => this.loading = false)
   }
 
-  ask(question: string, scrollDiv?: HTMLElement) {
+  async ask(question: string, scrollDiv?: HTMLElement) {
     this.possibleNextQuestions = []
     this.history.push({user: true, text: this.sanitizer.sanitize(SecurityContext.HTML, question)})
     this.loading = true;
+    const client = await this.sof.getClient();
     this.cds.callService({
       language: 'en',
       serviceId: 'ask_llm',
+      // The CDS services read the patient's data with the app's FHIR access token
+      fhirServer: client?.state?.serverUrl,
+      fhirAuthorization: client?.state?.tokenResponse,
       context: {
         patientId: this.patient?.id,
         sessionId: this.sessionId,

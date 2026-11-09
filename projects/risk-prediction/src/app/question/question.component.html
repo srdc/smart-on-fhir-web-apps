@@ -33,7 +33,7 @@
     <input
       class="form-control"
       type="number"
-      [value]="answers[q.linkId] || ''"
+      [value]="answers[q.linkId] ?? ''"
       (input)="onNumericChange(($any($event.target)).value)"
       [required]="q.required"
     >
@@ -44,4 +44,31 @@
        style="right: 10px; top: 50%; transform: translateY(-50%);">
     </i>
   </div>
+
+  <!-- YES / NO QUESTIONS -->
+  <ng-container *ngIf="q.type === 'boolean'">
+    <div *ngFor="let opt of booleanOptions" class="form-check">
+      <input
+        type="radio"
+        [name]="q.linkId"
+        class="form-check-input"
+        [id]="q.linkId + '_' + opt.value"
+        [checked]="answers[q.linkId] === opt.value"
+        (click)="onBooleanChange(opt.value)"
+      >
+      <label class="form-check-label" [for]="q.linkId + '_' + opt.value">
+        {{ opt.label }}
+      </label>
+    </div>
+  </ng-container>
+
+  <!-- FREE TEXT / DATE INPUT -->
+  <input
+    *ngIf="q.type === 'string' || q.type === 'text' || q.type === 'date'"
+    class="form-control"
+    [type]="q.type === 'date' ? 'date' : 'text'"
+    [value]="answers[q.linkId] ?? ''"
+    (input)="onTextChange(($any($event.target)).value)"
+    [required]="q.required"
+  >
 </div>

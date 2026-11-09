@@ -8,9 +8,19 @@
     (logout)="logout()"
     [tabs]="[
       { label: 'Summary', link: '/summary' },
-      { label: 'Risks', link: '/form', active: true },
-      { label: 'Interventions', link: '/intervention-plan' }
-    ]">
+      { label: 'Interventions', link: '/intervention-plan' },
+      { label: 'Shared Links', link: '/shared-links' },
+      { label: 'Risks', link: '/form', active: true }
+    ].slice(0, $any(user | async)?.resourceType === 'Patient' ? -1 : undefined)
+     .concat(canSelectPatient ? [{ label: 'Patients', link: '/import' }] : [])">
+  </ui-header>
+  <!-- logged in without a patient (user login at another EHR): import a patient's card first -->
+  <ui-header *ngIf="!patient && noPatient"
+    class="flex-shrink-0"
+    [logoSrc]="'assets/stage-circle-white.png'"
+    brandText="STAGE"
+    (logout)="logout()"
+    [tabs]="[{ label: 'Patients', link: '/import' }]">
   </ui-header>
 
   <!-- BODY -->

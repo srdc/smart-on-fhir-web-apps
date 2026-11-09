@@ -1,6 +1,35 @@
 <div class="grid">
+  <div class="d-flex flex-wrap align-items-center gap-2 px-2 pt-2">
+    <!-- origin of the active plan, when it was received as a Smart Health Card (meta.source = card issuer); clinicians only -->
+    <span *ngIf="(userIsPatient | async) === false && carePlanOrigin as origin" class="small text-muted me-auto" [title]="origin.url">
+      <i class="bi bi-box-arrow-in-down"></i> Received from <b>{{ origin.name }}</b>
+      <span *ngIf="origin.trusted" class="badge text-bg-success ms-1"><i class="bi bi-patch-check-fill"></i> Trusted</span>
+    </span>
+    <span class="ms-auto"></span>
+    <!-- Import a care plan shared by another clinician as a Smart Health Card/Link (clinicians only) -->
+    <button *ngIf="(userIsPatient | async) === false" class="btn btn-outline-dark btn-sm" (click)="importDialogOpen = true" [disabled]="!patient">
+      <i class="bi bi-box-arrow-in-down"></i> Import Interventions
+    </button>
+    <!-- Share the active care plan (goals) as a Smart Health Card, like shc-generator's Care Plan tab -->
+    <button *ngIf="healthCardProfiles.length && (interventionService.carePlanLoading || interventionService.activeCarePlan)"
+            class="btn btn-outline-dark btn-sm" (click)="shareDialogOpen = true"
+            [disabled]="!patientId || interventionService.carePlanLoading">
+      <span *ngIf="interventionService.carePlanLoading" class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+      <i *ngIf="!interventionService.carePlanLoading" class="bi bi-qr-code"></i> Create Smart Health Card
+    </button>
+  </div>
+  <app-share-health-card-dialog *ngIf="shareDialogOpen && patientId" [patientId]="patientId" [profiles]="healthCardProfiles"
+                                title="Share Intervention Plan" sharedLinksUrl="/shared-links" (closed)="shareDialogOpen = false"></app-share-health-card-dialog>
+  <app-import-health-card *ngIf="importDialogOpen && patient && (userIsPatient | async) === false" [dialog]="true" title="Import Interventions" [target]="patient"
+                         [resourceTypes]="interventionResourceTypes" [beforeWrite]="mergeIntoActivePlan"
+                         description="Import the intervention plan another clinician shared as a Smart Health Link or Card. The original signed card is kept, so it can be shared again as it is."
+                         (imported)="onImported($event)" (closed)="importDialogOpen = false">
+    <div importOptions *ngIf="interventionService.activeCarePlan" class="alert alert-info small">
+      <i class="bi bi-info-circle"></i> The goals and activities will be added to the current intervention plan.
+    </div>
+  </app-import-health-card>
   <div class="row">
-    <div class="col-12 col-lg-6 p-2">
+    <div class="col-12 p-2" [class.col-lg-6]="!(userIsPatient | async)">
       <div class="card bg-white w-100 overflow-hidden h-100">
         <div class="card-header bg-white">
           <h5>Active Interventions</h5>
@@ -11,13 +40,15 @@
             <tr>
               <th>Name</th>
               <th>Target</th>
+              <th class="text-end"><span class="visually-hidden">Actions</span></th>
             </tr>
             </thead>
             <tbody>
               @for (goal of interventionService.goalsByStatus['active']; track goal.id) {
                 <tr>
                   <td>
-                    {{goal.target?.at(0)?.measure?.text || goal.target?.at(0)?.measure?.coding?.at(0)?.display || goal.description?.text}}
+                    {{goal.target?.at(0)?.measure?.text || goal.target?.at(0)?.measure?.coding?.at(0)?.display
+                  || goal.description?.text || goal.description?.coding?.at(0)?.display}}
                   </td>
                   <td>
                     @if (goal.target?.at(0)?.detailQuantity) {
@@ -29,7 +60,23 @@
                       @if (goal.target?.at(0)?.detailRange?.low) {
                         &gt; {{goal.target?.at(0)?.detailRange?.low?.value}} {{goal.target?.at(0)?.detailRange?.low?.unit || goal.target?.at(0)?.detailRange?.low?.code}}
                       }
+                    } @else if (goal.target?.at(0)?.detailCodeableConcept) {
+                      {{goal.target?.at(0)?.detailCodeableConcept?.text || goal.target?.at(0)?.detailCodeableConcept?.coding?.at(0)?.display}}
                     }
+                  </td>
+                  <td class="text-end">
+                    @if (patientId && measurementKey(goal); as key) {
+                      <button type="button" class="btn btn-sm btn-outline-primary py-0" title="Add a measurement for this goal"
+                              (click)="measurementDialog = {selected: key}">
+                        <i class="bi bi-plus-lg"></i><span class="visually-hidden">Add measurement</span>
+                      </button>
+                    }
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="3" class="text-muted text-center small py-3">
+                    {{ interventionService.carePlanLoading ? 'Loading...' : 'No active interventions' }}
                   </td>
                 </tr>
               }
@@ -38,7 +85,7 @@
         </div>
       </div>
     </div>
-    <div class="col-12 col-lg-6 p-2">
+    <div class="col-12 col-lg-6 p-2" *ngIf="!(userIsPatient | async)">
       <div class="card bg-white w-100 overflow-hidden">
         <div class="card-header bg-white">
           <h5>Suggested Interventions</h5>
@@ -55,7 +102,8 @@
               @for (goal of interventionService.goals; track goal.id) {
                 <tr>
                   <td>
-                    {{goal.target?.at(0)?.measure?.text || goal.target?.at(0)?.measure?.coding?.at(0)?.display || goal.description?.text}}
+                    {{goal.target?.at(0)?.measure?.text || goal.target?.at(0)?.measure?.coding?.at(0)?.display
+                      || goal.description?.text || goal.description?.coding?.at(0)?.display}}
                     @if (goal.target?.at(0)?.detailQuantity) {
                       <div class="text-small text-muted fst-italic"><b>Target:</b> {{goal.target?.at(0)?.detailQuantity?.value}} {{goal.target?.at(0)?.detailQuantity?.unit || goal.target?.at(0)?.detailQuantity?.code}}</div>
                     } @else if (goal.target?.at(0)?.detailRange) {
@@ -76,8 +124,19 @@
                       <div class="d-flex flex-column">
                         <div>{{goal.lifecycleStatus | goalAcceptanceStatus}}</div>
                         <div class="text-small">{{goal.statusDate | date: 'dd-MM-yyyy'}}</div>
+                        <!-- imported with a Smart Health Card from another source (meta.source) -->
+                        <div *ngIf="originOf(goal) as origin" class="text-small text-muted" [title]="origin.url">
+                          <i class="bi bi-box-arrow-in-down"></i> Imported from {{ origin.name }}
+                          <i *ngIf="origin.trusted" class="bi bi-patch-check-fill text-success" title="Trusted issuer"></i>
+                        </div>
                       </div>
                     </div>
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="2" class="text-muted text-center small py-3">
+                    {{ interventionService.carePlanLoading ? 'Loading...' : 'No suggested interventions' }}
                   </td>
                 </tr>
               }
@@ -91,7 +150,14 @@
     <div class="col-12">
       <div class="card bg-white w-100 overflow-hidden">
         <div class="card-header bg-white">
-          <h5>Related Measurements</h5>
+          <div class="d-flex align-items-center">
+            <h5 class="mb-0 flex-grow-1">Related Measurements</h5>
+            @if (patientId && measurements.length) {
+              <button type="button" class="btn btn-sm btn-outline-primary" (click)="measurementDialog = {}">
+                <i class="bi bi-plus-lg"></i> Add measurement
+              </button>
+            }
+          </div>
         </div>
         <div class="card-body p-0">
           <table class="table table-white mb-0">
@@ -109,7 +175,13 @@
                   <td>
                     <rp-observation-row-chart [observations]="observation.value"></rp-observation-row-chart>
                   </td>
-                  <td>{{observation.value[0].valueQuantity?.value}} {{observation.value[0].valueQuantity?.unit || observation.value[0].valueQuantity?.code}}</td>
+                  <td>{{ valueText(observation.value[0]) }}</td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="3" class="text-muted text-center small py-3">
+                    {{ interventionService.carePlanLoading ? 'Loading...' : 'No related measurements' }}
+                  </td>
                 </tr>
               }
             </tbody>
@@ -119,3 +191,7 @@
     </div>
   </div>
 </div>
+@if (measurementDialog && patientId) {
+  <rp-add-measurement-dialog [patientId]="patientId" [measurements]="measurements" [selected]="measurementDialog.selected"
+                             (saved)="loadMeasurements()" (closed)="measurementDialog = undefined"></rp-add-measurement-dialog>
+}

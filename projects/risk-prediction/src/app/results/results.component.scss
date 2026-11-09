@@ -7,3 +7,9 @@ c-chart { max-width: 50vw; }
   margin-top: 1em;
   margin-bottom: 1em;
 }
+
+.diseases-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 2em;
+}

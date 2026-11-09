@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { SmartOnFhirService } from 'ng-smart-on-fhir';
+import { HealthCardProfile, HealthCardProfileService, IpsDocumentService } from 'common';
 import format from 'date-fns/format';
 import isValid from 'date-fns/is_valid';
 
@@ -31,7 +32,7 @@ export class PatientSummaryComponent implements OnInit {
 
   // Panels
   conditionItems:  SummaryItem[] = [];
-  symptomItems:    SummaryItem[] = [];
+  allergyItems:    SummaryItem[] = [];
   medicationItems: SummaryItem[] = [];
   familyItems:     SummaryItem[] = [];
   labItems:        SummaryItem[] = [];
@@ -43,7 +44,7 @@ export class PatientSummaryComponent implements OnInit {
   itemsPerPage = 10;
 
   conditionPage = 1;
-  symptomPage   = 1;
+  allergyPage   = 1;
   medicationPage= 1;
   familyPage    = 1;
   vitalPage     = 1;
@@ -52,12 +53,22 @@ export class PatientSummaryComponent implements OnInit {
   surveyPage    = 1;
 
 
+  // Sharing (IPS download / SMART Health Card)
+  healthCardProfiles: HealthCardProfile[] = [];  // empty when the FHIR server does not support $health-cards-issue
+  ipsLoading = false;
+  /** Create Smart Health Card dialog (app-share-health-card-dialog) */
+  shareDialogOpen = false;
+  sharingError?: string;
+
   private static readonly DATE_FMT = 'DD/MM/YYYY';
   private questionnaires: { [ref: string]: fhir4.Questionnaire }|undefined;
 
-  constructor(private sof: SmartOnFhirService) {}
+  constructor(private sof: SmartOnFhirService,
+              private ipsDocuments: IpsDocumentService,
+              private healthCardProfileService: HealthCardProfileService) {}
 
   async ngOnInit(): Promise<void> {
+    this.healthCardProfileService.profiles().then(profiles => this.healthCardProfiles = profiles);
     try {
       // 1) Patient
       this.patient = await this.sof.getPatient();
@@ -69,6 +80,7 @@ export class PatientSummaryComponent implements OnInit {
 
       // 3) Parallel resource fetches
       let conditionsB: fhir4.Bundle<fhir4.Condition> | undefined;
+      let allergiesB:  fhir4.Bundle<fhir4.AllergyIntolerance> | undefined;
       let medsB:
         fhir4.Bundle<fhir4.MedicationStatement | fhir4.MedicationRequest>
         | undefined;
@@ -86,7 +98,8 @@ export class PatientSummaryComponent implements OnInit {
           this.sof.search<fhir4.Observation>('Observation', { subject: subjectRef, category: 'vital-signs',   _count: 50, _sort: '-date' }),
           this.sof.search<fhir4.Observation>('Observation', { subject: subjectRef, category: 'laboratory',    _count: 50, _sort: '-date' }),
           this.sof.search<fhir4.Observation>('Observation', { subject: subjectRef, category: 'social-history', _count: 50, _sort: '-date' }),
-          this.safeQRSearch(patientId)
+          this.safeQRSearch(patientId),
+          this.sof.search<fhir4.AllergyIntolerance>('AllergyIntolerance', { patient: subjectRef, _count: 50 })
         ]);
 
         if (results[0].status === 'fulfilled') conditionsB = results[0].value;
@@ -96,12 +109,13 @@ export class PatientSummaryComponent implements OnInit {
         if (results[4].status === 'fulfilled') labsB       = results[4].value;
         if (results[5].status === 'fulfilled') lifestyleB  = results[5].value as any;
         if (results[6].status === 'fulfilled') surveyB     = results[6].value as any;
+        if (results[7].status === 'fulfilled') allergiesB  = results[7].value as any;
       }
 
       // 4) Transform FHIR -> UI inputs
       this.sidebarRows    = this.buildSidebarRows(this.patient, lastVisit);
       this.conditionItems = this.buildConditionItems(conditionsB);
-      this.symptomItems   = this.buildSymptomItems(conditionsB);
+      this.allergyItems   = this.buildAllergyItems(allergiesB);
       this.medicationItems= this.buildMedicationItems(medsB);
       this.familyItems    = this.buildFamilyItems(famB);
 
@@ -114,13 +128,29 @@ export class PatientSummaryComponent implements OnInit {
       console.error('Error loading FHIR data', err);
       this.sidebarRows     = [];
       this.conditionItems  = [];
-      this.symptomItems    = [];
+      this.allergyItems    = [];
       this.medicationItems = [];
       this.familyItems     = [];
       this.vitalItems      = [];
       this.labItems        = [];
       this.lifestyleItems  = [];
       this.surveyItems     = [];
+    }
+  }
+
+  /** Build the International Patient Summary of the patient and download it as a FHIR document Bundle */
+  async downloadIPS(): Promise<void> {
+    if (!this.patient) return;
+    this.ipsLoading = true;
+    this.sharingError = undefined;
+    try {
+      const ips = await this.ipsDocuments.generate(this.patient);
+      this.ipsDocuments.download(ips, `IPS-${this.patient.id}.json`);
+    } catch (err) {
+      console.error('IPS could not be generated', err);
+      this.sharingError = 'The patient summary (IPS) could not be generated.';
+    } finally {
+      this.ipsLoading = false;
     }
   }
 
@@ -185,13 +215,13 @@ export class PatientSummaryComponent implements OnInit {
     try {
       return await this.sof.search<fhir4.MedicationStatement>(
         'MedicationStatement',
-        { patient: patientId, _count: 50 }
+        { patient: 'Patient/' + patientId, _count: 50 }
       );
     } catch (e: any) {
       if (e?.status === 404) {
         return await this.sof.search<fhir4.MedicationRequest>(
           'MedicationRequest',
-          { patient: patientId, _count: 50 }
+          { patient: 'Patient/' + patientId, _count: 50 }
         );
       }
       throw e;
@@ -308,13 +338,14 @@ export class PatientSummaryComponent implements OnInit {
 
   /** Format date string as DD/MM/YYYY */
   private formatDate(dateStr?: string): string {
-    if (!dateStr) return '';
-
-    const date = new Date(dateStr);
-
-    return isValid(date)
-      ? format(date, 'dd/MM/yyyy')
-      : '';
+    // if (!dateStr) return '';
+    //
+    // const date = new Date(dateStr);
+    //
+    // return isValid(date)
+    //   ? format(date, 'dd/MM/yyyy')
+    //   : '';
+    return dateStr || '';
   }
 
   /** ---------- Builders ---------- */
@@ -348,17 +379,27 @@ export class PatientSummaryComponent implements OnInit {
     });
   }
 
-  private buildSymptomItems(bundle?: fhir4.Bundle<fhir4.Condition>): SummaryItem[] {
+  private buildAllergyItems(bundle?: fhir4.Bundle<fhir4.AllergyIntolerance>): SummaryItem[] {
     const entries = bundle?.entry ?? [];
     if (!entries.length) return [];
     return entries
-      .map(e => e.resource as fhir4.Condition)
-      .filter(c => this.isSymptom(c))
-      .map(c => {
-        const primary = c.code?.coding?.[0]?.display ?? c.code?.text ?? 'Symptom';
-        const date = c.recordedDate ? this.formatDate(c.recordedDate) : undefined;
-        const { source } = this.resolveSourceFor(c || {});
-        return { primary, date, source };
+      .map(e => e.resource as fhir4.AllergyIntolerance)
+      .filter(a => a?.resourceType === 'AllergyIntolerance'
+        && !a.verificationStatus?.coding?.some(cd => cd.code === 'entered-in-error'))
+      .map(a => {
+        const primary = a.code?.coding?.[0]?.display ?? a.code?.text ?? 'Unknown Allergy';
+        // reaction manifestations, otherwise criticality / clinical status
+        const manifestations = (a.reaction ?? [])
+          .flatMap(r => r.manifestation ?? [])
+          .map(m => m.coding?.[0]?.display ?? m.text)
+          .filter((m): m is string => !!m);
+        const secondary = manifestations.length
+          ? manifestations.join(', ')
+          : (a.criticality ? `criticality: ${a.criticality}` : a.clinicalStatus?.coding?.[0]?.code);
+        const d = a.recordedDate ?? a.onsetDateTime ?? '';
+        const date = d ? this.formatDate(d) : undefined;
+        const { source } = this.resolveSourceFor(a || {});
+        return { primary, secondary, date, source };
       });
   }
 
