@@ -1,5 +1,11 @@
-const appBaseUrl = 'https://kroniq.srdc.com.tr/smart-apps/advance';
-const cdsBaseUrl = 'https://kroniq.srdc.com.tr/smart-cds';
+// The host the apps are served from: https://kroniq.srdc.com.tr, or https://stage.testing.eu locally
+// (stage-fhir-repository/deploy/testing)
+const host = window.location.origin;
+const appBaseUrl = host + '/smart-apps/advance';
+// STAGE and EHR repositories (stage-fhir-repository/deploy/kroniq)
+const stage = {fhir: host + '/stage-fhir'};
+const ehr = {fhir: host + '/ehr'};
+const onAuth = host + '/stage-onauth/api/smart';
 
 export const environment = {
   smart: {
@@ -31,6 +37,34 @@ export const environment = {
         aud: 'fhir-repo',
         promptLogin: true,
         logoutUri: 'https://kroniq.srdc.com.tr/onauth/api/adlife/logout?post_logout_redirect_uri=' + appBaseUrl + '/login'
+      },
+      {
+        // STAGE: login with a patient context
+        label: 'STAGE',
+        background: '#2c5f2d',
+        color: 'white',
+        iss: stage.fhir,
+        isPublic: false,
+        redirectUri: appBaseUrl + '/callback',
+        clientId: 'smart-test',
+        scope: 'profile openid email roles offline_access launch/patient user/*.* patient/*.*',
+        aud: 'fhir-repo',
+        promptLogin: true,
+        logoutUri: onAuth + '/logout?post_logout_redirect_uri=' + appBaseUrl + '/login'
+      },
+      {
+        // EHR: login with a patient context
+        label: 'EHR',
+        background: '#1f4e79',
+        color: 'white',
+        iss: ehr.fhir,
+        isPublic: false,
+        redirectUri: appBaseUrl + '/callback',
+        clientId: 'smart-test',
+        scope: 'profile openid email roles offline_access launch/patient user/*.* patient/*.*',
+        aud: 'fhir-repo',
+        promptLogin: true,
+        logoutUri: onAuth + '/logout?post_logout_redirect_uri=' + appBaseUrl + '/login'
       }
     ],
     launchClients: [
@@ -41,8 +75,11 @@ export const environment = {
       }
     ]
   },
+  // The CDS services of each repository are at <FHIR base>/cds-hooks: calls go to the repository the user is logged in
+  // to (the fhirServer of the call), the others (e.g. definitions) to STAGE
   cds: {
     serviceName: 'advance',
-    baseUrl: cdsBaseUrl
+    baseUrl: stage.fhir,
+    baseUrls: {[stage.fhir]: stage.fhir, [ehr.fhir]: ehr.fhir}
   }
 }
