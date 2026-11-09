@@ -1,5 +1,13 @@
+# The pages (index.html) are revalidated on every load, so that a new image takes effect without clearing the browser
+# cache; the scripts and styles have hashed names and can be cached
+map $sent_http_content_type $smart_apps_cache_control {
+    ~*text/html  "no-cache";
+    default      "";
+}
+
 server {
     listen       80;
+    add_header Cache-Control $smart_apps_cache_control;
     # Placehoders
     #	SERVER_NAME --> The Public Server Name according to the final deployment
     # DOCKER_CONTAINER_HOST --> For other docker containers (sharing the network) to reach by using the container's host name
@@ -30,7 +38,7 @@ server {
 
     location ${SERVER_PATH}score2 {
         alias     /usr/share/nginx/html/smart-apps/score/browser/;
-        try_files $uri $uri/ ${SERVER_PATH}score/index.html;
+        try_files $uri $uri/ ${SERVER_PATH}score2/index.html;
     }
 
     location ${SERVER_PATH}advance {
