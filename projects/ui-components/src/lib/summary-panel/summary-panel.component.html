@@ -34,7 +34,7 @@
         <!-- RIGHT SIDE (date + chip) -->
         <div class="col-auto text-end">
           <div *ngIf="item.date" class="item-date text-nowrap">
-            {{ item.date }}
+            {{ item.date | date: 'dd/MM/yyyy' }}
           </div>
 
           <span *ngIf="item.source"
