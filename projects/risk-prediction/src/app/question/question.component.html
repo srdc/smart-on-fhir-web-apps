@@ -20,7 +20,7 @@
         class="form-check-input"
         [id]="q.linkId + '_' + opt.valueCoding.code"
         [checked]="isChecked(opt.valueCoding.code)"
-        (click)="toggleOption(opt.valueCoding.code, isExclusiveOption(opt))"
+        (click)="toggleOption(opt.valueCoding.code, isExclusiveOption(opt.valueCoding.code))"
       >
       <label class="form-check-label" [for]="q.linkId + '_' + opt.valueCoding.code">
         {{ opt.valueCoding.display }}

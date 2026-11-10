@@ -16,8 +16,8 @@ export class QuestionComponent {
   // Answer options of yes/no (boolean) questions
   readonly booleanOptions = [{ value: true, label: 'Yes' }, { value: false, label: 'No' }];
 
-  isExclusiveOption(opt: any): boolean {
-    return !isNaN(opt) && opt < 0;
+  isExclusiveOption(code: string): boolean {
+    return !isNaN(Number(code)) && Number(code) < 0;
   }
 
   //checkbox
