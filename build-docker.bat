@@ -1,5 +1,5 @@
 @echo off
-rem ng-smart-on-fhir is linked from its own repository: build it there first (npm run build -- ng-smart-on-fhir) and link its dist
+rem ng-smart-on-fhir comes from npm (npm ci first); link a local build of it only while changing the library
 rem call npm run build -- cds-hooks
 rem call npm run build -- ui-components
 rem call npm run build -- common
