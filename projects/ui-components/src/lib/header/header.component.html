@@ -35,9 +35,13 @@
       </button>
     </div>
 
-    <!-- Right side: Logout button -->
-    <div class="ms-auto" *ngIf="showLogout">
-      <button
+    <!-- Right side -->
+    <div class="ms-auto" *ngIf="showLogout || user">
+      <div class="badge bg-white text-primary py-2 me-2" *ngIf="user">
+        {{user}}
+      </div>
+      <!-- Logout button -->
+      <button *ngIf="showLogout"
         class="btn btn-outline-light btn-sm"
         (click)="onLogout()"
         [disabled]="loggingOut"

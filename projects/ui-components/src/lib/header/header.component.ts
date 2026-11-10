@@ -19,6 +19,7 @@ export class HeaderComponent {
   @Input() tabs: HeaderTab[] = [];
   @Input() showLogout = true;  // Show/hide logout button
   @Input() showLogin = false;  // Show/hide login button (public pages without a session)
+  @Input() user?: string | null;
 
   @Output() logout = new EventEmitter<void>();
   @Output() login = new EventEmitter<void>();
