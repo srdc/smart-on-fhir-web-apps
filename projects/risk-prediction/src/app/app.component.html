@@ -28,7 +28,7 @@
   <div class="row g-0 flex-grow-1 min-h-0">
 
     <!-- SIDEBAR (on all pages) -->
-    <div class="col-12 col-lg-2 p-4 overflow-auto align-self-start sticky-lg-top min-vh-100 bg-white" style="border-right: 1px solid #eee" *ngIf="patient">
+    <div class="col-12 col-lg-2 p-4 overflow-auto align-self-start sticky-lg-top min-vh-lg-100 bg-white" style="border-right: 1px solid #eee" *ngIf="patient">
       <ui-sidebar
         title="Patient Demographics"
         [rows]="sidebarRows">
@@ -52,7 +52,7 @@
     </div>
 
     <!-- MAIN CONTENT (router-outlet) -->
-    <div [ngClass]="patient ? 'col-12 col-lg-10' : 'col-12'" class="p-4 h-100 overflow-auto">
+    <div [ngClass]="patient ? 'col-12 col-lg-10' : 'col-12'" class="p-3 h-100 overflow-auto">
       @if (loadingError) {
         <div class="alert alert-danger">{{loadingError}}</div>
       }

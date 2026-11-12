@@ -17,3 +17,10 @@ html, body {
   padding: 1.5rem;
   overflow-y: auto;
 }
+
+/* Sidebar full height on large screens only: on small screens it is stacked above the content */
+@media (min-width: 992px) {
+  .min-vh-lg-100 {
+    min-height: 100vh;
+  }
+}

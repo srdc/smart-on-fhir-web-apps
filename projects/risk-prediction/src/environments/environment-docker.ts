@@ -27,6 +27,8 @@ export const environment = {
     // canonical ValueSets of the CDS health card profiles, as held by stage-fhir-repository (fhir-conf/valueset/shc-<service>.json)
     healthCardValueSetBaseUrl: 'http://stage-healthyaging.eu/fhir/ValueSet/',
     authStorage: <'localStorage'>'localStorage',
+    logo: 'assets/stage-outline-white-cropped.png',
+    title: 'Multi-morbidity Risk Prediction &\nIntervention Planning',
     shcLoginEnabled: true,
     shcCallbackUrl: '/shl',
     clientIds: {
