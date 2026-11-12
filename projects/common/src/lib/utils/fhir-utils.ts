@@ -64,7 +64,8 @@ export class FhirUtils {
             resource: <fhir4.MedicationStatement>{
               resourceType: 'MedicationStatement',
               id: Date.now() + '-MedicationStatement',
-              date: new Date().toISOString(),
+              // MedicationStatement has no `date` (the CDS server validates the prefetch and rejects unknown elements)
+              dateAsserted: new Date().toISOString(),
               medicationCodeableConcept: { coding: [ conceptDefinition['select'] ? data?.value?.selected : conceptDefinition['code'] ]},
               status: 'active',
               subject: { reference: 'Patient/' + patient?.id }
