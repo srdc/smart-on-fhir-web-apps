@@ -25,7 +25,7 @@ export const environment = {
         label: 'Kroniq',
         image: 'https://kroniq.health/img/kroniq-colored.png',
         iss: 'https://kroniq.srdc.com.tr/stage-fhir',
-        isPublic: true,
+        isPublic: false,
         redirectUri: appBaseUrl + '/callback',
         clientId: 'smart-test',
         scope: 'profile openid email roles offline_access launch/patient user/*.* patient/*.*',
@@ -51,5 +51,7 @@ export const environment = {
   cds: {
     serviceName: 'risk_prediction',
     baseUrl: cdsBaseUrl
-  }
+  },
+  studyApiBaseUrl: 'http://127.0.0.1:8010',
+  studyPersistenceMode: <'http' | 'localStorage'>'http'
 }

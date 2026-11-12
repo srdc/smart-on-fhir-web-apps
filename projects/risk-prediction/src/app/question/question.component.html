@@ -4,7 +4,7 @@
     {{ q.text }}
     <span class="text-danger" *ngIf="q.required">*</span>
     <!-- Pre-filled indicator badge -->
-    <span *ngIf="isPrefilled"
+    <span *ngIf="isPrefilled && !readonly"
           class="badge bg-secondary ms-2"
           title="This field was pre-filled from existing observations">
       <i class="bi bi-check-circle-fill"></i> EHR
@@ -20,6 +20,7 @@
         class="form-check-input"
         [id]="q.linkId + '_' + opt.valueCoding.code"
         [checked]="isChecked(opt.valueCoding.code)"
+        [disabled]="readonly"
         (click)="toggleOption(opt.valueCoding.code, isExclusiveOption(opt.valueCoding.code))"
       >
       <label class="form-check-label" [for]="q.linkId + '_' + opt.valueCoding.code">
@@ -33,13 +34,14 @@
     <input
       class="form-control"
       type="number"
-      [value]="answers[q.linkId] || ''"
+      [value]="displayNumericValue()"
       (input)="onNumericChange(($any($event.target)).value)"
       [required]="q.required"
+      [disabled]="readonly"
     >
 
     <!-- Visual indicator icon for pre-filled numeric fields -->
-    <i *ngIf="isPrefilled"
+    <i *ngIf="isPrefilled && !readonly"
        class="bi bi-check-circle-fill text-secondary position-absolute"
        style="right: 10px; top: 50%; transform: translateY(-50%);">
     </i>

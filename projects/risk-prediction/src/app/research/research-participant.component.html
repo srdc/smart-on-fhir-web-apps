@@ -1,0 +1,202 @@
+<section class="container-fluid py-3" *ngIf="!loading">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <a routerLink="/research/dashboard">← Participants</a>
+    <button class="btn btn-outline-secondary" type="button" (click)="logout()">Researcher Logout</button>
+  </div>
+  <div *ngIf="notFound" class="alert alert-warning">Participant not found.</div>
+  <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+
+  <ng-container *ngIf="participant as p">
+    <h1 class="h3">Overview</h1>
+    <h2 class="h4">Participant {{ p.participantId }}</h2>
+    <div class="row g-3 mb-4">
+      <div class="col-md-3"><strong>Stage</strong><br>{{ stageLabel(p) }}</div>
+      <div class="col-md-3"><strong>Current case</strong><br>{{ p.currentCaseId || '—' }}</div>
+      <div class="col-md-3"><strong>Patient-set assignment</strong><br>{{ p.assignmentGroup }} · A: {{ p.assignedCaseOrder.A.join(' → ') }} · B: {{ p.assignedCaseOrder.B.join(' → ') }}</div>
+      <div class="col-md-3"><strong>Started</strong><br>{{ p.startedAt | date:'medium' }}</div>
+      <div class="col-md-3"><strong>Completed</strong><br>{{ p.completedAt | date:'medium' }}</div>
+    </div>
+
+    <section class="card mb-4"><div class="card-body"><h2 class="h5">Study progression</h2>
+      <ng-container *ngFor="let step of [
+        ['Background', p.backgroundCompleted],
+        ['Charts only', blockComplete('A')],
+        ['Post Charts only', p.postACompleted],
+        ['Charts + LLM', blockComplete('B')],
+        ['Post Charts + LLM', p.postBCompleted],
+        ['Direct comparison', p.comparisonCompleted],
+        ['Semi-Structured Interview', p.interviewCompleted],
+        ['Complete', p.currentStage === 'COMPLETE']
+      ]">
+        <span class="badge me-2 mb-2" [class.bg-success]="step[1]" [class.bg-secondary]="!step[1]">{{ step[0] }}</span>
+      </ng-container>
+    </div></section>
+
+    <section class="card mb-4"><div class="card-body">
+      <h2 class="h4">1. Background / Introduction</h2>
+      <ng-container *ngIf="p.background; else noBackground">
+        <h3 class="h5 mt-3">Background</h3>
+        <div *ngFor="let key of ['ageRange','gender','primarySpecialty','yearsSinceQualification','currentRole','currentRoleOther','directPatientCareProportion']" class="border-top py-2">
+          <strong>{{ backgroundLabels[key] }}</strong><div>{{ backgroundValue(key, p.background.answers[key]) }}</div>
+        </div>
+        <h3 class="h5 mt-4">Prior exposure</h3>
+        <div *ngFor="let key of ['mlRiskPredictionFamiliarity','llmFamiliarity','priorAiDecisionSupport','priorShapExposure','clinicalRiskCalculatorFrequency']" class="border-top py-2">
+          <strong>{{ backgroundLabels[key] }}</strong><div>{{ backgroundValue(key, p.background.answers[key]) }}</div>
+        </div>
+      </ng-container>
+      <ng-template #noBackground><span class="text-muted">No background responses.</span></ng-template>
+    </div></section>
+
+    <section class="card mb-4"><div class="card-body">
+      <h2 class="h4">2. Charts only</h2>
+      <ng-container *ngTemplateOutlet="caseList; context: {$implicit: casesByBlock.A, conversational: false}"></ng-container>
+      <h3 class="h5 mt-4">Post Charts only questionnaire</h3>
+      <ng-container *ngTemplateOutlet="postBlock; context: {$implicit: p.postA}"></ng-container>
+    </div></section>
+
+    <section class="card mb-4"><div class="card-body">
+      <h2 class="h4">3. Charts + LLM</h2>
+      <ng-container *ngTemplateOutlet="caseList; context: {$implicit: casesByBlock.B, conversational: true}"></ng-container>
+      <h3 class="h5 mt-4">Post Charts + LLM questionnaire</h3>
+      <ng-container *ngTemplateOutlet="postBlock; context: {$implicit: p.postB}"></ng-container>
+    </div></section>
+
+    <section class="card mb-4"><div class="card-body">
+      <h2 class="h4">4. Direct comparison</h2>
+      <ng-container *ngIf="p.comparison; else noComparison">
+        <div *ngFor="let key of ['understandingPreference','clinicalPracticePreference','llmAddedValue','llmChartMatch','llmChartMatchDescription','patientExplanationHelp','patientExplanationWhy']" class="border-top py-2">
+          <strong>{{ comparisonLabels[key] }}</strong><div>{{ p.comparison.answers[key] || '—' }}</div>
+        </div>
+      </ng-container>
+      <ng-template #noComparison><span class="text-muted">No comparison responses.</span></ng-template>
+    </div></section>
+
+    <section class="card mb-4"><div class="card-body"><h2 class="h4">5. Semi-Structured Interview</h2>
+      <ng-container *ngIf="p.interview; else noInterview">
+        <p class="small text-muted">{{ p.interview.isFinal ? 'Submitted' : 'Draft' }}<span *ngIf="p.interview.submittedAt"> · {{ p.interview.submittedAt | date:'medium' }}</span></p>
+        <section *ngFor="let section of interviewSections" class="mb-4">
+          <h3 class="h6">{{ section.heading }}</h3>
+          <div *ngFor="let question of section.questions" class="border-top py-2"><strong>{{ question[1] }}</strong><div class="mt-1 text-break">{{ p.interview.answers[question[0]] || '—' }}</div></div>
+        </section>
+      </ng-container>
+      <ng-template #noInterview><span class="text-muted">No interview responses.</span></ng-template>
+    </div></section>
+    <div class="d-flex justify-content-end mb-4"><button type="button" class="btn btn-primary" (click)="exportClinician()">Export Clinician Data (.xlsx)</button></div>
+    <div *ngIf="exportError" class="alert alert-danger">{{ exportError }}</div>
+  </ng-container>
+</section>
+
+<ng-template #caseList let-cases let-conversational="conversational">
+  <div *ngIf="!cases.length" class="text-muted">No case records yet.</div>
+  <article *ngFor="let c of cases; trackBy: trackCase" class="border rounded p-3 my-3">
+    <h3 class="h5">Case {{ c.presentationPosition }}</h3>
+    <div class="small text-muted mb-2">{{ c.caseId }} · {{ c.status }} / {{ c.phase }}</div>
+    <p><strong>Primary study disease:</strong> {{ c.primaryStudyDisease }}</p>
+    <div class="row g-2 mb-3">
+      <div class="col-md-4"><strong>Inspection time</strong><br>{{ duration(c.inspectionDurationMs) }}</div>
+      <div class="col-md-4"><strong>Assessment time</strong><br>{{ duration(c.evaluationDurationMs) }}</div>
+      <div class="col-md-4"><strong>Total recorded case time</strong><br>{{ duration(totalRecorded(c)) }}</div>
+    </div>
+    <p class="small text-muted">The recorded total is inspection plus assessment time only. It does not include section orientation, transitions, post-block questionnaires, inactive gaps, or other uninstrumented activity; full protocol elapsed time would require those phases to be timed.</p>
+    <h4 class="h6 mt-3">Assessment</h4>
+    <div *ngFor="let id of ['p1','p2','p3','p4','p5','p6']" class="border-top py-2">
+      <strong>{{ id.toUpperCase() }} · {{ assessmentLabels[id] }}</strong>
+      <ng-container *ngIf="isNotApplicable(c, id); else scoredAssessment">
+        <div class="text-muted">Not applicable in this case.</div>
+      </ng-container>
+      <ng-template #scoredAssessment>
+        <div>Participant answer: {{ assessmentAnswerLabel(c.caseId, id, score(c, id)?.participantAnswer) }}</div>
+        <div>Expected answer: {{ assessmentAnswerLabel(c.caseId, id, score(c, id)?.expectedAnswer) }}</div>
+        <span class="badge" [class.text-bg-success]="score(c, id)?.status === 'correct'" [class.text-bg-danger]="score(c, id)?.status === 'incorrect'" [class.text-bg-secondary]="score(c, id)?.status === 'unanswered' || score(c, id)?.status === 'not_scored'">{{ statusLabel(score(c, id)?.status) }}</span>
+      </ng-template>
+    </div>
+    <div class="border-top py-2"><strong>S1 · Confidence</strong><div>Confidence: {{ answer(c, 's1') }} / 7</div></div>
+
+    <section *ngIf="conversational && interactionGroupsByCaseId[c.caseId] as interactionGroups" class="mt-4">
+      <h4 class="h5">Conversational interaction</h4>
+      <section class="mb-4" aria-label="Initial explanations">
+        <h5 class="h6 mt-3">Initial explanations</h5>
+        <div *ngIf="!initialExplanationsByCaseId[c.caseId]?.length" class="text-muted">None</div>
+        <article *ngFor="let item of initialExplanationsByCaseId[c.caseId]; trackBy: trackInitialExplanation" class="border rounded p-3 mb-3 overflow-hidden">
+          <div class="row g-2">
+            <div class="col-12 col-md-6"><strong>Primary study disease:</strong> {{ item.primaryStudyDisease }}</div>
+            <div class="col-12 col-md-6"><strong>Chart:</strong> {{ item.chartType }}</div>
+            <div class="col-12 text-break" *ngIf="item.explanation.plotOverview"><strong>Overview</strong><div>{{ item.explanation.plotOverview }}</div></div>
+            <div class="col-12 text-break" *ngIf="item.explanation.plotSummary"><strong>Summary</strong><div>{{ item.explanation.plotSummary }}</div></div>
+          </div>
+        </article>
+      </section>
+      <h5 class="h6 mt-3">A. Primary study disease interactions</h5>
+      <div class="mb-3"><strong>Suggested questions selected</strong>
+        <ol *ngIf="interactionGroups.primarySuggestedInteractions.length; else noSuggested"><li *ngFor="let item of interactionGroups.primarySuggestedInteractions; trackBy: trackInteraction">{{ item.questionText }}</li></ol>
+        <ng-template #noSuggested><div>None</div></ng-template>
+      </div>
+      <div><strong>Number of free-text questions:</strong> {{ interactionGroups.primaryFreeTextInteractions.length }}</div>
+      <div class="mb-3"><strong>Free-text used:</strong> {{ interactionGroups.primaryFreeTextInteractions.length ? 'Yes' : 'No' }}</div>
+      <ng-container *ngTemplateOutlet="interactionList; context: {$implicit: interactionGroups.primaryInteractions}"></ng-container>
+
+      <h5 class="h6 mt-4">B. Other disease interactions</h5>
+      <div><strong>Number of other diseases explored:</strong> {{ interactionGroups.otherDiseaseGroups.length }}</div>
+      <div class="mb-3"><strong>Total interactions with other diseases:</strong> {{ interactionGroups.totalOtherDiseaseInteractions }}</div>
+      <div *ngIf="!interactionGroups.otherDiseaseGroups.length" class="text-muted mb-3">None</div>
+      <section *ngFor="let group of interactionGroups.otherDiseaseGroups; trackBy: trackDiseaseGroup" class="border-top pt-3 mb-4">
+        <h6>{{ group.disease }}</h6>
+        <div><strong>Number of suggested interactions:</strong> {{ group.suggestedInteractions.length }}</div>
+        <div><strong>Number of free-text interactions:</strong> {{ group.freeTextInteractions.length }}</div>
+        <div class="mb-3"><strong>Free-text used:</strong> {{ group.freeTextInteractions.length ? 'Yes' : 'No' }}</div>
+        <ng-container *ngTemplateOutlet="interactionList; context: {$implicit: group.interactions}"></ng-container>
+      </section>
+
+      <section *ngIf="interactionGroups.unknownDiseaseInteractions.length" class="border-top pt-3 mt-4">
+        <h5 class="h6">Interaction disease not recorded</h5>
+        <p class="small text-muted">Historical interactions without disease metadata are kept separate from primary and other-disease summaries.</p>
+        <ng-container *ngTemplateOutlet="interactionList; context: {$implicit: interactionGroups.unknownDiseaseInteractions}"></ng-container>
+      </section>
+    </section>
+  </article>
+</ng-template>
+
+<ng-template #interactionList let-interactions>
+  <div *ngIf="!interactions.length" class="text-muted mb-3">None</div>
+  <div *ngFor="let item of interactions; trackBy: trackInteraction" class="border rounded p-3 mb-3">
+        <div><strong>Interaction disease:</strong> {{ item.interactionDisease }}</div>
+        <div><strong>Explanation context:</strong> {{ explanationContext(item) }}</div>
+        <div><strong>Source:</strong> {{ item.questionSource === 'free_text' ? 'Free text' : 'Suggested' }}</div>
+        <div class="mt-2"><strong>Question</strong><div>{{ item.questionText }}</div></div>
+        <div class="mt-2"><strong>LLM response</strong><div class="text-break">{{ item.answerText }}</div></div>
+        <small class="text-muted">#{{ item.sequenceNumber }} · {{ item.createdAt | date:'medium' }}</small>
+
+        <div *ngIf="canReview(item)" class="border-top mt-3 pt-3">
+          <h6>Researcher post-hoc review</h6>
+          <div class="mb-3">
+            <div class="fw-semibold mb-2">Question coding</div>
+            <label class="form-label" [for]="'intent-' + item.interactionId">Intent category</label>
+            <select class="form-select" [id]="'intent-' + item.interactionId" [(ngModel)]="reviewFor(item).intentCategory">
+              <option [ngValue]="null">Not coded</option><option *ngFor="let category of intentCategories" [ngValue]="category">{{ category }}</option>
+            </select>
+          </div>
+          <div class="fw-semibold mb-2">LLM response review</div>
+          <div *ngFor="let field of [
+            ['diagnosisAdviceAbsent','Diagnosis advice absent'],
+            ['treatmentAdviceAbsent','Treatment advice absent'],
+            ['unsupportedCausalClaimAbsent','Unsupported causal claim absent'],
+            ['estimatedImputedValuesCommunicatedCorrectly','Estimated/imputed values communicated correctly']
+          ]" class="row align-items-center mb-2">
+            <label class="col-md-8" [for]="field[0] + '-' + item.interactionId">{{ field[1] }}</label>
+            <div class="col-md-4"><select class="form-select" [id]="field[0] + '-' + item.interactionId" [(ngModel)]="reviewFor(item)[field[0]]">
+              <option [ngValue]="null">Not reviewed</option><option [ngValue]="true">Yes</option><option [ngValue]="false">No</option>
+            </select></div>
+          </div>
+          <button type="button" class="btn btn-sm btn-outline-primary" (click)="saveReview(item)">Save review</button>
+          <span class="small ms-2" aria-live="polite">{{ reviewStatus[item.interactionId] }}</span>
+        </div>
+      </div>
+</ng-template>
+
+<ng-template #postBlock let-post>
+  <ng-container *ngIf="post; else noPost"><p class="small text-muted">{{ post.isFinal ? 'Submitted' : 'Draft' }}</p>
+    <h4 class="h6">NASA-TLX</h4><div *ngFor="let key of ['mentalDemand','physicalDemand','temporalDemand','performance','effort','frustration']" class="d-flex justify-content-between border-top py-1"><span>{{ nasaLabels[key] }}</span><strong>{{ post.nasaRtlx[key] ?? '—' }}</strong></div>
+    <h4 class="h6 mt-3">SUS</h4><div *ngFor="let key of ['q1','q2','q3','q4','q5','q6','q7','q8','q9','q10']" class="border-top py-1"><span>{{ susLabels[key] }}</span><strong class="float-end">{{ post.sus[key] ?? '—' }}</strong></div>
+    <h4 class="h6 mt-3">Perceived explanation quality</h4><div *ngFor="let key of ['q1','q2','q3','q4','q5','q6','q7','q8','q9']" class="border-top py-1"><span>{{ perceivedLabel(post.block, key) }}</span><strong class="float-end">{{ post.perceivedExplanationQuality[key] ?? '—' }}</strong></div>
+  </ng-container><ng-template #noPost><span class="text-muted">No responses yet.</span></ng-template>
+</ng-template>

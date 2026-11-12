@@ -1,3 +1,17 @@
+<app-study-case-progress-indicator
+  *ngIf="studyCaseMode && studyCaseIdentifier"
+  [caseId]="studyCaseIdentifier">
+</app-study-case-progress-indicator>
+
+<div *ngIf="studyCaseMode" class="mb-4">
+  <h2 class="h4 mb-2">Patient Questionnaire</h2>
+  <p class="text-muted small mb-0">
+    <strong>Study Mode:</strong>
+    This questionnaire has been pre-filled for the current patient.
+    Responses cannot be modified during the study.
+  </p>
+</div>
+
 <form class="accordion needs-validation">
   <div *ngFor="let group of groups; let i = index" class="accordion-item shadow-sm" [ngClass]="{'mt-0': !i}">
     <div class="accordion-header">
@@ -19,6 +33,7 @@
               [q]="q"
               [isPrefilled]="prefilledAnswers[q.linkId]"
               [answers]="answers"
+              [readonly]="studyCaseMode"
               (answerChanged)="onAnswerChanged($event)"
             ></rp-question>
           </div>
@@ -28,12 +43,13 @@
   </div>
   <!-- Save Button -->
   <button
+    type="button"
     (click)="save()"
     class="btn btn-lg mt-3 text-white"
     style="background-color:#e26d35;"
     [disabled]="saving"
   >
-    <span *ngIf="!saving">Save Answers</span>
+    <span *ngIf="!saving">{{ studyCaseMode ? 'Calculate Risk' : 'Save Answers' }}</span>
     <span *ngIf="saving">
           <span class="spinner-border spinner-border-sm me-2" role="status"></span>
           Processing...

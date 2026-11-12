@@ -1,0 +1,37 @@
+<section class="study-interview" *ngIf="!loading">
+  <h1>Semi-Structured Interview</h1>
+  <p class="lead">This final section asks about your experience with the explanation system. Please respond in your own words.</p>
+
+  <div *ngIf="error" class="alert alert-danger" role="alert">{{ error }}</div>
+  <div *ngIf="validationError" class="alert alert-warning" role="alert">
+    Please provide a response to every question before completing the interview.
+  </div>
+
+  <form (ngSubmit)="submit()" novalidate>
+    <section *ngFor="let section of sections" class="protocol-section">
+      <h2>{{ section.heading }}</h2>
+      <div *ngFor="let question of section.questions; let index = index" class="question">
+        <label [for]="question.id" class="interview-question-label">
+          {{ question.text }} <span class="text-danger">*</span>
+        </label>
+        <textarea
+          class="form-control"
+          [id]="question.id"
+          [name]="question.id"
+          rows="5"
+          required
+          [(ngModel)]="answers[question.id]"
+          (blur)="saveDraft()"
+          [attr.aria-invalid]="validationError && !(answers[question.id] || '').trim()">
+        </textarea>
+        <div *ngIf="validationError && !(answers[question.id] || '').trim()" class="invalid-message">
+          A response is required for this question.
+        </div>
+      </div>
+    </section>
+
+    <button type="submit" class="btn btn-primary" [disabled]="submitting">
+      {{ submitting ? 'Submitting…' : 'Complete Interview' }}
+    </button>
+  </form>
+</section>

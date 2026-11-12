@@ -43,5 +43,8 @@ export const environment = {
   cds: {
     serviceName: 'qrisk3',
     baseUrl: cdsBaseUrl
-  }
+  },
+  // Replace for the deployed Study API before using this build in a real study.
+  studyApiBaseUrl: 'http://127.0.0.1:8010',
+  studyPersistenceMode: <'http' | 'localStorage'>'http'
 }

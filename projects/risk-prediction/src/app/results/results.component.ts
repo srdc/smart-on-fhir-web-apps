@@ -1,11 +1,17 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
+import {Component, Input, OnDestroy, OnInit} from '@angular/core';
+import {HttpClient} from '@angular/common/http';
 import { Router } from '@angular/router';
 import {Chart, ChartData, ChartOptions, LegendItem} from "chart.js";
 import {CdsHooksService} from "cds-hooks";
 import {SmartOnFhirService} from "ng-smart-on-fhir";
 import {MenuService} from "../menu.service";
-import {LocalPlotResponse} from "./llm-models";
+import {
+  BeeswarmData,
+  Contributor,
+  LocalPlotResponse
+} from "./llm-models";
 import annotationPlugin from 'chartjs-plugin-annotation';
+import {FrozenStudyCase} from '../study/models/frozen-study-case';
 
 const waterfallDirectionPlugin = {
   id: 'waterfallDirectionPlugin',
@@ -88,10 +94,11 @@ Chart.register(
   waterfallDirectionPlugin 
 );
 
-interface ShapFeature {
+type ShapFeature = {
   name: string;
   value: number;
-}
+  displayContribution?: number;
+} & Partial<Contributor>;
 
 interface DiseaseRisk {
   diseaseId: string;
@@ -115,12 +122,56 @@ interface SummaryItem {
   diseaseIndex?: number; // Store index to find disease
 }
 
+type StudyCondition = 'A' | 'B';
+
+function formatDisplayPercent(value: number): string {
+  const percent = value * 100;
+  const maximumFractionDigits = Math.abs(percent) >= 10 ? 1 : Math.abs(percent) >= 1 ? 2 : 3;
+  return new Intl.NumberFormat('en-GB', {maximumFractionDigits}).format(percent) + '%';
+}
+
+function formatSignedPercentagePoints(probabilityContribution: number): string {
+  const percentagePoints = probabilityContribution * 100;
+  const maximumFractionDigits = Math.abs(percentagePoints) >= 10 ? 1 : 3;
+  const magnitude = new Intl.NumberFormat('en-GB', {maximumFractionDigits}).format(Math.abs(percentagePoints));
+  return `${percentagePoints >= 0 ? '+' : '-'}${magnitude} percentage points`;
+}
+
+function formatClinicalDisplayValue(value: string | number | boolean, unit = '', featureName = ''): string {
+  if (typeof value === 'boolean') return value ? 'Yes' : 'No';
+  if (typeof value !== 'number') return String(value);
+
+  const feature = featureName.toLowerCase();
+  const normalizedUnit = unit.toLowerCase();
+  const maximumFractionDigits = feature.includes('age') || feature.includes('blood pressure') || normalizedUnit === 'mmhg'
+    ? 0
+    : feature.includes('hba1c')
+      ? 1
+      : feature.includes('creatinine') || normalizedUnit === 'µmol/l' || normalizedUnit === 'umol/l'
+        ? 2
+        : normalizedUnit === 'mg/l' || Math.abs(value) < 10
+          ? 2
+          : Math.abs(value) >= 100 ? 0 : 1;
+  return new Intl.NumberFormat('en-GB', {maximumFractionDigits}).format(value);
+}
+
+interface QuestionnaireResultContext {
+  questionnaireId?: string;
+  qrId?: string;
+  studyMode: boolean;
+  studyCondition: StudyCondition;
+}
+
 @Component({
   selector: 'app-results',
   templateUrl: './results.component.html',
   styleUrls: ['./results.component.scss']
 })
 export class ResultsComponent implements OnInit, OnDestroy {
+
+  @Input() showBackControls: boolean = true;
+  @Input() studyConditionOverride: StudyCondition | null = null;
+  @Input() frozenStudyCase: FrozenStudyCase | null = null;
 
   diseases: DiseaseRisk[] = [];
   overallRiskScore: number = 0;
@@ -152,38 +203,31 @@ export class ResultsComponent implements OnInit, OnDestroy {
     aspectRatio: 1.4,
     indexAxis: 'y',
   
+    layout: {
+      padding: {
+        top: 32
+      }
+    },  
+
     plugins: {
       tooltip: {
         callbacks: {
+          title: (contexts: any[]) => {
+            return contexts[0]?.label ?? '';
+          },
+      
           label: (context: any) => {
             const dataset = context.dataset as any;
-          
-            const contribution =
-              dataset.contributions?.[context.dataIndex];
-          
-            const type =
-              dataset.pointTypes?.[context.dataIndex];
-          
-              const absoluteImpact = Math.abs(contribution * 100).toFixed(2);
+            const contribution = dataset.contributions?.[context.dataIndex] ?? 0;
+            const type = dataset.pointTypes?.[context.dataIndex];
 
-              if (type === 'other') {
-                const directionText =
-                  contribution >= 0
-                    ? 'Increases prediction'
-                    : 'Decreases prediction';
-              
-                return [
-                  `${directionText} by ${absoluteImpact} percentage points`,
-                  `${dataset.numOtherFeatures} other features combined`
-                ];
-              }
-              
-              const directionText =
-                contribution >= 0
-                  ? 'Increases prediction'
-                  : 'Decreases prediction';
-              
-              return `${directionText} by ${absoluteImpact} percentage points`;
+            if (type === 'other') {
+              return [
+                `Risk contribution: ${formatSignedPercentagePoints(contribution)}`,
+                `${dataset.numOtherFeatures} other features combined`
+              ];
+            }
+            return [`Risk contribution: ${formatSignedPercentagePoints(contribution)}`];
           }
         }
       },
@@ -214,6 +258,7 @@ export class ResultsComponent implements OnInit, OnDestroy {
         }
       },
       annotation: {
+        clip: false,
         annotations: {
           baselineLine: {
             type: 'line',
@@ -234,7 +279,7 @@ export class ResultsComponent implements OnInit, OnDestroy {
                 const value =
                   (ctx.chart.data.datasets[0] as any).baselineValue;
       
-                return `Baseline ${(value * 100).toFixed(2)}%`;
+                return `Baseline ${formatDisplayPercent(value)}`;
               },
               position: 'start',
               backgroundColor: 'rgba(255,255,255,0.9)',
@@ -259,10 +304,11 @@ export class ResultsComponent implements OnInit, OnDestroy {
               content: (ctx: any) => {
                 const value =
                   (ctx.chart.data.datasets[0] as any).finalPrediction;
-      
-                return `Patient prediction ${(value * 100).toFixed(2)}%`;
+            
+                return `Patient prediction ${formatDisplayPercent(value)}`;
               },
               position: 'end',
+              yAdjust: -24,
               backgroundColor: 'rgba(255,255,255,0.9)',
               color: '#212529'
             }
@@ -306,7 +352,7 @@ export class ResultsComponent implements OnInit, OnDestroy {
         beginAtZero: false,
         ticks: {
           callback: (value: any) =>
-            `${(Number(value) * 100).toFixed(1)}%`
+            (Number(value) * 100).toFixed(2) + '%'
         },
         title: {
           display: true,
@@ -322,12 +368,44 @@ export class ResultsComponent implements OnInit, OnDestroy {
     }
   };
   llmSessionId: string|undefined;
+  private studyChartSessionIds: Record<string, string> = {};
   chat: {[diseaseId: string]: boolean} = {};
   riskObservations: { [diseaseId: string]: fhir4.Observation } = {};
   localPlotResponse!: LocalPlotResponse;
   resolvedStratum: string = '';
+  beeswarmData: { [disease: string]: BeeswarmData } = {};
+  studyMode: boolean = false;
+  studyCondition: StudyCondition = 'A';
 
-  constructor(private router: Router, private sof: SmartOnFhirService,
+  get effectiveStudyMode(): boolean {
+    return this.studyConditionOverride !== null || this.studyMode;
+  }
+
+  get effectiveStudyCondition(): StudyCondition {
+    return this.studyConditionOverride ?? this.studyCondition;
+  }
+
+  get chatbotsEnabled(): boolean {
+    return !this.effectiveStudyMode || this.effectiveStudyCondition === 'B';
+  }
+
+  get showStudyStaticExplanation(): boolean {
+    return this.effectiveStudyMode;
+  }
+
+  studyChatSession(chart: 'waterfall' | 'beeswarm', disease: string): string | undefined {
+    if (!this.effectiveStudyMode || this.effectiveStudyCondition !== 'B' || !this.frozenStudyCase) {
+      return this.llmSessionId;
+    }
+    const key = `${this.frozenStudyCase.caseId}:${disease}:${chart}`;
+    return this.studyChartSessionIds[key] ??= `study-${this.frozenStudyCase.caseId}-${disease}-${chart}-${this.newSessionId()}`;
+  }
+
+  trackByDisease(_index: number, disease: DiseaseRisk): string {
+    return disease.diseaseId || disease.disease;
+  }
+
+  constructor(private router: Router, private sof: SmartOnFhirService, private http: HttpClient,
               private cds: CdsHooksService<fhir4.Resource>, private menuService: MenuService) {}
 
   ngOnInit() {
@@ -341,7 +419,27 @@ export class ResultsComponent implements OnInit, OnDestroy {
 
   private loadResults() {
     try {
+      if (this.frozenStudyCase) {
+        this.studyMode = true;
+        // StudyCaseInspection supplies the persisted participant block via
+        // studyConditionOverride. A frozen case's legacy A/B label identifies
+        // its patient set and must never grant LLM access by itself.
+        // A frozen case owns its explanation conversation. Never reuse the
+        // normal-mode session or another Study case's session.
+        this.llmSessionId = `study-${this.frozenStudyCase.caseId}-${this.newSessionId()}`;
+        this.processLocalPlotResponse(this.frozenStudyCase.prediction);
+        this.prepareSummaryPanels();
+        return;
+      }
       const saved = localStorage.getItem('questionnaire_results');
+      const savedContext = localStorage.getItem('questionnaire_result_context');
+      if (savedContext) {
+        const context = JSON.parse(savedContext) as QuestionnaireResultContext;
+        this.studyMode = context.studyMode === true;
+        if (context.studyCondition === 'A' || context.studyCondition === 'B') {
+          this.studyCondition = context.studyCondition;
+        }
+      }
       this.llmSessionId = sessionStorage.getItem('llm_session_id') || undefined;
       if (saved) {
         const cards = JSON.parse(saved);
@@ -358,17 +456,31 @@ export class ResultsComponent implements OnInit, OnDestroy {
 
   private processLocalPlotCards(cards: any[]) {
     try {
-      const diseases: DiseaseRisk[] = [];
-
-      this.localPlotResponse = <LocalPlotResponse>JSON.parse(
+      this.processLocalPlotResponse(<LocalPlotResponse>JSON.parse(
         cards[0].detail.replaceAll("&quot;", '"')
-      )
+      ));
+    } catch (err) {
+      console.error(err)
+      this.error = 'Error processing prediction results';
+    }
+  }
+
+  private processLocalPlotResponse(response: LocalPlotResponse): void {
+    try {
+      const diseases: DiseaseRisk[] = [];
+      this.localPlotResponse = response;
       this.resolvedStratum =
         this.localPlotResponse.resolved_stratum
         || this.localPlotResponse.model_name;
       this.localPlotResponse.results.forEach(result => {
         const disease = result.disease;
         const riskScore = result.prediction.risk_score || 0;
+        if (this.frozenStudyCase) {
+          this.riskObservations[disease] = this.frozenObservation(result);
+        }
+        if (this.chatbotsEnabled && !this.frozenStudyCase?.studyOnly) {
+          this.loadBeeswarmData(disease);
+        }
         
         const waterfallData =
           result.plots['waterfall'].waterfall_data;
@@ -385,20 +497,17 @@ export class ResultsComponent implements OnInit, OnDestroy {
         const numOtherFeatures =
           waterfallData.num_other_features || 0;
 
-        console.log(
-          `[WATERFALL PAYLOAD] ${disease}`,
-          result.plots['waterfall'].waterfall_data
-        );
-
         const shapFeatures: ShapFeature[] = [
           ...result.plots['waterfall'].waterfall_data.top_positive_contributors,
           ...result.plots['waterfall'].waterfall_data.top_negative_contributors,
         ].map(contributor => ({
+          ...contributor,
           name: contributor.display_name,
-          value: contributor.shap_value
+          value: contributor.shap_value,
+          displayContribution: contributor.display_contribution
         }));
 
-        diseases.push({
+        const diseaseRisk: DiseaseRisk = {
           diseaseId: disease.replaceAll(" ", "_"),
           disease,
           riskScore,
@@ -408,8 +517,8 @@ export class ResultsComponent implements OnInit, OnDestroy {
           otherFeaturesContribution,
           numOtherFeatures,
           expanded: false
-        });
-
+        };
+        diseases.push(diseaseRisk);
         this.diseases = diseases.sort((a, b) => b.riskScore - a.riskScore);
         this.diseases.forEach(disease => {
           this.waterfallChartData[disease.disease] = this.getWaterfallChartData(disease)
@@ -439,6 +548,28 @@ export class ResultsComponent implements OnInit, OnDestroy {
       console.error(err)
       this.error = 'Error processing prediction results';
     }
+  }
+
+  beeswarmImageFor(disease: string): string {
+    if (this.frozenStudyCase) {
+      return this.frozenStudyCase.explanationAssets[disease]?.beeswarmImage ?? '';
+    }
+    return `assets/beeswarm/${this.resolvedStratum}/${disease}_beeswarm.png`;
+  }
+
+  private loadBeeswarmData(disease: string): void {
+    const dataUrl = this.frozenStudyCase
+      ? this.frozenStudyCase.explanationAssets[disease]?.beeswarmData
+      : `assets/beeswarm/${this.resolvedStratum}/${disease}_beeswarm.json`;
+    if (!dataUrl) {
+      this.error = `Frozen explanation data is missing for ${disease}.`;
+      return;
+    }
+    this.http.get<BeeswarmData>(
+      dataUrl
+    ).subscribe(data => {
+      this.beeswarmData[disease] = data;
+    });
   }
 
   private processCards(cards: any[]) {
@@ -566,7 +697,7 @@ export class ResultsComponent implements OnInit, OnDestroy {
     const low: SummaryItem[] = [];
 
     this.diseases.forEach((disease, index) => {
-      const riskPercent = (disease.riskScore * 100).toFixed(1) + '%';
+      const riskPercent = (disease.riskScore * 100).toFixed(2) + '%';
 
       const topFeatures = disease.shapFeatures
         .sort((a, b) => Math.abs(b.value) - Math.abs(a.value))
@@ -657,7 +788,7 @@ export class ResultsComponent implements OnInit, OnDestroy {
   }
 
   formatPercent(value: number): string {
-    return (value * 100).toFixed(2) + '%';
+    return formatDisplayPercent(value);
   }
 
   getTopShapFeatures(features: ShapFeature[], n: number = 10): ShapFeature[] {
@@ -674,8 +805,25 @@ export class ResultsComponent implements OnInit, OnDestroy {
     return value > 0 ? 'shap-positive' : 'shap-negative';
   }
 
+  formatWaterfallFeatureValue(feature: ShapFeature): string | null {
+    const value = feature.is_imputed === true
+      ? feature.imputed_value
+      : feature.feature_value;
+
+    if (value === null || value === undefined) {
+      return null;
+    }
+
+    return formatClinicalDisplayValue(value, feature.feature_unit, feature.display_name || feature.name);
+  }
+
+  private formatSignedImpact(value: number): string {
+    const magnitude = Number(Math.abs(value).toFixed(6)).toString();
+    return `${value >= 0 ? '+' : '-'}${magnitude}`;
+  }
+
   goBack() {
-    this.router.navigate(['/form']);
+    this.router.navigate([this.effectiveStudyMode ? '/study' : '/form']);
   }
 
   getWaterfallChartData(disease: DiseaseRisk): ChartData {
@@ -686,17 +834,25 @@ export class ResultsComponent implements OnInit, OnDestroy {
     const data: [number, number][] = [];
     const contributions: number[] = [];
     const pointTypes: string[] = [];
+    const tooltipFeatures: Array<ShapFeature | null> = [];
   
     let currentValue = disease.baselineValue;
   
     features.forEach(feature => {
       const start = currentValue;
-      const end = start + feature.value;
+      // Frozen WP6 display_contribution is expressed in percentage points;
+      // waterfall coordinates are probabilities. Raw SHAP values stay in
+      // log-odds and are shown only in the tooltip.
+      const contribution = feature.displayContribution === undefined
+        ? feature.value
+        : feature.displayContribution / 100;
+      const end = start + contribution;
   
       labels.push(feature.name);
       data.push([start, end]);
-      contributions.push(feature.value);
+      contributions.push(contribution);
       pointTypes.push('feature');
+      tooltipFeatures.push(feature);
   
       currentValue = end;
     });
@@ -709,6 +865,7 @@ export class ResultsComponent implements OnInit, OnDestroy {
       data.push([start, end]);
       contributions.push(disease.otherFeaturesContribution);
       pointTypes.push('other');
+      tooltipFeatures.push(null);
   
       currentValue = end;
     }
@@ -720,6 +877,8 @@ export class ResultsComponent implements OnInit, OnDestroy {
         data,
         contributions,
         pointTypes,
+        features: tooltipFeatures,
+        shapValues: tooltipFeatures.map(feature => feature?.value),
         baselineValue: disease.baselineValue,
         finalPrediction: disease.finalPrediction,
         numOtherFeatures: disease.numOtherFeatures
@@ -743,6 +902,37 @@ export class ResultsComponent implements OnInit, OnDestroy {
       this.llmSessionId = response.cards?.at(0)?.summary
       sessionStorage.setItem('llm_session_id', <string>this.llmSessionId)
     }, console.error)
+  }
+
+  private newSessionId(): string {
+    return typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  }
+
+  /**
+   * The CDS contract expects a FHIR Observation in prefetch. Frozen Study
+   * already contains the prediction and contributors, so this is only an
+   * adapter envelope; it never recalculates the stimulus.
+   */
+  private frozenObservation(result: any): fhir4.Observation {
+    const waterfall = result.plots?.waterfall?.waterfall_data;
+    const contributors = [
+      ...(waterfall?.top_positive_contributors ?? []),
+      ...(waterfall?.top_negative_contributors ?? [])
+    ];
+    return {
+      resourceType: 'Observation',
+      id: `${this.frozenStudyCase?.caseId}-${result.disease.replace(/\s+/g, '-')}`,
+      status: 'final',
+      code: {text: result.disease},
+      subject: {reference: `Patient/${this.frozenStudyCase?.patientProfile.id ?? this.localPlotResponse.patient_id}`},
+      valueQuantity: {value: result.prediction.risk_score},
+      component: contributors.map((contributor: any) => ({
+        code: {text: contributor.display_name ?? contributor.feature_name},
+        valueQuantity: {value: contributor.shap_value}
+      }))
+    } as fhir4.Observation;
   }
 
 }

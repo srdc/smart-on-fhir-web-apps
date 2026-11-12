@@ -1,0 +1,27 @@
+<div *ngIf="loading" class="text-center p-5" role="status" aria-live="polite">
+  <span class="spinner-border" aria-hidden="true"></span>
+  <p class="mt-3 mb-0">Loading Study case…</p>
+</div>
+
+<div *ngIf="error" class="alert alert-danger">
+  {{ error }}
+</div>
+
+<ng-container *ngIf="!loading && !error && studyCondition">
+  <app-study-case-progress-indicator *ngIf="caseId" [caseId]="caseId"></app-study-case-progress-indicator>
+  <section *ngIf="frozenCase" class="alert alert-primary" aria-labelledby="study-focus-heading">
+    <h2 id="study-focus-heading" class="h5">Study focus: {{ frozenCase.targetDisease }}</h2>
+    <p class="mb-0">For this case, please focus primarily on the {{ frozenCase.targetDisease }} Patient-Specific Feature Impact when answering the study questions. You may still review the other disease predictions and explanations if you wish.</p>
+  </section>
+  <app-results
+    [showBackControls]="false"
+    [frozenStudyCase]="frozenCase"
+    [studyConditionOverride]="studyCondition">
+  </app-results>
+
+  <div class="study-inspection-actions">
+    <button type="button" class="btn btn-primary" (click)="continueToQuestions()">
+      Continue to questions
+    </button>
+  </div>
+</ng-container>

@@ -1,10 +1,18 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import type * as fhir4 from "fhir/r4";
 import { CdsHooksService } from 'cds-hooks';
 import { SmartOnFhirService } from "ng-smart-on-fhir";
 import {MenuService} from "../menu.service";
+import {StudyProgressService} from "../study/services/study-progress.service";
+import {firstValueFrom} from 'rxjs';
+import {StudyCaseStimulusService} from '../study/services/study-case-stimulus.service';
+
+type StudyCondition = 'A' | 'B';
+
+const STUDY_QUESTIONNAIRE_ID = 'stage-ukbiobank-study';
+const INITIAL_STUDY_CONDITION: StudyCondition = 'A';
 
 @Component({
   selector: 'risk-prediction-form',
@@ -23,13 +31,20 @@ export class FormComponent implements OnInit, OnDestroy {
   prefilledAnswers: { [linkId: string]: boolean } = {};
   saving: boolean = false;
   loading: boolean = true;
+  studyCaseMode: boolean = false;
+  private studyCaseId: string | null = null;
+
+  get studyCaseIdentifier(): string | null { return this.studyCaseId; }
 
   constructor(
     private http: HttpClient,
     private cdsHooksService: CdsHooksService<any>,
     private router: Router,
+    private route: ActivatedRoute,
     private sof: SmartOnFhirService,
-    private menuService: MenuService
+    private menuService: MenuService,
+    private studyProgressService: StudyProgressService,
+    private studyCaseStimulusService: StudyCaseStimulusService
   ) {}
 
   ngOnDestroy() {
@@ -40,22 +55,17 @@ export class FormComponent implements OnInit, OnDestroy {
     this.loading = true;
 
     try {
+      this.studyCaseMode = this.route.snapshot.data['studyCaseForm'] === true;
+      if (this.studyCaseMode) {
+        await this.initializeStudyCaseForm();
+        return;
+      }
+
       this.patient = await this.sof.getPatient();
 
       // Load questionnaire
       await this.loadQuestionnaire();
-      setTimeout(() => {
-        this.menuService.menuItems.splice(0, this.menuService.menuItems.length, ...this.groups.map(group => ({
-          label: group.text || group.linkId,
-          callback: () => {
-            const accordionBtn = document.getElementById('accordion-btn-' + group.linkId)
-            accordionBtn?.scrollIntoView({ behavior: 'smooth' });
-            if (accordionBtn?.classList.contains('collapsed')) {
-              accordionBtn?.click()
-            }
-          }
-        })))
-      })
+      this.configureMenu();
 
       // Load pre-filled answers via CDS service
       await this.loadPrefilledAnswersFromCDS();
@@ -71,9 +81,45 @@ export class FormComponent implements OnInit, OnDestroy {
     }
   }
 
+  private async initializeStudyCaseForm(): Promise<void> {
+    this.studyCaseId = this.route.snapshot.paramMap.get('caseId');
+    if (!this.studyCaseId) {
+      throw new Error('A study case ID is required for the study questionnaire.');
+    }
+
+    await this.loadQuestionnaire();
+    await firstValueFrom(this.studyProgressService.loadCase(this.studyCaseId));
+    const stimulus = await firstValueFrom(this.studyCaseStimulusService.getCase(this.studyCaseId));
+    this.patient = stimulus.case.patientProfile;
+    this.answers = {...stimulus.case.questionnaireAnswers};
+    this.prefilledAnswers = Object.keys(this.answers).reduce<Record<string, boolean>>((result, linkId) => {
+      result[linkId] = true;
+      return result;
+    }, {});
+    this.configureMenu();
+  }
+
+  private configureMenu(): void {
+    setTimeout(() => {
+      this.menuService.menuItems.splice(0, this.menuService.menuItems.length, ...this.groups.map(group => ({
+        label: group.text || group.linkId,
+        callback: () => {
+          const accordionBtn = document.getElementById('accordion-btn-' + group.linkId);
+          accordionBtn?.scrollIntoView({behavior: 'smooth'});
+          if (accordionBtn?.classList.contains('collapsed')) {
+            accordionBtn.click();
+          }
+        }
+      })));
+    });
+  }
+
   private async loadQuestionnaire(): Promise<void> {
+    const questionnaireAsset = this.route.snapshot.data['questionnaireAsset']
+      || 'assets/lr_questionnaire.json';
+
     return new Promise((resolve, reject) => {
-      this.http.get('assets/lr_questionnaire.json').subscribe({
+      this.http.get(questionnaireAsset).subscribe({
         next: (q: any) => {
           this.questionnaire = <fhir4.Questionnaire>q;
           this.groups = q.item;
@@ -189,9 +235,15 @@ export class FormComponent implements OnInit, OnDestroy {
     return this.prefilledAnswers[linkId] === true;
   }
 
+  private get answersStorageKey(): string {
+    return this.questionnaire?.id === STUDY_QUESTIONNAIRE_ID
+      ? `questionnaire_answers:${this.questionnaire.id}`
+      : 'questionnaire_answers';
+  }
+
   private loadAnswersFromLocalStorage(): void {
     try {
-      const saved = localStorage.getItem('questionnaire_answers');
+      const saved = localStorage.getItem(this.answersStorageKey);
       if (saved) {
         this.answers = JSON.parse(saved);
         console.log('Restored answers from localStorage:', this.answers);
@@ -203,7 +255,7 @@ export class FormComponent implements OnInit, OnDestroy {
 
   private saveAnswers(): void {
     try {
-      localStorage.setItem('questionnaire_answers', JSON.stringify(this.answers));
+      localStorage.setItem(this.answersStorageKey, JSON.stringify(this.answers));
     } catch (e) {
       console.error('Error saving answers:', e);
     }
@@ -299,6 +351,13 @@ export class FormComponent implements OnInit, OnDestroy {
   }
 
   async save() {
+    if (this.studyCaseMode) {
+      if (!this.studyCaseId) return;
+      await firstValueFrom(this.studyProgressService.beginInspection(this.studyCaseId));
+      await this.router.navigate(['/study/cases', this.studyCaseId, 'inspection']);
+      return;
+    }
+
     this.saving = true;
 
     try {
@@ -331,8 +390,24 @@ export class FormComponent implements OnInit, OnDestroy {
       console.log('Risk Calculation Response:', response);
 
       localStorage.setItem('questionnaire_results', JSON.stringify(response?.cards ?? []));
+      const questionnaireId = this.questionnaire?.id;
+      const studyMode = STUDY_QUESTIONNAIRE_ID !== null
+        && questionnaireId === STUDY_QUESTIONNAIRE_ID;
+      localStorage.setItem('questionnaire_result_context', JSON.stringify({
+        questionnaireId,
+        qrId,
+        studyMode,
+        studyCondition: INITIAL_STUDY_CONDITION
+      }));
 
-      this.router.navigate(['/results']);
+      if (studyMode) {
+        const destination = await firstValueFrom(
+          this.studyProgressService.startOrResumeActiveCase({qrId})
+        );
+        await this.router.navigate(destination.route);
+      } else {
+        this.router.navigate(['/results']);
+      }
 
     } catch (error) {
       console.error('Error in save:', error);
@@ -346,7 +421,7 @@ export class FormComponent implements OnInit, OnDestroy {
     if (confirm('Are you sure you want to clear all answers?')) {
       this.answers = {};
       this.prefilledAnswers = {};
-      localStorage.removeItem('questionnaire_answers');
+      localStorage.removeItem(this.answersStorageKey);
     }
   }
 
@@ -355,5 +430,3 @@ export class FormComponent implements OnInit, OnDestroy {
     return group.item.filter((q: any) => this.isPrefilled(q.linkId)).length;
   }
 }
-
-

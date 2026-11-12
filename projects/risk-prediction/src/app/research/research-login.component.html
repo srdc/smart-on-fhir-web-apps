@@ -1,0 +1,16 @@
+<main class="container py-5" style="max-width: 30rem">
+  <div class="card shadow-sm mx-auto" style="max-width: 30rem">
+    <div class="card-body p-4">
+      <h1 class="h3 mb-2">Researcher sign in</h1>
+      <p class="text-muted">Study administration</p>
+      <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+      <form (ngSubmit)="submit()" #form="ngForm">
+        <label class="form-label" for="researcher-username">Username</label>
+        <input id="researcher-username" name="username" class="form-control mb-3" [(ngModel)]="username" required autocomplete="username">
+        <label class="form-label" for="researcher-password">Password</label>
+        <input id="researcher-password" name="password" type="password" class="form-control mb-4" [(ngModel)]="password" required autocomplete="current-password">
+        <button class="btn btn-primary w-100" type="submit" [disabled]="form.invalid || submitting">Sign in</button>
+      </form>
+    </div>
+  </div>
+</main>

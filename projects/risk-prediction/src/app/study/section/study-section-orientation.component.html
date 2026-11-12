@@ -1,0 +1,9 @@
+<section class="study-section-orientation" *ngIf="!error">
+  <p *ngIf="overview" class="text-muted">{{ overviewText }}</p>
+  <h1>{{ section.title }}</h1>
+  <p class="lead">{{ section.description }}</p>
+  <button type="button" class="btn btn-primary" (click)="start()">
+    Start Case {{ caseNumber }} of {{ totalCases }}
+  </button>
+</section>
+<div *ngIf="error" class="alert alert-danger">{{ error }}</div>

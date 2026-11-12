@@ -1,7 +1,18 @@
+<app-study-case-progress-indicator
+  *ngIf="isStudyCaseSummary && studyCaseId"
+  [caseId]="studyCaseId">
+</app-study-case-progress-indicator>
+
 <div class="d-flex">
   <h2 class="h4 mb-3 flex-grow-1">Patient Summary</h2>
-  <button class="btn btn-dark btn-sm mb-2" routerLink="/form"><i class="bi bi-clipboard2-pulse"></i> Calculate Multi-morbidity Risks</button>
+  <button *ngIf="!isStudyCaseSummary" class="btn btn-dark btn-sm mb-2" [routerLink]="continueRoute"><i class="bi bi-clipboard2-pulse"></i> Calculate Multi-morbidity Risks</button>
+  <button *ngIf="isStudyCaseSummary" class="btn btn-dark btn-sm mb-2" type="button"
+      [disabled]="studyContinuePending" (click)="continueStudyCase()">
+    <i class="bi bi-clipboard2-pulse"></i> Continue to Patient Information
+  </button>
 </div>
+
+<div *ngIf="studyContinueError" class="alert alert-danger">{{ studyContinueError }}</div>
 
 <div class="d-flex justify-content-end mb-2">
   <label class="me-2 small text-muted">Items per page</label>
@@ -138,6 +149,6 @@
 
 <div class="row mt-3">
   <div class="col-12">
-    <rp-patient-history [patientId]="patient?.id"></rp-patient-history>
+    <rp-patient-history [patientId]="patient?.id" [frozenEvents]="historyEvents"></rp-patient-history>
   </div>
 </div>

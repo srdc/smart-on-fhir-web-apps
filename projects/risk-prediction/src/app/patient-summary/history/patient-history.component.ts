@@ -13,6 +13,8 @@ import { ICON_MAP } from './vocab.history';
 export class PatientHistoryComponent implements OnInit, OnDestroy, OnChanges {
 
   @Input() patientId?: string;
+  /** Undefined uses normal SMART/FHIR loading; an array is an immutable frozen Study timeline. */
+  @Input() frozenEvents?: HistoryEvent[];
 
   events: HistoryEvent[] = [];
   filtered: HistoryEvent[] = [];
@@ -31,11 +33,17 @@ export class PatientHistoryComponent implements OnInit, OnDestroy, OnChanges {
 
   ngOnInit(): void {
     this.loadSettings();
-    if (this.patientId) this.loadEvents();  // handle already-set input
+    if (this.frozenEvents !== undefined) {
+      this.useFrozenEvents(this.frozenEvents);
+    } else if (this.patientId) {
+      this.loadEvents();  // handle already-set input
+    }
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['patientId'] && this.patientId) {
+    if (changes['frozenEvents'] && this.frozenEvents !== undefined) {
+      this.useFrozenEvents(this.frozenEvents);
+    } else if (changes['patientId'] && this.patientId && this.frozenEvents === undefined) {
       this.loadEvents();                    // reload when input arrives/changes
     }
   }
@@ -74,6 +82,14 @@ export class PatientHistoryComponent implements OnInit, OnDestroy, OnChanges {
         this.loading = false;
       }
     });
+  }
+
+  private useFrozenEvents(events: HistoryEvent[]): void {
+    this.sub?.unsubscribe();
+    this.events = events;
+    this.initializeMedSettings();
+    this.applySettings();
+    this.loading = false;
   }
 
   /**

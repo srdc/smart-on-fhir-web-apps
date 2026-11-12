@@ -1,0 +1,66 @@
+<section class="study-comparison">
+  <h2>Compare the two versions</h2>
+  <p class="text-muted mb-4">
+    Please compare the two explanation versions you used during the study.
+  </p>
+
+  <div *ngIf="draftError" class="alert alert-warning" role="alert">{{ draftError }}</div>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <fieldset *ngFor="let question of questions; let index = index" class="card shadow-sm mb-3">
+      <div class="card-body">
+        <legend class="h6">
+          {{ index + 1 }}. {{ question.prompt }}
+          <span class="text-danger" aria-hidden="true">*</span>
+        </legend>
+        <div *ngFor="let option of question.options" class="form-check mb-2">
+          <input
+            class="form-check-input"
+            type="radio"
+            [id]="question.id + '-' + option.value"
+            [formControlName]="question.id"
+            [value]="option.value">
+          <label class="form-check-label" [for]="question.id + '-' + option.value">
+            {{ option.label }}
+          </label>
+        </div>
+        <div *ngIf="showValidation(question.id)" class="invalid-feedback d-block">
+          Select one response.
+        </div>
+        <ng-container *ngIf="question.id === 'llmChartMatch' && form.get('llmChartMatch')?.value === 'yes'">
+          <label class="form-label mt-3" for="comparison-match-description">
+            If yes, please describe.
+            <span class="text-danger" aria-hidden="true">*</span>
+          </label>
+          <textarea
+            id="comparison-match-description"
+            class="form-control"
+            [class.is-invalid]="showValidation('llmChartMatchDescription')"
+            formControlName="llmChartMatchDescription"
+            rows="3"></textarea>
+          <div *ngIf="showValidation('llmChartMatchDescription')" class="invalid-feedback d-block">
+            Please provide a description.
+          </div>
+        </ng-container>
+        <ng-container *ngIf="question.id === 'patientExplanationHelp'">
+          <label class="form-label mt-3" for="comparison-patient-why">
+            Why?
+            <span class="text-danger" aria-hidden="true">*</span>
+          </label>
+          <textarea
+            id="comparison-patient-why"
+            class="form-control"
+            [class.is-invalid]="showValidation('patientExplanationWhy')"
+            formControlName="patientExplanationWhy"
+            rows="3"></textarea>
+          <div *ngIf="showValidation('patientExplanationWhy')" class="invalid-feedback d-block">
+            Please explain your response.
+          </div>
+        </ng-container>
+      </div>
+    </fieldset>
+
+    <div *ngIf="submissionError" class="alert alert-danger" role="alert">{{ submissionError }}</div>
+    <button type="submit" class="btn btn-primary">Submit comparison</button>
+  </form>
+</section>

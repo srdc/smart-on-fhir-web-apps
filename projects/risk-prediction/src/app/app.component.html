@@ -1,11 +1,21 @@
 <div class="vh-100 d-flex flex-column">
 
   <!-- HEADER (on all pages) -->
-  <ui-header *ngIf="patient"
+  <header *ngIf="studyMode" class="study-header flex-shrink-0 d-flex align-items-center justify-content-between px-4 py-3 bg-primary text-white">
+    <a routerLink="/study" class="text-white text-decoration-none fw-bold fs-4">STAGE Clinician Study</a>
+    <div class="d-flex gap-2">
+      <button *ngIf="studyAuthenticated$ | async" type="button" class="btn btn-outline-light" (click)="studyLogout()">Log out of Study</button>
+      <button type="button" class="btn btn-light" (click)="exitStudy()">Exit Study Mode</button>
+    </div>
+  </header>
+
+  <ui-header *ngIf="patient && !studyMode && !researchMode"
     class="flex-shrink-0"
     [logoSrc]="'assets/stage-circle-white.png'"
     brandText="STAGE"
-    (logout)="logout()"
+    (logout)="normalClinicalLogout()"
+    [secondaryActionLabel]="'Exit Risk Prediction Mode'"
+    (secondaryAction)="exitRiskPredictionMode()"
     [tabs]="[
       { label: 'Summary', link: '/summary' },
       { label: 'Risks', link: '/form', active: true }
@@ -16,10 +26,10 @@
   <div class="row g-0 flex-grow-1 min-h-0">
 
     <!-- SIDEBAR (on all pages) -->
-    <div class="col-12 col-lg-3 p-4 overflow-auto align-self-start sticky-lg-top" *ngIf="patient">
+    <div class="col-12 col-lg-3 p-4 overflow-auto align-self-start sticky-lg-top" *ngIf="showPatientSidebar">
       <ui-sidebar
         title="Patient Demographics"
-        [rows]="sidebarRows">
+        [rows]="studyMode ? studySummarySidebarRows : sidebarRows">
         <ul class="nav flex-column overflow-y-auto" style="max-height: 50vh" *ngIf="menuService.menuItems?.length">
           @for (item of menuService.menuItems; track item.label) {
             <li class="nav-item">
@@ -40,7 +50,7 @@
     </div>
 
     <!-- MAIN CONTENT (router-outlet) -->
-    <div [ngClass]="patient ? 'col-12 col-lg-9' : 'col-12'" class="p-4 h-100 overflow-auto">
+    <div [ngClass]="showPatientSidebar ? 'col-12 col-lg-9' : 'col-12'" class="p-4 h-100 overflow-auto">
       <router-outlet></router-outlet>
     </div>
 

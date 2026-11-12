@@ -1,0 +1,1435 @@
+{
+  "resourceType": "Questionnaire",
+  "id": "stage-ukbiobank-study",
+  "url": "https://stage-healthyaging.eu/fhir/Questionnaire/stage-ukbiobank-study",
+  "status": "active",
+  "code": [
+    {
+      "coding": [
+        {
+          "display": "STAGE UKBiobank Questionnaire",
+          "system": "https://stage-healthyaging.eu/fhir/CodeSystem/questionnaire-code",
+          "code": "ukbiobank"
+        }
+      ]
+    }
+  ],
+  "item": [
+    {
+      "linkId": "demographics",
+      "text": "Patient Demographics",
+      "type": "group",
+      "item": [
+        {
+          "linkId": "21003",
+          "text": "Age",
+          "required": true,
+          "repeats": false,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-unit",
+              "valueCoding": {
+                "system": "http://unitsofmeasure.org",
+                "code": "1",
+                "display": "1"
+              }
+            }
+          ],
+          "type": "integer"
+        },
+        {
+          "linkId": "imd-employment-score",
+          "text": "IMD Employment score",
+          "required": false,
+          "repeats": false,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-unit",
+              "valueCoding": {
+                "system": "http://unitsofmeasure.org",
+                "code": "score",
+                "display": "score"
+              }
+            }
+          ],
+          "type": "decimal"
+        },
+        {
+          "linkId": "imd-health-score",
+          "text": "IMD Health score",
+          "required": false,
+          "repeats": false,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-unit",
+              "valueCoding": {
+                "system": "http://unitsofmeasure.org",
+                "code": "score",
+                "display": "score"
+              }
+            }
+          ],
+          "type": "decimal"
+        },
+        {
+          "linkId": "680",
+          "text": "Do you own or rent the accommodation that you live in?",
+          "required": false,
+          "repeats": false,
+          "type": "choice",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": 1,
+                "display": "Own outright (by you or someone in your household)"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": 2,
+                "display": "Own with a mortgage"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": 3,
+                "display": "Rent - from local authority, local council, housing association"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": 4,
+                "display": "Rent - from private landlord or letting agency"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": 5,
+                "display": "Pay part rent and part mortgage (shared ownership)"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": 6,
+                "display": "Live in accommodation rent free"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": -7,
+                "display": "None of the above"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": -3,
+                "display": "Prefer not to answer"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "6142",
+          "text": "Which of the following describes your current situation?",
+          "required": false,
+          "repeats": false,
+          "type": "choice",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": 1,
+                "display": "In paid employment or self-employed"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": 2,
+                "display": "Retired"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": 3,
+                "display": "Looking after home and/or family"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": 4,
+                "display": "Unable to work because of sickness or disability"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": 5,
+                "display": "Unemployed"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": 6,
+                "display": "Doing unpaid or voluntary work"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": 7,
+                "display": "Full or part-time student"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": -7,
+                "display": "None of the above"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": -3,
+                "display": "Prefer not to answer"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "6138",
+          "text": "Which of the following qualifications do you have?",
+          "required": false,
+          "repeats": false,
+          "type": "choice",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": 1,
+                "display": "College or University degree"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": 2,
+                "display": "A levels/AS levels or equivalent"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": 3,
+                "display": "O levels/GCSEs or equivalent"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": 4,
+                "display": "CSEs or equivalent"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": 5,
+                "display": "NVQ or HND or HNC or equivalent"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": 6,
+                "display": "Other professional qualifications eg: nursing, teaching"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": -7,
+                "display": "None of the above"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": -3,
+                "display": "Prefer not to answer"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "linkId": "psychological",
+      "text": "Psychological status",
+      "type": "group",
+      "item": [
+        {
+          "linkId": "1980",
+          "text": "Are you a worrier?",
+          "required": true,
+          "repeats": false,
+          "type": "choice",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": 1,
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": 2,
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": -1,
+                "display": "Do not know"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": -3,
+                "display": "Prefer not to answer"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "1920",
+          "text": "Does your mood often go up and down?",
+          "required": true,
+          "repeats": false,
+          "type": "choice",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": 1,
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": 2,
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": -1,
+                "display": "Do not know"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": -3,
+                "display": "Prefer not to answer"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "1960",
+          "text": "Do you often feel 'fed-up'?",
+          "required": true,
+          "repeats": false,
+          "type": "choice",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": 1,
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": 2,
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": -1,
+                "display": "Do not know"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": -3,
+                "display": "Prefer not to answer"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "2020",
+          "text": "Are you often troubled by feelings of guilt?",
+          "required": true,
+          "repeats": false,
+          "type": "choice",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": 1,
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": 2,
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": -1,
+                "display": "Do not know"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": -3,
+                "display": "Prefer not to answer"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "1930",
+          "text": "Do you ever feel 'just miserable' for no reason?",
+          "required": false,
+          "repeats": false,
+          "type": "choice",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": 1,
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": 2,
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": -1,
+                "display": "Do not know"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": -3,
+                "display": "Prefer not to answer"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "2010",
+          "text": "Do you suffer from 'nerves'?",
+          "required": false,
+          "repeats": false,
+          "type": "choice",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": 1,
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": 2,
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": -1,
+                "display": "Do not know"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": -3,
+                "display": "Prefer not to answer"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "1950",
+          "text": "Are your feelings easily hurt?",
+          "required": false,
+          "repeats": false,
+          "type": "choice",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": 1,
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": 2,
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": -1,
+                "display": "Do not know"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": -3,
+                "display": "Prefer not to answer"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "linkId": "vitals",
+      "text": "Vitals",
+      "type": "group",
+      "item": [
+        {
+          "linkId": "21001",
+          "text": "Body mass index (BMI)",
+          "required": false,
+          "repeats": false,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-unit",
+              "valueCoding": {
+                "system": "http://unitsofmeasure.org",
+                "code": "Kg/m2",
+                "display": "Kg/m2"
+              }
+            }
+          ],
+          "type": "decimal"
+        },
+        {
+          "linkId": "21002",
+          "text": "Weight",
+          "required": false,
+          "repeats": false,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-unit",
+              "valueCoding": {
+                "system": "http://unitsofmeasure.org",
+                "code": "Kg",
+                "display": "Kg"
+              }
+            }
+          ],
+          "type": "decimal"
+        },
+        {
+          "linkId": "50",
+          "text": "Standing height",
+          "required": false,
+          "repeats": false,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-unit",
+              "valueCoding": {
+                "system": "http://unitsofmeasure.org",
+                "code": "cm",
+                "display": "cm"
+              }
+            }
+          ],
+          "type": "decimal"
+        },
+        {
+          "linkId": "48",
+          "text": "Waist circumference",
+          "required": false,
+          "repeats": false,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-unit",
+              "valueCoding": {
+                "system": "http://unitsofmeasure.org",
+                "code": "cm",
+                "display": "cm"
+              }
+            }
+          ],
+          "type": "decimal"
+        },
+        {
+          "linkId": "49",
+          "text": "Hip circumference",
+          "required": false,
+          "repeats": false,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-unit",
+              "valueCoding": {
+                "system": "http://unitsofmeasure.org",
+                "code": "cm",
+                "display": "cm"
+              }
+            }
+          ],
+          "type": "decimal"
+        },
+        {
+          "linkId": "sbp",
+          "text": "Systolic Blood Pressure",
+          "required": false,
+          "repeats": false,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-unit",
+              "valueCoding": {
+                "system": "http://unitsofmeasure.org",
+                "code": "mmHg",
+                "display": "mmHg"
+              }
+            }
+          ],
+          "type": "decimal"
+        },
+        {
+          "linkId": "dbp",
+          "text": "Diastolic Blood Pressure",
+          "required": false,
+          "repeats": false,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-unit",
+              "valueCoding": {
+                "system": "http://unitsofmeasure.org",
+                "code": "mmHg",
+                "display": "mmHg"
+              }
+            }
+          ],
+          "type": "decimal"
+        },
+        {
+          "linkId": "23099",
+          "text": "Body fat percentage",
+          "required": false,
+          "repeats": false,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-unit",
+              "valueCoding": {
+                "system": "http://unitsofmeasure.org",
+                "code": "percent",
+                "display": "percent"
+              }
+            }
+          ],
+          "type": "decimal"
+        }
+      ]
+    },
+    {
+      "linkId": "lifestyle",
+      "text": "Lifestyle",
+      "type": "group",
+      "item": [
+        {
+          "linkId": "1160",
+          "text": "About how many hours sleep do you get in every 24 hours?",
+          "required": false,
+          "repeats": false,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-unit",
+              "valueCoding": {
+                "system": "http://unitsofmeasure.org",
+                "code": "hours",
+                "display": "hours"
+              }
+            }
+          ],
+          "type": "decimal"
+        },
+        {
+          "linkId": "1170",
+          "text": "\"On an average day, how easy do you find getting up in the morning?\"",
+          "required": true,
+          "repeats": false,
+          "type": "choice",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": 1,
+                "display": "Not at all easy"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": 2,
+                "display": "Not very easy"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": 3,
+                "display": "Fairly easy"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": 4,
+                "display": "Very easy"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": -1,
+                "display": "Do not know"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": -3,
+                "display": "Prefer not to answer"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "1190",
+          "text": "Do you have a nap during the day?",
+          "required": true,
+          "repeats": false,
+          "type": "choice",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": 1,
+                "display": "Never/rarely"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": 2,
+                "display": "Sometimes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": 3,
+                "display": "Usually"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": -3,
+                "display": "Prefer not to answer"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "1200",
+          "text": "Do you have trouble falling asleep at night or do you wake up in the middle of the night?",
+          "required": false,
+          "repeats": false,
+          "type": "choice",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": 1,
+                "display": "Never/rarely"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": 2,
+                "display": "Sometimes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": 3,
+                "display": "Usually"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": -3,
+                "display": "Prefer not to answer"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "1508",
+          "text": "What type of coffee do you usually drink?",
+          "required": false,
+          "repeats": false,
+          "type": "choice",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": 1,
+                "display": "Decaffeinated coffee (any type)"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": 2,
+                "display": "Instant coffee"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": 3,
+                "display": "Ground coffee (include espresso, filler etc)"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": 4,
+                "display": "Other type of coffee"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": -1,
+                "display": "Do not know"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": -3,
+                "display": "Prefer not to answer"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "20117",
+          "text": "Alcohol drinker status",
+          "required": false,
+          "repeats": false,
+          "type": "choice",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": -3,
+                "display": "Prefer not to answer"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": 0,
+                "display": "Never"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": 1,
+                "display": "Previous"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": 2,
+                "display": "Current"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "20116",
+          "text": "Smoking status",
+          "required": false,
+          "repeats": false,
+          "type": "choice",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": -3,
+                "display": "Prefer not to answer"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": 0,
+                "display": "Never"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": 1,
+                "display": "Previous"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": 2,
+                "display": "Current"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "1239",
+          "text": "Do you smoke tobacco now?",
+          "required": false,
+          "repeats": false,
+          "type": "choice",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": 1,
+                "display": "Yes, on most or all days"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": 2,
+                "display": "Only occasionally"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": 0,
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": -3,
+                "display": "Prefer not to answer"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "linkId": "family-history",
+      "text": "Family History",
+      "type": "group",
+      "item": [
+        {
+          "linkId": "20110_1",
+          "text": "Has/did your mother ever suffer from?",
+          "required": true,
+          "repeats": true,
+          "type": "choice",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": 10,
+                "display": "Alzheimer's disease/dementia"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": 9,
+                "display": "Diabetes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": 8,
+                "display": "High blood pressure"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": 6,
+                "display": "Chronic bronchitis/emphysema"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": 2,
+                "display": "Stroke"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": 1,
+                "display": "Heart disease"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": -11,
+                "display": "Do not know"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": -13,
+                "display": "Prefer not to answer"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": -17,
+                "display": "None of the above"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "20110_2",
+          "text": "Has/did your mother ever suffer from?",
+          "required": true,
+          "repeats": true,
+          "type": "choice",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": 12,
+                "display": "Severe depression"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": 11,
+                "display": "Parkinson's disease"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": 5,
+                "display": "Breast cancer"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": 4,
+                "display": "Bowel cancer"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": 3,
+                "display": "Lung cancer"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": -21,
+                "display": "Do not know"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": -23,
+                "display": "Prefer not to answer"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": -27,
+                "display": "None of the above"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "20111_1",
+          "text": "Have any of your brothers or sisters suffered from any of the following diseases?",
+          "required": true,
+          "repeats": true,
+          "type": "choice",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": 10,
+                "display": "Alzheimer's disease/dementia"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": 9,
+                "display": "Diabetes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": 8,
+                "display": "High blood pressure"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": 6,
+                "display": "Chronic bronchitis/emphysema"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": 2,
+                "display": "Stroke"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": 1,
+                "display": "Heart disease"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": -11,
+                "display": "Do not know"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": -13,
+                "display": "Prefer not to answer"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": -17,
+                "display": "None of the above"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "linkId": "conditions",
+      "text": "Conditions",
+      "type": "group",
+      "item": [
+        {
+          "linkId": "6149",
+          "text": "Do you have any of the following dental problems?",
+          "required": true,
+          "repeats": true,
+          "type": "choice",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": 1,
+                "display": "Mouth ulcers"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": 2,
+                "display": "Painful gums"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": 3,
+                "display": "Bleeding gums"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": 4,
+                "display": "Loose teeth"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": 5,
+                "display": "Toothache"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": 6,
+                "display": "Dentures"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": -7,
+                "display": "None of the above"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": -3,
+                "display": "Prefer not to answer"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "2463",
+          "text": "Have you fractured/broken any bones in the last 5 years?",
+          "required": false,
+          "repeats": false,
+          "type": "choice",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": 1,
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": 0,
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": -1,
+                "display": "Do not know"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": -3,
+                "display": "Prefer not to answer"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "2247",
+          "text": "Do you have any difficulty with your hearing?",
+          "required": false,
+          "repeats": false,
+          "type": "choice",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": 1,
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": 0,
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": 99,
+                "display": "I am completely deaf"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": -1,
+                "display": "Do not know"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": -3,
+                "display": "Prefer not to answer"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "6159",
+          "text": "In the last month have you experienced any of the following that interfered with your usual activites?",
+          "required": false,
+          "repeats": false,
+          "type": "choice",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": 1,
+                "display": "Headache"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": 2,
+                "display": "Facial pain"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": 3,
+                "display": "Neck or shoulder pain"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": 4,
+                "display": "Back pain"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": 5,
+                "display": "Stomach or abdominal pain"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": 6,
+                "display": "Hip pain"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": 7,
+                "display": "Knee pain"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": 8,
+                "display": "Pain all over the body"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": -7,
+                "display": "None of the above"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": -3,
+                "display": "Prefer not to answer"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "linkId": "laboratory",
+      "text": "Laboratory",
+      "type": "group",
+      "item": [
+        {
+          "linkId": "high-light-scatter",
+          "text": "High light scatter reticulocyte pct",
+          "required": false,
+          "repeats": false,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-unit",
+              "valueCoding": {
+                "system": "http://unitsofmeasure.org",
+                "code": "1",
+                "display": "1"
+              }
+            }
+          ],
+          "type": "decimal"
+        },
+        {
+          "linkId": "30710",
+          "text": "C-reactive protein",
+          "required": false,
+          "repeats": false,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-unit",
+              "valueCoding": {
+                "system": "http://unitsofmeasure.org",
+                "code": "mg/L",
+                "display": "mg/L"
+              }
+            }
+          ],
+          "type": "decimal"
+        },
+        {
+          "linkId": "30690",
+          "text": "Cholesterol",
+          "required": false,
+          "repeats": false,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-unit",
+              "valueCoding": {
+                "system": "http://unitsofmeasure.org",
+                "code": "mmol/L",
+                "display": "mmol/L"
+              }
+            }
+          ],
+          "type": "decimal"
+        },
+        {
+          "linkId": "cystatin",
+          "text": "Cystatin C 0.0",
+          "required": false,
+          "repeats": false,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-unit",
+              "valueCoding": {
+                "system": "http://unitsofmeasure.org",
+                "code": "mg/L",
+                "display": "mg/L"
+              }
+            }
+          ],
+          "type": "decimal"
+        },
+        {
+          "linkId": "gamma-gt",
+          "text": "Gamma glutamyltransferase 0.0",
+          "required": false,
+          "repeats": false,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-unit",
+              "valueCoding": {
+                "system": "http://unitsofmeasure.org",
+                "code": "U/L",
+                "display": "U/L"
+              }
+            }
+          ],
+          "type": "decimal"
+        },
+        {
+          "linkId": "30750",
+          "text": "Glycated haemoglobin (HbA1c)",
+          "required": false,
+          "repeats": false,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-unit",
+              "valueCoding": {
+                "system": "http://unitsofmeasure.org",
+                "code": "mmol/mol",
+                "display": "mmol/mol"
+              }
+            }
+          ],
+          "type": "decimal"
+        },
+        {
+          "linkId": "ldl",
+          "text": "LDL",
+          "required": false,
+          "repeats": false,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-unit",
+              "valueCoding": {
+                "system": "http://unitsofmeasure.org",
+                "code": "mmol/L",
+                "display": "mmol/L"
+              }
+            }
+          ],
+          "type": "decimal"
+        }
+      ]
+    }
+  ]
+}

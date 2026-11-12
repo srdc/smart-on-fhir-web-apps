@@ -1,0 +1,9 @@
+<section *ngIf="appMode.mode === null" class="mode-entry">
+  <img src="assets/stage-circle-white.png" alt="STAGE" class="mode-entry__logo">
+  <h1>STAGE Clinical Risk Prediction</h1>
+  <p class="text-muted">Choose how you would like to enter the application.</p>
+  <div class="mode-entry__choices">
+    <button type="button" class="btn btn-primary btn-lg" (click)="select('risk_prediction')">Risk Prediction</button>
+    <button type="button" class="btn btn-outline-primary btn-lg" (click)="select('study')">Clinician Study</button>
+  </div>
+</section>

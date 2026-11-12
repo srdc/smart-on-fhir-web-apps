@@ -17,7 +17,7 @@
       {
         "feature_name": "BMI 0.0",
         "display_name": "BMI",
-        "mean_abs_shap": 0.611305,
+        "mean_abs_shap": 0.516931,
         "direction_pattern": "mixed_direction",
         "color_pattern": {
           "high_value_side": "mixed",
@@ -25,9 +25,9 @@
         },
         "spread_level": "moderate",
         "spread_range": {
-          "min_shap": 0.546805,
-          "max_shap": 0.743355,
-          "range_width": 0.196549
+          "min_shap": 0.415175,
+          "max_shap": 0.622484,
+          "range_width": 0.207309
         },
         "variability_pattern": "moderate_variability",
         "effect_stability": "mixed_behavior",
@@ -38,7 +38,7 @@
       {
         "feature_name": "Domestic garden pct 1000m 0.0",
         "display_name": "Domestic garden pct 1000m",
-        "mean_abs_shap": 0.222403,
+        "mean_abs_shap": 0.319233,
         "direction_pattern": "mixed_direction",
         "color_pattern": {
           "high_value_side": "mixed",
@@ -46,9 +46,9 @@
         },
         "spread_level": "moderate",
         "spread_range": {
-          "min_shap": -0.303268,
-          "max_shap": -0.125412,
-          "range_width": 0.177856
+          "min_shap": -0.44237,
+          "max_shap": -0.209878,
+          "range_width": 0.232492
         },
         "variability_pattern": "moderate_variability",
         "effect_stability": "mixed_behavior",
@@ -57,30 +57,30 @@
         "interaction_strength": "low"
       },
       {
-        "feature_name": "age_at_baseline",
-        "display_name": "age_at_baseline",
-        "mean_abs_shap": 0.142128,
-        "direction_pattern": "mixed_direction",
+        "feature_name": "Age 0.0",
+        "display_name": "Age",
+        "mean_abs_shap": 0.150711,
+        "direction_pattern": "higher_values_usually_increase_prediction",
         "color_pattern": {
-          "high_value_side": "mixed",
-          "low_value_side": "mixed"
+          "high_value_side": "right",
+          "low_value_side": "left"
         },
-        "spread_level": "low",
+        "spread_level": "high",
         "spread_range": {
-          "min_shap": -0.176717,
-          "max_shap": -0.087974,
-          "range_width": 0.088742
+          "min_shap": -0.203338,
+          "max_shap": 0.413083,
+          "range_width": 0.616421
         },
-        "variability_pattern": "low_variability",
-        "effect_stability": "mixed_behavior",
+        "variability_pattern": "highly_variable_across_patients",
+        "effect_stability": "context_dependent",
         "subgroup_importance_pattern": "important_in_many_patients",
         "interaction_hint": false,
         "interaction_strength": "low"
       },
       {
-        "feature_name": "Creatinine 0.0",
-        "display_name": "Creatinine",
-        "mean_abs_shap": 0.07373,
+        "feature_name": "Hand grip strength (right) 0.0",
+        "display_name": "Hand grip strength (right)",
+        "mean_abs_shap": 0.07658,
         "direction_pattern": "higher_values_usually_decrease_prediction",
         "color_pattern": {
           "high_value_side": "left",
@@ -88,9 +88,9 @@
         },
         "spread_level": "moderate",
         "spread_range": {
-          "min_shap": -0.109274,
-          "max_shap": 0.150704,
-          "range_width": 0.259978
+          "min_shap": -0.161693,
+          "max_shap": 0.308055,
+          "range_width": 0.469748
         },
         "variability_pattern": "moderate_variability",
         "effect_stability": "fairly_consistent_direction",
@@ -101,7 +101,7 @@
       {
         "feature_name": "Vitamin D 0.0",
         "display_name": "Vitamin D",
-        "mean_abs_shap": 0.064329,
+        "mean_abs_shap": 0.075433,
         "direction_pattern": "higher_values_usually_increase_prediction",
         "color_pattern": {
           "high_value_side": "right",
@@ -109,9 +109,9 @@
         },
         "spread_level": "moderate",
         "spread_range": {
-          "min_shap": -0.139667,
-          "max_shap": 0.187473,
-          "range_width": 0.327139
+          "min_shap": -0.184095,
+          "max_shap": 0.23054,
+          "range_width": 0.414635
         },
         "variability_pattern": "moderate_variability",
         "effect_stability": "fairly_consistent_direction",
@@ -120,72 +120,9 @@
         "interaction_strength": "low"
       },
       {
-        "feature_name": "C-reactive protein 0.0",
-        "display_name": "C-reactive protein",
-        "mean_abs_shap": 0.064154,
-        "direction_pattern": "higher_values_usually_increase_prediction",
-        "color_pattern": {
-          "high_value_side": "right",
-          "low_value_side": "left"
-        },
-        "spread_level": "moderate",
-        "spread_range": {
-          "min_shap": -0.179559,
-          "max_shap": 0.111455,
-          "range_width": 0.291014
-        },
-        "variability_pattern": "moderate_variability",
-        "effect_stability": "fairly_consistent_direction",
-        "subgroup_importance_pattern": "important_in_some_patients_more_than_others",
-        "interaction_hint": false,
-        "interaction_strength": "low"
-      },
-      {
-        "feature_name": "Alkaline phosphatase 0.0",
-        "display_name": "Alkaline phosphatase",
-        "mean_abs_shap": 0.047252,
-        "direction_pattern": "higher_values_usually_increase_prediction",
-        "color_pattern": {
-          "high_value_side": "right",
-          "low_value_side": "left"
-        },
-        "spread_level": "moderate",
-        "spread_range": {
-          "min_shap": -0.08244,
-          "max_shap": 0.083754,
-          "range_width": 0.166194
-        },
-        "variability_pattern": "moderate_variability",
-        "effect_stability": "fairly_consistent_direction",
-        "subgroup_importance_pattern": "important_in_some_patients_more_than_others",
-        "interaction_hint": false,
-        "interaction_strength": "low"
-      },
-      {
-        "feature_name": "Urea 0.0",
-        "display_name": "Urea",
-        "mean_abs_shap": 0.042476,
-        "direction_pattern": "higher_values_usually_increase_prediction",
-        "color_pattern": {
-          "high_value_side": "right",
-          "low_value_side": "left"
-        },
-        "spread_level": "moderate",
-        "spread_range": {
-          "min_shap": -0.050463,
-          "max_shap": 0.155246,
-          "range_width": 0.205708
-        },
-        "variability_pattern": "moderate_variability",
-        "effect_stability": "fairly_consistent_direction",
-        "subgroup_importance_pattern": "important_in_some_patients_more_than_others",
-        "interaction_hint": false,
-        "interaction_strength": "low"
-      },
-      {
-        "feature_name": "Trunk fat percentage 0.0",
-        "display_name": "Trunk fat percentage",
-        "mean_abs_shap": 0.036067,
+        "feature_name": "Creatinine 0.0",
+        "display_name": "Creatinine",
+        "mean_abs_shap": 0.071054,
         "direction_pattern": "higher_values_usually_decrease_prediction",
         "color_pattern": {
           "high_value_side": "left",
@@ -193,30 +130,9 @@
         },
         "spread_level": "moderate",
         "spread_range": {
-          "min_shap": -0.035896,
-          "max_shap": 0.097267,
-          "range_width": 0.133163
-        },
-        "variability_pattern": "moderate_variability",
-        "effect_stability": "fairly_consistent_direction",
-        "subgroup_importance_pattern": "important_in_some_patients_more_than_others",
-        "interaction_hint": false,
-        "interaction_strength": "low"
-      },
-      {
-        "feature_name": "Duration moderate activity 0.0",
-        "display_name": "Duration moderate activity",
-        "mean_abs_shap": 0.034666,
-        "direction_pattern": "higher_values_usually_increase_prediction",
-        "color_pattern": {
-          "high_value_side": "right",
-          "low_value_side": "left"
-        },
-        "spread_level": "moderate",
-        "spread_range": {
-          "min_shap": -0.055259,
-          "max_shap": 0.081724,
-          "range_width": 0.136982
+          "min_shap": -0.110273,
+          "max_shap": 0.179761,
+          "range_width": 0.290034
         },
         "variability_pattern": "moderate_variability",
         "effect_stability": "fairly_consistent_direction",
@@ -227,7 +143,7 @@
       {
         "feature_name": "Body fat-free mass 0.0",
         "display_name": "Body fat-free mass",
-        "mean_abs_shap": 0.034618,
+        "mean_abs_shap": 0.062863,
         "direction_pattern": "higher_values_usually_increase_prediction",
         "color_pattern": {
           "high_value_side": "right",
@@ -235,9 +151,51 @@
         },
         "spread_level": "moderate",
         "spread_range": {
-          "min_shap": -0.053647,
-          "max_shap": 0.069778,
-          "range_width": 0.123425
+          "min_shap": -0.092205,
+          "max_shap": 0.143542,
+          "range_width": 0.235747
+        },
+        "variability_pattern": "moderate_variability",
+        "effect_stability": "fairly_consistent_direction",
+        "subgroup_importance_pattern": "important_in_some_patients_more_than_others",
+        "interaction_hint": false,
+        "interaction_strength": "low"
+      },
+      {
+        "feature_name": "C-reactive protein 0.0",
+        "display_name": "C-reactive protein",
+        "mean_abs_shap": 0.061389,
+        "direction_pattern": "higher_values_usually_increase_prediction",
+        "color_pattern": {
+          "high_value_side": "right",
+          "low_value_side": "left"
+        },
+        "spread_level": "moderate",
+        "spread_range": {
+          "min_shap": -0.139254,
+          "max_shap": 0.137956,
+          "range_width": 0.27721
+        },
+        "variability_pattern": "moderate_variability",
+        "effect_stability": "fairly_consistent_direction",
+        "subgroup_importance_pattern": "important_in_some_patients_more_than_others",
+        "interaction_hint": false,
+        "interaction_strength": "low"
+      },
+      {
+        "feature_name": "Alkaline phosphatase 0.0",
+        "display_name": "Alkaline phosphatase",
+        "mean_abs_shap": 0.042974,
+        "direction_pattern": "higher_values_usually_increase_prediction",
+        "color_pattern": {
+          "high_value_side": "right",
+          "low_value_side": "left"
+        },
+        "spread_level": "moderate",
+        "spread_range": {
+          "min_shap": -0.10238,
+          "max_shap": 0.080943,
+          "range_width": 0.183323
         },
         "variability_pattern": "moderate_variability",
         "effect_stability": "fairly_consistent_direction",
@@ -248,7 +206,7 @@
       {
         "feature_name": "Phosphate 0.0",
         "display_name": "Phosphate",
-        "mean_abs_shap": 0.033899,
+        "mean_abs_shap": 0.042813,
         "direction_pattern": "higher_values_usually_increase_prediction",
         "color_pattern": {
           "high_value_side": "right",
@@ -256,116 +214,11 @@
         },
         "spread_level": "moderate",
         "spread_range": {
-          "min_shap": -0.099124,
-          "max_shap": 0.083776,
-          "range_width": 0.1829
+          "min_shap": -0.165201,
+          "max_shap": 0.13828,
+          "range_width": 0.303481
         },
         "variability_pattern": "moderate_variability",
-        "effect_stability": "fairly_consistent_direction",
-        "subgroup_importance_pattern": "important_in_some_patients_more_than_others",
-        "interaction_hint": false,
-        "interaction_strength": "low"
-      },
-      {
-        "feature_name": "Red blood cell count 0.0",
-        "display_name": "Red blood cell count",
-        "mean_abs_shap": 0.032972,
-        "direction_pattern": "higher_values_usually_decrease_prediction",
-        "color_pattern": {
-          "high_value_side": "left",
-          "low_value_side": "right"
-        },
-        "spread_level": "moderate",
-        "spread_range": {
-          "min_shap": -0.072503,
-          "max_shap": 0.058363,
-          "range_width": 0.130866
-        },
-        "variability_pattern": "moderate_variability",
-        "effect_stability": "fairly_consistent_direction",
-        "subgroup_importance_pattern": "important_in_some_patients_more_than_others",
-        "interaction_hint": false,
-        "interaction_strength": "low"
-      },
-      {
-        "feature_name": "Haemoglobin concentration 0.0",
-        "display_name": "Haemoglobin concentration",
-        "mean_abs_shap": 0.024119,
-        "direction_pattern": "higher_values_usually_decrease_prediction",
-        "color_pattern": {
-          "high_value_side": "left",
-          "low_value_side": "right"
-        },
-        "spread_level": "moderate",
-        "spread_range": {
-          "min_shap": -0.036928,
-          "max_shap": 0.071796,
-          "range_width": 0.108725
-        },
-        "variability_pattern": "moderate_variability",
-        "effect_stability": "fairly_consistent_direction",
-        "subgroup_importance_pattern": "important_in_some_patients_more_than_others",
-        "interaction_hint": false,
-        "interaction_strength": "low"
-      },
-      {
-        "feature_name": "Mean platelet volume 0.0",
-        "display_name": "Mean platelet volume",
-        "mean_abs_shap": 0.019155,
-        "direction_pattern": "mixed_direction",
-        "color_pattern": {
-          "high_value_side": "mixed",
-          "low_value_side": "mixed"
-        },
-        "spread_level": "low",
-        "spread_range": {
-          "min_shap": -0.045285,
-          "max_shap": -0.010286,
-          "range_width": 0.035
-        },
-        "variability_pattern": "low_variability",
-        "effect_stability": "mixed_behavior",
-        "subgroup_importance_pattern": "important_in_some_patients_more_than_others",
-        "interaction_hint": false,
-        "interaction_strength": "low"
-      },
-      {
-        "feature_name": "Lymphocyte count 0.0",
-        "display_name": "Lymphocyte count",
-        "mean_abs_shap": 0.013775,
-        "direction_pattern": "higher_values_usually_decrease_prediction",
-        "color_pattern": {
-          "high_value_side": "left",
-          "low_value_side": "right"
-        },
-        "spread_level": "low",
-        "spread_range": {
-          "min_shap": -0.044918,
-          "max_shap": 0.023281,
-          "range_width": 0.0682
-        },
-        "variability_pattern": "low_variability",
-        "effect_stability": "fairly_consistent_direction",
-        "subgroup_importance_pattern": "important_in_some_patients_more_than_others",
-        "interaction_hint": false,
-        "interaction_strength": "low"
-      },
-      {
-        "feature_name": "HbA1c 0.0",
-        "display_name": "HbA1c",
-        "mean_abs_shap": 0.01158,
-        "direction_pattern": "higher_values_usually_decrease_prediction",
-        "color_pattern": {
-          "high_value_side": "left",
-          "low_value_side": "right"
-        },
-        "spread_level": "low",
-        "spread_range": {
-          "min_shap": -0.077275,
-          "max_shap": 0.021769,
-          "range_width": 0.099043
-        },
-        "variability_pattern": "low_variability",
         "effect_stability": "fairly_consistent_direction",
         "subgroup_importance_pattern": "important_in_some_patients_more_than_others",
         "interaction_hint": false,
@@ -374,7 +227,7 @@
       {
         "feature_name": "HDL cholesterol 0.0",
         "display_name": "HDL cholesterol",
-        "mean_abs_shap": 0.01104,
+        "mean_abs_shap": 0.042408,
         "direction_pattern": "mixed_direction",
         "color_pattern": {
           "high_value_side": "mixed",
@@ -382,9 +235,9 @@
         },
         "spread_level": "low",
         "spread_range": {
-          "min_shap": 0.005127,
-          "max_shap": 0.023292,
-          "range_width": 0.018165
+          "min_shap": -0.00225,
+          "max_shap": 0.081933,
+          "range_width": 0.084184
         },
         "variability_pattern": "low_variability",
         "effect_stability": "mixed_behavior",
@@ -393,42 +246,189 @@
         "interaction_strength": "low"
       },
       {
-        "feature_name": "Aspartate aminotransferase 0.0",
-        "display_name": "Aspartate aminotransferase",
-        "mean_abs_shap": 0.01027,
+        "feature_name": "PM coarse fraction 0.0",
+        "display_name": "PM coarse fraction",
+        "mean_abs_shap": 0.039737,
         "direction_pattern": "higher_values_usually_increase_prediction",
         "color_pattern": {
           "high_value_side": "right",
           "low_value_side": "left"
         },
-        "spread_level": "low",
+        "spread_level": "moderate",
         "spread_range": {
-          "min_shap": -0.060102,
-          "max_shap": 0.017233,
-          "range_width": 0.077335
+          "min_shap": -0.140595,
+          "max_shap": 0.067884,
+          "range_width": 0.208479
         },
-        "variability_pattern": "low_variability",
+        "variability_pattern": "moderate_variability",
         "effect_stability": "fairly_consistent_direction",
         "subgroup_importance_pattern": "important_in_some_patients_more_than_others",
         "interaction_hint": false,
         "interaction_strength": "low"
       },
       {
-        "feature_name": "Calcium 0.0",
-        "display_name": "Calcium",
-        "mean_abs_shap": 0.008435,
+        "feature_name": "Urea 0.0",
+        "display_name": "Urea",
+        "mean_abs_shap": 0.037545,
+        "direction_pattern": "higher_values_usually_increase_prediction",
+        "color_pattern": {
+          "high_value_side": "right",
+          "low_value_side": "left"
+        },
+        "spread_level": "moderate",
+        "spread_range": {
+          "min_shap": -0.050171,
+          "max_shap": 0.18985,
+          "range_width": 0.240021
+        },
+        "variability_pattern": "moderate_variability",
+        "effect_stability": "fairly_consistent_direction",
+        "subgroup_importance_pattern": "important_in_some_patients_more_than_others",
+        "interaction_hint": false,
+        "interaction_strength": "low"
+      },
+      {
+        "feature_name": "Aspartate aminotransferase 0.0",
+        "display_name": "Aspartate aminotransferase",
+        "mean_abs_shap": 0.035355,
+        "direction_pattern": "higher_values_usually_increase_prediction",
+        "color_pattern": {
+          "high_value_side": "right",
+          "low_value_side": "left"
+        },
+        "spread_level": "moderate",
+        "spread_range": {
+          "min_shap": -0.152802,
+          "max_shap": 0.083923,
+          "range_width": 0.236725
+        },
+        "variability_pattern": "moderate_variability",
+        "effect_stability": "fairly_consistent_direction",
+        "subgroup_importance_pattern": "important_in_some_patients_more_than_others",
+        "interaction_hint": false,
+        "interaction_strength": "low"
+      },
+      {
+        "feature_name": "Trunk fat percentage 0.0",
+        "display_name": "Trunk fat percentage",
+        "mean_abs_shap": 0.033214,
+        "direction_pattern": "mixed_direction",
+        "color_pattern": {
+          "high_value_side": "mixed",
+          "low_value_side": "mixed"
+        },
+        "spread_level": "moderate",
+        "spread_range": {
+          "min_shap": -0.033022,
+          "max_shap": 0.104057,
+          "range_width": 0.137079
+        },
+        "variability_pattern": "moderate_variability",
+        "effect_stability": "mixed_behavior",
+        "subgroup_importance_pattern": "important_in_some_patients_more_than_others",
+        "interaction_hint": false,
+        "interaction_strength": "low"
+      },
+      {
+        "feature_name": "Red blood cell count 0.0",
+        "display_name": "Red blood cell count",
+        "mean_abs_shap": 0.031155,
         "direction_pattern": "higher_values_usually_decrease_prediction",
         "color_pattern": {
           "high_value_side": "left",
           "low_value_side": "right"
         },
+        "spread_level": "moderate",
+        "spread_range": {
+          "min_shap": -0.078701,
+          "max_shap": 0.090247,
+          "range_width": 0.168948
+        },
+        "variability_pattern": "moderate_variability",
+        "effect_stability": "fairly_consistent_direction",
+        "subgroup_importance_pattern": "important_in_some_patients_more_than_others",
+        "interaction_hint": false,
+        "interaction_strength": "low"
+      },
+      {
+        "feature_name": "Neutrophil count 0.0",
+        "display_name": "Neutrophil count",
+        "mean_abs_shap": 0.030281,
+        "direction_pattern": "mixed_direction",
+        "color_pattern": {
+          "high_value_side": "mixed",
+          "low_value_side": "mixed"
+        },
         "spread_level": "low",
         "spread_range": {
-          "min_shap": -0.019399,
-          "max_shap": 0.125252,
-          "range_width": 0.144651
+          "min_shap": 0.001945,
+          "max_shap": 0.05867,
+          "range_width": 0.056725
         },
         "variability_pattern": "low_variability",
+        "effect_stability": "mixed_behavior",
+        "subgroup_importance_pattern": "important_in_some_patients_more_than_others",
+        "interaction_hint": false,
+        "interaction_strength": "low"
+      },
+      {
+        "feature_name": "Standing height 0.0",
+        "display_name": "Standing height",
+        "mean_abs_shap": 0.028877,
+        "direction_pattern": "higher_values_usually_decrease_prediction",
+        "color_pattern": {
+          "high_value_side": "left",
+          "low_value_side": "right"
+        },
+        "spread_level": "moderate",
+        "spread_range": {
+          "min_shap": -0.179027,
+          "max_shap": 0.081501,
+          "range_width": 0.260528
+        },
+        "variability_pattern": "moderate_variability",
+        "effect_stability": "fairly_consistent_direction",
+        "subgroup_importance_pattern": "important_in_some_patients_more_than_others",
+        "interaction_hint": false,
+        "interaction_strength": "low"
+      },
+      {
+        "feature_name": "Mean time to correctly identify matches 0.0",
+        "display_name": "Mean time to correctly identify matches",
+        "mean_abs_shap": 0.0219,
+        "direction_pattern": "mixed_direction",
+        "color_pattern": {
+          "high_value_side": "mixed",
+          "low_value_side": "mixed"
+        },
+        "spread_level": "moderate",
+        "spread_range": {
+          "min_shap": -0.086699,
+          "max_shap": 0.078162,
+          "range_width": 0.164862
+        },
+        "variability_pattern": "moderate_variability",
+        "effect_stability": "mixed_behavior",
+        "subgroup_importance_pattern": "important_in_some_patients_more_than_others",
+        "interaction_hint": false,
+        "interaction_strength": "low"
+      },
+      {
+        "feature_name": "Haemoglobin concentration 0.0",
+        "display_name": "Haemoglobin concentration",
+        "mean_abs_shap": 0.020742,
+        "direction_pattern": "higher_values_usually_decrease_prediction",
+        "color_pattern": {
+          "high_value_side": "left",
+          "low_value_side": "right"
+        },
+        "spread_level": "moderate",
+        "spread_range": {
+          "min_shap": -0.029575,
+          "max_shap": 0.079135,
+          "range_width": 0.10871
+        },
+        "variability_pattern": "moderate_variability",
         "effect_stability": "fairly_consistent_direction",
         "subgroup_importance_pattern": "important_in_some_patients_more_than_others",
         "interaction_hint": false,

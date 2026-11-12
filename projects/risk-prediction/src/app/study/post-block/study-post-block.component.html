@@ -1,0 +1,84 @@
+<section class="post-block-questionnaire">
+  <h2>{{ sectionTitle }} questionnaire</h2>
+  <p class="text-muted mb-4">
+    Please answer the following questions about the explanation interface you have just used.
+  </p>
+
+  <div *ngIf="draftError" class="alert alert-warning" role="alert">{{ draftError }}</div>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <section class="mb-5" formGroupName="nasaRtlx">
+      <h3 class="h4">Workload</h3>
+
+      <div *ngFor="let question of nasaQuestions" class="card shadow-sm mb-3">
+        <div class="card-body">
+          <label class="form-label fw-semibold" [for]="'nasa-' + question.id">
+            {{ question.title }} <span class="text-danger" aria-hidden="true">*</span>
+          </label>
+          <p>{{ question.prompt }}</p>
+          <input
+            type="range"
+            class="form-range"
+            [id]="'nasa-' + question.id"
+            [formControlName]="question.id"
+            min="0"
+            max="100"
+            step="5"
+            [attr.aria-describedby]="'nasa-' + question.id + '-anchors'">
+          <div class="d-flex justify-content-between" [id]="'nasa-' + question.id + '-anchors'">
+            <span>{{ question.lowAnchor }}</span>
+            <strong>{{ form.get('nasaRtlx.' + question.id)?.value ?? 'Not answered' }}</strong>
+            <span>{{ question.highAnchor }}</span>
+          </div>
+          <div *ngIf="showValidation('nasaRtlx.' + question.id)" class="invalid-feedback d-block">
+            Select a workload rating from 0 to 100.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="mb-5" formGroupName="sus">
+      <h3 class="h4">Usability</h3>
+      <p>{{ susInstruction }}</p>
+      <p class="text-muted small">1 = Strongly disagree &nbsp; 5 = Strongly agree</p>
+
+      <fieldset *ngFor="let question of susQuestions; let index = index" class="card shadow-sm mb-3">
+        <div class="card-body">
+          <legend class="h6">{{ index + 1 }}. {{ question.prompt }} <span class="text-danger" aria-hidden="true">*</span></legend>
+          <div class="rating-options">
+            <div *ngFor="let value of agreementScale" class="form-check form-check-inline">
+              <input class="form-check-input" type="radio"
+                [id]="'sus-' + question.id + '-' + value"
+                [formControlName]="question.id" [value]="value">
+              <label class="form-check-label" [for]="'sus-' + question.id + '-' + value">{{ value }}</label>
+            </div>
+          </div>
+          <div *ngIf="showValidation('sus.' + question.id)" class="invalid-feedback d-block">Select one response.</div>
+        </div>
+      </fieldset>
+    </section>
+
+    <section class="mb-4" formGroupName="perceivedExplanationQuality">
+      <h3 class="h4">Explanation quality</h3>
+      <p class="text-muted small">1 = Strongly disagree &nbsp; 5 = Strongly agree</p>
+
+      <fieldset *ngFor="let question of qualityQuestions; let index = index" class="card shadow-sm mb-3">
+        <div class="card-body">
+          <legend class="h6">{{ index + 1 }}. {{ question.prompt }} <span class="text-danger" aria-hidden="true">*</span></legend>
+          <div class="rating-options">
+            <div *ngFor="let value of agreementScale" class="form-check form-check-inline">
+              <input class="form-check-input" type="radio"
+                [id]="'quality-' + question.id + '-' + value"
+                [formControlName]="question.id" [value]="value">
+              <label class="form-check-label" [for]="'quality-' + question.id + '-' + value">{{ value }}</label>
+            </div>
+          </div>
+          <div *ngIf="showValidation('perceivedExplanationQuality.' + question.id)" class="invalid-feedback d-block">Select one response.</div>
+        </div>
+      </fieldset>
+    </section>
+
+    <div *ngIf="submissionError" class="alert alert-danger" role="alert">{{ submissionError }}</div>
+    <button type="submit" class="btn btn-primary">Submit {{ sectionTitle }} questionnaire</button>
+  </form>
+</section>

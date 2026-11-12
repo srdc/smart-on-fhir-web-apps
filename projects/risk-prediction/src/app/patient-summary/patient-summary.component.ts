@@ -1,42 +1,38 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import {ActivatedRoute, Router} from '@angular/router';
 import { SmartOnFhirService } from 'ng-smart-on-fhir';
 import moment from 'moment';
-
-interface SidebarRow {
-  label: string;
-  value: string;
-}
-
-interface SummaryItem {
-  primary: string;
-  secondary?: string;
-  date?: string;
-  source?: string;        // badge text
-  linkLabel?: string;     // optional link text (e.g., "See response")
-  linkHref?: string;      // optional link URL
-}
+import {firstValueFrom} from 'rxjs';
+import {StudyCaseStimulusService} from '../study/services/study-case-stimulus.service';
+import {PatientSummaryItem} from './patient-summary.models';
+import {PatientSummaryShellService} from './patient-summary-shell.service';
+import {StudyProgressService} from '../study/services/study-progress.service';
 
 @Component({
   selector: 'rp-patient-summary',
   templateUrl: './patient-summary.component.html',
   styleUrls: ['./patient-summary.component.scss']
 })
-export class PatientSummaryComponent implements OnInit {
+export class PatientSummaryComponent implements OnInit, OnDestroy {
   // Raw FHIR
   patient?: fhir4.Patient;
 
-  // View-model for UI components
-  sidebarRows: SidebarRow[] = [];
-
   // Panels
-  conditionItems:  SummaryItem[] = [];
-  symptomItems:    SummaryItem[] = [];
-  medicationItems: SummaryItem[] = [];
-  familyItems:     SummaryItem[] = [];
-  labItems:        SummaryItem[] = [];
-  vitalItems:      SummaryItem[] = [];
-  lifestyleItems:  SummaryItem[] = [];
-  surveyItems:     SummaryItem[] = [];
+  conditionItems:  PatientSummaryItem[] = [];
+  symptomItems:    PatientSummaryItem[] = [];
+  medicationItems: PatientSummaryItem[] = [];
+  familyItems:     PatientSummaryItem[] = [];
+  labItems:        PatientSummaryItem[] = [];
+  vitalItems:      PatientSummaryItem[] = [];
+  lifestyleItems:  PatientSummaryItem[] = [];
+  surveyItems:     PatientSummaryItem[] = [];
+  historyEvents?: import('./history/history.types').HistoryEvent[];
+
+  readonly isStudyCaseSummary: boolean;
+  readonly continueRoute: string | any[];
+  readonly studyCaseId: string | null;
+  studyContinueError: string | null = null;
+  studyContinuePending = false;
 
   // Paging states
   itemsPerPage = 10;
@@ -54,10 +50,60 @@ export class PatientSummaryComponent implements OnInit {
   private static readonly DATE_FMT = 'DD/MM/YYYY';
   private questionnaires: { [ref: string]: fhir4.Questionnaire }|undefined;
 
-  constructor(private sof: SmartOnFhirService) {}
+  constructor(
+    private sof: SmartOnFhirService,
+    private route: ActivatedRoute,
+    private router: Router,
+    private studyCases: StudyCaseStimulusService,
+    private summaryShell: PatientSummaryShellService,
+    private studyProgress: StudyProgressService
+  ) {
+    this.isStudyCaseSummary = this.route.snapshot.data['studyCaseSummary'] === true;
+    const caseId = this.route.snapshot.paramMap.get('caseId');
+    this.studyCaseId = caseId;
+    this.continueRoute = this.isStudyCaseSummary && caseId
+      ? ['/study/cases', caseId, 'form']
+      : '/form';
+  }
+
+  continueStudyCase(): void {
+    if (!this.isStudyCaseSummary || !this.studyCaseId || this.studyContinuePending) return;
+    this.studyContinuePending = true;
+    this.studyContinueError = null;
+    this.studyProgress.beginForm(this.studyCaseId).subscribe({
+      next: () => void this.router.navigate(
+        ['/study/cases', this.studyCaseId, 'form'],
+        {replaceUrl: true}
+      ),
+      error: error => {
+        this.studyContinuePending = false;
+        this.studyContinueError = this.studyProgress.participantFacingError(error, 'Case setup transition');
+      }
+    });
+  }
 
   async ngOnInit(): Promise<void> {
     try {
+      if (this.isStudyCaseSummary) {
+        const caseId = this.route.snapshot.paramMap.get('caseId');
+        if (!caseId) throw new Error('Study case summary route is missing caseId.');
+        const stimulus = await firstValueFrom(this.studyCases.getCase(caseId));
+        this.patient = stimulus.case.patientProfile;
+        const snapshot = stimulus.case.patientSummary;
+        this.conditionItems = this.presentFrozenItems(snapshot.conditionItems);
+        this.symptomItems = this.presentFrozenItems(snapshot.symptomItems);
+        this.medicationItems = this.presentFrozenItems(snapshot.medicationItems);
+        this.familyItems = this.presentFrozenItems(snapshot.familyItems);
+        this.labItems = this.presentFrozenItems(snapshot.labItems);
+        this.vitalItems = this.presentFrozenItems(snapshot.vitalItems);
+        this.lifestyleItems = this.presentFrozenItems(snapshot.lifestyleItems);
+        this.surveyItems = this.presentFrozenItems(snapshot.surveyItems);
+        this.historyEvents = snapshot.historyEvents;
+        const frozenAge = Number(stimulus.case.questionnaireAnswers['21003']);
+        this.summaryShell.setStudyPatient(this.patient, frozenAge);
+        return;
+      }
+
       // 1) Patient
       this.patient = await this.sof.getPatient();
       const subjectRef = this.patient?.id ? `Patient/${this.patient.id}` : undefined;
@@ -98,7 +144,6 @@ export class PatientSummaryComponent implements OnInit {
       }
 
       // 4) Transform FHIR -> UI inputs
-      this.sidebarRows    = this.buildSidebarRows(this.patient, lastVisit);
       this.conditionItems = this.buildConditionItems(conditionsB);
       this.symptomItems   = this.buildSymptomItems(conditionsB);
       this.medicationItems= this.buildMedicationItems(medsB);
@@ -111,7 +156,6 @@ export class PatientSummaryComponent implements OnInit {
       this.surveyItems    = this.buildSurveyItems(surveyB);
     } catch (err) {
       console.error('Error loading FHIR data', err);
-      this.sidebarRows     = [];
       this.conditionItems  = [];
       this.symptomItems    = [];
       this.medicationItems = [];
@@ -123,33 +167,39 @@ export class PatientSummaryComponent implements OnInit {
     }
   }
 
-  /** Patient -> sidebar rows */
-  private buildSidebarRows(p?: fhir4.Patient, lastVisit: string = ''): SidebarRow[] {
-    if (!p) return [];
-    return [
-      { label: 'Name',       value: p.name?.[0]?.text || this.buildHumanName(p) || '' },
-      { label: 'Last Visit', value: lastVisit },
-      { label: 'Age',        value: this.calculateAge(p.birthDate) },
-      { label: 'Sex',        value: p.gender ?? '' },
-      { label: 'Ethnicity',  value: this.getEthnicity(p) }
-    ];
+  ngOnDestroy(): void {
+    if (this.isStudyCaseSummary) this.summaryShell.clearStudyPatient();
   }
 
-  /** Try to read ethnicity if present (otherwise empty) */
-  private getEthnicity(p: fhir4.Patient): string {
-    const ext = p.extension ?? [];
-    const e = ext.find(x =>
-      (x.url || '').toLowerCase().includes('ethnic') ||
-      (x.url || '').toLowerCase().includes('race')
-    ) as any;
+  private presentFrozenItems(items: PatientSummaryItem[]): PatientSummaryItem[] {
+    return items.map(item => ({
+      ...item,
+      secondary: this.formatFrozenSecondary(item.primary, item.secondary),
+      source: undefined
+    }));
+  }
 
-    const text =
-      e?.valueString ??
-      e?.valueCodeableConcept?.text ??
-      e?.valueCodeableConcept?.coding?.[0]?.display ??
-      '';
+  private formatFrozenSecondary(label: string, secondary?: string): string | undefined {
+    if (!secondary) return secondary;
+    const match = secondary.match(/^(-?\d+(?:\.\d+)?)(.*)$/);
+    if (!match) return secondary;
 
-    return text || '';
+    const decimals: Record<string, number> = {
+      'Age': 0,
+      'Pulse': 0,
+      'BMI': 2,
+      'Standing height': 1,
+      'Waist circumference': 1,
+      'Hip circumference': 1,
+      'Systolic blood pressure': 1,
+      'Diastolic blood pressure': 1,
+      'Sleep duration': 1
+    };
+    const precision = decimals[label] ?? 2;
+    const value = Number(match[1]);
+    if (!Number.isFinite(value)) return secondary;
+    const displayed = label === 'Age' ? Math.floor(value).toString() : value.toFixed(precision);
+    return `${displayed}${match[2]}`;
   }
 
   /** Latest Encounter fetch */
@@ -327,7 +377,7 @@ export class PatientSummaryComponent implements OnInit {
     return catHit || /pain|ache|cough|fever|toothache|back pain|symptom/.test(codeTxt);
   };
 
-  private buildConditionItems(bundle?: fhir4.Bundle<fhir4.Condition>): SummaryItem[] {
+  private buildConditionItems(bundle?: fhir4.Bundle<fhir4.Condition>): PatientSummaryItem[] {
     const entries = bundle?.entry ?? [];
     if (!entries.length) return [];
     return entries
@@ -347,7 +397,7 @@ export class PatientSummaryComponent implements OnInit {
     });
   }
 
-  private buildSymptomItems(bundle?: fhir4.Bundle<fhir4.Condition>): SummaryItem[] {
+  private buildSymptomItems(bundle?: fhir4.Bundle<fhir4.Condition>): PatientSummaryItem[] {
     const entries = bundle?.entry ?? [];
     if (!entries.length) return [];
     return entries
@@ -363,7 +413,7 @@ export class PatientSummaryComponent implements OnInit {
 
   private buildMedicationItems(
     bundle?: fhir4.Bundle<fhir4.MedicationStatement | fhir4.MedicationRequest>
-  ): SummaryItem[] {
+  ): PatientSummaryItem[] {
     const entries = bundle?.entry ?? [];
     if (!entries.length) return [];
 
@@ -385,7 +435,7 @@ export class PatientSummaryComponent implements OnInit {
     });
   }
 
-  private buildFamilyItems(bundle?: fhir4.Bundle<fhir4.FamilyMemberHistory>): SummaryItem[] {
+  private buildFamilyItems(bundle?: fhir4.Bundle<fhir4.FamilyMemberHistory>): PatientSummaryItem[] {
     const entries = bundle?.entry ?? [];
     if (!entries.length) return [];
     return entries.map(e => {
@@ -406,12 +456,12 @@ export class PatientSummaryComponent implements OnInit {
   private buildObservationItems(
     kind: 'vitals' | 'labs',
     bundle?: fhir4.Bundle<fhir4.Observation>
-  ): SummaryItem[] {
+  ): PatientSummaryItem[] {
     const entries = bundle?.entry ?? [];
     if (!entries.length) return [];
 
     const seen = new Set<string>();
-    const out: SummaryItem[] = [];
+    const out: PatientSummaryItem[] = [];
 
     for (const e of entries) {
       const o = e.resource as fhir4.Observation;
@@ -440,14 +490,14 @@ export class PatientSummaryComponent implements OnInit {
     return out;
   }
 
-  private buildLifestyleItems(bundle?: fhir4.Bundle<fhir4.Observation>): SummaryItem[] {
+  private buildLifestyleItems(bundle?: fhir4.Bundle<fhir4.Observation>): PatientSummaryItem[] {
     const entries = bundle?.entry ?? [];
     if (!entries.length) return [];
 
     const wanted = /steps|sleep|alcohol|smoking|tobacco|cigarette|drink|exercise|activity/i;
 
     const seen = new Set<string>();
-    const out: SummaryItem[] = [];
+    const out: PatientSummaryItem[] = [];
 
     for (const e of entries) {
       const o = (e.resource as fhir4.Observation);
@@ -477,7 +527,7 @@ export class PatientSummaryComponent implements OnInit {
     return out;
   }
 
-  private buildSurveyItems(bundle?: fhir4.Bundle<fhir4.QuestionnaireResponse>): SummaryItem[] {
+  private buildSurveyItems(bundle?: fhir4.Bundle<fhir4.QuestionnaireResponse>): PatientSummaryItem[] {
     const entries = bundle?.entry ?? [];
     if (!entries.length) return [];
 
@@ -491,7 +541,7 @@ export class PatientSummaryComponent implements OnInit {
 
     // Keep only the newest per questionnaire
     const seen = new Set<string>();
-    const out: SummaryItem[] = [];
+    const out: PatientSummaryItem[] = [];
 
     for (const e of entries) {
       const qr = e.resource as fhir4.QuestionnaireResponse;

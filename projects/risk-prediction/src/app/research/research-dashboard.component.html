@@ -1,0 +1,23 @@
+<section class="container-fluid py-3">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div><h1 class="h3 mb-1">Study researcher dashboard</h1><p class="text-muted mb-0">Pseudonymous participant overview</p></div>
+    <div class="d-flex gap-2"><button class="btn btn-outline-primary" type="button" (click)="exportAll()">Export All Clinicians (.xlsx)</button><button class="btn btn-outline-secondary" type="button" (click)="logout()">Researcher Logout</button></div>
+  </div>
+  <div *ngIf="error" class="alert alert-danger">{{ error }} <button class="btn btn-sm btn-link" (click)="load()">Retry</button></div>
+  <div *ngIf="exportError" class="alert alert-danger">{{ exportError }}</div>
+  <div *ngIf="loading" class="text-muted">Loading participants…</div>
+  <div *ngIf="!loading && !error && !participants.length" class="alert alert-info">No Study participants found.</div>
+  <div *ngIf="!loading && participants.length" class="table-responsive">
+    <table class="table table-hover align-middle">
+      <thead><tr><th>Participant ID</th><th>Patient-set assignment</th><th>Stage</th><th>Current case</th><th>Completed cases</th><th>Charts only questionnaire</th><th>Charts + LLM questionnaire</th><th>Direct comparison</th><th>Interview</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr *ngFor="let participant of participants" [routerLink]="['/research/participants', participant.participantId]" style="cursor:pointer">
+          <td>{{ participant.participantId }}</td><td>{{ participant.assignmentGroup }}</td><td>{{ stageLabel(participant) }}</td><td>{{ participant.currentCaseId || '—' }}</td>
+          <td>{{ participant.totalCompletedCases }}</td><td>{{ participant.postACompleted ? 'Complete' : 'Pending' }}</td>
+          <td>{{ participant.postBCompleted ? 'Complete' : 'Pending' }}</td><td>{{ participant.comparisonCompleted ? 'Complete' : 'Pending' }}</td><td>{{ participant.interviewCompleted ? 'Complete' : 'Pending' }}</td>
+          <td>{{ participant.completedAt ? 'Complete' : 'In progress' }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>

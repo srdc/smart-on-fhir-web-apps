@@ -8,7 +8,7 @@ import {SmartCdsCommonModule} from "common";
 import {FormsModule} from "@angular/forms";
 import {environment} from "../environments/environment";
 import {TranslateLoader, TranslateModule} from '@ngx-translate/core';
-import {HttpClient, HttpClientModule} from "@angular/common/http";
+import {HTTP_INTERCEPTORS, HttpClient, HttpClientModule} from "@angular/common/http";
 import {TranslateHttpLoader} from "@ngx-translate/http-loader";
 import {QuestionComponent} from "./question/question.component";
 import { ResultsComponent } from './results/results.component';
@@ -20,6 +20,17 @@ import {PatientSummaryComponent} from "./patient-summary/patient-summary.compone
 import {NgxPaginationModule} from "ngx-pagination";
 import {HistorySettingsComponent} from "./patient-summary/history/history-settings.component";
 import {PatientHistoryComponent} from "./patient-summary/history/patient-history.component";
+import {StudyCaseInspectionComponent} from './study/case-inspection/study-case-inspection.component';
+import {StudyAssessmentComponent} from './study/assessment/study-assessment.component';
+import {StudyAuthInterceptor} from './study/auth/study-auth.interceptor';
+import {ModeEntryComponent} from './mode-entry/mode-entry.component';
+import {StudyEntryComponent} from './study/entry/study-entry.component';
+import {SmartResumeComponent} from './study/smart/smart-resume.component';
+import {ResearcherAuthInterceptor} from './research/researcher-auth.interceptor';
+import {StudyCaseProgressIndicatorComponent} from './study/progress/study-case-progress-indicator.component';
+import {StudySectionOrientationComponent} from './study/section/study-section-orientation.component';
+import {StudyComparisonOrientationComponent} from './study/comparison/study-comparison-orientation.component';
+import {StudyInterviewComponent} from './study/interview/study-interview.component';
 
 
 export function HttpLoaderFactory(http: HttpClient) {
@@ -35,7 +46,16 @@ export function HttpLoaderFactory(http: HttpClient) {
     ChatbotComponent,
     HistorySettingsComponent,
     PatientHistoryComponent,
-    PatientSummaryComponent
+    PatientSummaryComponent,
+    StudyCaseInspectionComponent,
+    StudyAssessmentComponent,
+    ModeEntryComponent,
+    StudyEntryComponent,
+    SmartResumeComponent
+    ,StudyCaseProgressIndicatorComponent
+    ,StudySectionOrientationComponent
+    ,StudyComparisonOrientationComponent
+    ,StudyInterviewComponent
   ],
   imports: [
     BrowserModule,
@@ -57,10 +77,21 @@ export function HttpLoaderFactory(http: HttpClient) {
     HeaderModule,
     SummaryPanelModule,
   ],
-  providers: [MenuService],
+  providers: [
+    MenuService,
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: StudyAuthInterceptor,
+      multi: true
+    },
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: ResearcherAuthInterceptor,
+      multi: true
+    }
+  ],
   bootstrap: [AppComponent],
 
 })
 export class AppModule {
 }
-

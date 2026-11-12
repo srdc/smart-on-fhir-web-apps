@@ -20,7 +20,7 @@
 <div *ngIf="error" class="alert alert-danger">
   <h4>Error</h4>
   <p>{{ error }}</p>
-  <button class="btn btn-primary" (click)="goBack()">Back to Questionnaire</button>
+  <button *ngIf="showBackControls" class="btn btn-primary" (click)="goBack()">Back to Questionnaire</button>
 </div>
 
 <!-- Results -->
@@ -29,7 +29,7 @@
   <!-- Header -->
   <div class="d-flex justify-content-between align-items-center mb-4">
     <h2 class="mb-0">Risk Assessment Results</h2>
-    <button class="btn btn-outline-secondary" (click)="goBack()">← Back</button>
+    <button *ngIf="showBackControls" class="btn btn-outline-secondary" (click)="goBack()">← Back</button>
   </div>
 
   <!-- Overall Risk -->
@@ -53,9 +53,18 @@
   <div class="card mb-4 shadow-sm bg-white">
     <div class="card-body">
       <div class="row">
-        <div class="col-md-6">
+        <div class="col-md-6 d-flex flex-column">
           <h5>Disease Risks</h5>
-          <c-chart style="max-width: 600px; margin: auto" type="radar" [data]="chartData" [options]="chartOptions"></c-chart>
+        
+          <div class="flex-grow-1 d-flex align-items-center justify-content-center">
+            <div style="width: 100%; max-width: 600px;">
+              <c-chart
+                type="radar"
+                [data]="chartData"
+                [options]="chartOptions">
+              </c-chart>
+            </div>
+          </div>
         </div>
         <div class="col-md-6">
           <div class="alert alert-info">
@@ -63,7 +72,7 @@
               Each axis represents a specific disease area, and the distance from the center indicates the relative risk magnitude.</p>
             <p>The predictions are as following:</p>
             <ul>
-              <li *ngFor="let disease of diseases"><b>{{disease.disease}}:</b> {{(disease.riskScore * 100) | number:'1.0-0'}}%</li>
+              <li *ngFor="let disease of diseases"><b>{{disease.disease}}:</b> {{ formatPercent(disease.riskScore) }}</li>
             </ul>
           </div>
         </div>
@@ -74,7 +83,7 @@
   <h3 class="mb-4">Disease Risk Predictions & Details</h3>
 
   <div class="accordion">
-    <div *ngFor="let disease of diseases; let i = index" class="accordion-item shadow-sm">
+    <div *ngFor="let disease of diseases; let i = index; trackBy: trackByDisease" class="accordion-item shadow-sm">
       <div class="accordion-header">
         <button class="accordion-button bg-white" [ngClass]="{collapsed: i}" type="button" data-bs-toggle="collapse" [attr.id]="'accordion-btn-' + disease.diseaseId"
                 [attr.data-bs-target]="'#accordion-' + disease.diseaseId" aria-expanded="true" [attr.aria-controls]="'accordion-' + disease.diseaseId">
@@ -114,33 +123,83 @@
 <!--          </tr>-->
 <!--          </tbody>-->
 <!--        </table>-->
-        <div class="row">
-          <div class="col-sm-12 col-md-6 d-flex align-items-center justify-content-center">
+        <div class="row" *ngIf="!effectiveStudyMode">
+          <div class="d-flex align-items-center justify-content-center"
+               [ngClass]="effectiveStudyMode && effectiveStudyCondition !== 'B' ? 'col-12' : 'col-sm-12 col-md-6'">
             <div>
-              <h5 class="text-center mb-2">Beeswarm Plot</h5>
-              <img [src]="'assets/beeswarm/' + resolvedStratum + '/'+ disease.disease + '_beeswarm.png'" style="cursor:pointer;width: 100%; max-width: 600px"
-                   (click)="imageDisplay.src = ('assets/beeswarm/' + resolvedStratum + '/' + disease.disease + '_beeswarm.png')"
+              <h5 class="text-center mb-2">
+                {{ effectiveStudyMode ? 'Global Feature Impact' : 'Beeswarm Plot' }}
+                <button *ngIf="effectiveStudyMode && effectiveStudyCondition !== 'B'" type="button"
+                        class="btn btn-link btn-sm p-0 ms-1 align-baseline text-secondary"
+                        title="Shows how features influence model predictions across the reference population."
+                        aria-label="Global Feature Impact information: Shows how features influence model predictions across the reference population.">
+                  <i class="bi bi-info-circle" aria-hidden="true"></i>
+                </button>
+              </h5>
+              <img [src]="beeswarmImageFor(disease.disease)" style="cursor:pointer;width: 100%; max-width: 600px"
+                   (click)="imageDisplay.src = beeswarmImageFor(disease.disease)"
                    data-bs-toggle="modal" data-bs-target="#imageModal">
               <p class="text-light-emphasis text-center" style="font-size: .6em">Click on image to enlarge</p>
             </div>
           </div>
-          <div class="col-sm-12 col-md-6">
-            <rp-chatbot #chatbot [sessionId]="llmSessionId" [disease]="disease.disease" [stratum]="resolvedStratum" chart="beeswarm"
-                        [riskPredictionObservation]="riskObservations[disease.disease]" [localPlotResponse]="localPlotResponse"></rp-chatbot>
+          <div *ngIf="!effectiveStudyMode || effectiveStudyCondition === 'B'" class="col-sm-12 col-md-6">
+            <div *ngIf="chatbotsEnabled && beeswarmData[disease.disease]">
+              <rp-chatbot #chatbot [sessionId]="studyChatSession('beeswarm', disease.disease)" [disease]="disease.disease" [stratum]="resolvedStratum" chart="beeswarm"
+                          [riskPredictionObservation]="riskObservations[disease.disease]" [patientProfile]="frozenStudyCase?.patientProfile" [studyConversationCaseId]="effectiveStudyMode && effectiveStudyCondition === 'B' ? frozenStudyCase?.caseId : undefined" [primaryStudyDisease]="frozenStudyCase?.targetDisease" [studyMode]="effectiveStudyMode && effectiveStudyCondition === 'B'" [localPlotResponse]="localPlotResponse"
+                          [plotPayload]="beeswarmData[disease.disease]"></rp-chatbot>
+            </div>
           </div>
         </div>
         <div class="row">
-          <div class="col-sm-12 col-md-6 d-flex align-items-center justify-content-center">
-            <div style="width: 100%; max-width: 600px">
-              <h5 class="text-center mb-2">Waterfall Plot</h5>
-              <c-chart type="bar" [options]="waterfallChartOptions" [data]="waterfallChartData[disease.disease]"></c-chart>
+          <div class="col-sm-12 col-md-6">
+            <div style="width: 100%; overflow-x: auto;">
+              <div style="min-width: 750px;">
+                <h5 class="text-center mb-2">
+                  {{ effectiveStudyMode ? 'Patient-Specific Feature Impact' : 'Waterfall Plot' }}
+                </h5>
+                <c-chart
+                  type="bar"
+                  [options]="waterfallChartOptions"
+                  [data]="waterfallChartData[disease.disease]">
+                </c-chart>
+              </div>
             </div>
           </div>
           <div class="col-sm-12 col-md-6">
-            <rp-chatbot #chatbot [sessionId]="llmSessionId" [disease]="disease.disease" chart="waterfall"
-                        [riskPredictionObservation]="riskObservations[disease.disease]" [localPlotResponse]="localPlotResponse"></rp-chatbot>
+            <div *ngIf="showStudyStaticExplanation" class="alert alert-info">
+              <h5 class="mb-3">Chart and Feature Information</h5>
+
+              <h6>About the Chart</h6>
+              <p>
+                The Patient-Specific Feature Impact chart shows how individual
+                patient characteristics contribute to the predicted disease risk
+                relative to the baseline, which represents the model's expected
+                prediction for the relevant reference population.
+              </p>
+
+              <h6 class="mt-4">Feature Information</h6>
+              <ul>
+                <li *ngFor="let feature of getTopShapFeatures(disease.shapFeatures, disease.shapFeatures.length)">
+                  <strong>{{ feature.display_name || feature.name }}:</strong>
+                  {{ formatWaterfallFeatureValue(feature) ?? 'Not available' }}<ng-container *ngIf="formatWaterfallFeatureValue(feature) !== null && feature.feature_unit"> {{ feature.feature_unit }}</ng-container>
+                  ({{ feature.is_imputed === true ? 'Estimated' : feature.is_imputed === false ? 'Observed' : 'Not specified' }})
+                </li>
+              </ul>
+
+              <h6 class="mt-4">About Estimated Values</h6>
+              <p class="mb-0">
+                When patient information is missing, the system estimates the
+                missing values based on available patient data and the relevant
+                reference population to enable risk prediction.
+              </p>
+            </div>
+            <div *ngIf="chatbotsEnabled">
+              <rp-chatbot #chatbot [sessionId]="studyChatSession('waterfall', disease.disease)" [disease]="disease.disease" chart="waterfall"
+                          [riskPredictionObservation]="riskObservations[disease.disease]" [patientProfile]="frozenStudyCase?.patientProfile" [studyConversationCaseId]="effectiveStudyMode && effectiveStudyCondition === 'B' ? frozenStudyCase?.caseId : undefined" [primaryStudyDisease]="frozenStudyCase?.targetDisease" [studyCaseContentHash]="effectiveStudyMode && effectiveStudyCondition === 'B' ? frozenStudyCase?.contentHash : undefined" [studyMode]="effectiveStudyMode && effectiveStudyCondition === 'B'" [localPlotResponse]="localPlotResponse"></rp-chatbot>
+            </div>
           </div>
         </div>
+
       </div>
     </div>
   </div>

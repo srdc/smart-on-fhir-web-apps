@@ -13,7 +13,8 @@ export interface Result {
 }
 
 export interface Prediction {
-  raw_score: number
+  /** Optional because frozen calibrated exports may not retain the pre-calibration score. */
+  raw_score?: number
   risk_score: number
 }
 
@@ -54,14 +55,35 @@ export interface WaterfallData {
   num_features_used: number
   num_missing_features: number
   num_imputed_features: number
+  /** Optional frozen-study provenance; raw SHAP remains in log-odds. */
+  raw_expected_value_log_odds?: number
+  raw_other_features_log_odds?: number
+  calibrated_prediction?: number
+  display_scale?: 'sequential_probability_points' | 'raw_probability' | 'calibrated_logit'
 }
 
 export interface Contributor {
   feature_name: string
   display_name: string
-  feature_value: number
+  feature_value: string | number | boolean | null
   feature_unit: string
+  is_imputed: boolean
+  imputed_value: string | number | boolean | null
+  model_value: number | null
   shap_value: number
+  /** Sequential percentage-point display allocation; raw shap_value is unchanged. */
+  display_contribution?: number
+}
+
+export interface WaterfallDisplayFactor {
+  display_name: string
+  provenance?: 'Observed' | 'Estimated'
+  display_value?: string
+  unit?: string
+}
+
+export interface BeeswarmData {
+  [key: string]: unknown
 }
 
 export interface QualityFlags {

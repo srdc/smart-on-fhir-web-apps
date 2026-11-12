@@ -1,0 +1,38 @@
+.study-comparison {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.form-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  padding: 5px 4px;
+  margin: 2px 8px 2px 0;
+
+  cursor: pointer;
+}
+
+.form-check-input {
+  width: 18px;
+  height: 18px;
+
+  margin: 0;
+  float: none;
+  flex-shrink: 0;
+
+  cursor: pointer;
+  border: 1.5px solid #667085;
+  background-color: #fff;
+
+  &:checked {
+    background-color: #e86f19;
+    border-color: #e86f19;
+  }
+
+  &:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+  }
+}

@@ -27,9 +27,19 @@
       </li>
     </ul>
 
-    <!-- Right side: Logout button -->
-    <div class="ms-auto" *ngIf="showLogout">
+    <!-- Right-side actions share one layout container so they cannot overlap. -->
+    <div class="header-actions ms-auto d-flex align-items-center gap-2 flex-nowrap"
+         *ngIf="secondaryActionLabel || showLogout">
       <button
+        *ngIf="secondaryActionLabel"
+        type="button"
+        class="btn btn-link btn-sm text-white-50 text-decoration-none text-nowrap"
+        (click)="secondaryAction.emit()"
+      >
+        {{ secondaryActionLabel }}
+      </button>
+      <button
+        *ngIf="showLogout"
         class="btn btn-outline-light btn-sm"
         (click)="onLogout()"
         [disabled]="loggingOut"

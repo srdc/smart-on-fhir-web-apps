@@ -5,7 +5,12 @@
     "outDir": "../../out-tsc/app",
     "types": [],
     "resolveJsonModule": true,
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "paths": {
+      "cds-hooks": ["../../dist/cds-hooks"],
+      "common": ["../../dist/common"],
+      "ui-components": ["../ui-components/src/public-api.ts"]
+    }
   },
   "files": [
     "src/main.ts"

@@ -8,13 +8,13 @@
         <span class="text-primary fw-bold">Loading AI explanations...</span>
       </div>
     } @else {
-      <p>{{plotOverview}}</p>
-      <p>{{plotSummary}}</p>
+      <p>{{ formatDisplayText(plotOverview) }}</p>
+      <p>{{ formatDisplayText(plotSummary) }}</p>
       <ng-container *ngIf="increasingFactors?.length">
         <p>Top increasing factors are:</p>
         <ul>
           <ng-container *ngFor="let f of increasingFactors">
-            <li>{{f}}</li>
+            <li>{{ formatDisplayText(formatFactorWithProvenance(f)) }}</li>
           </ng-container>
         </ul>
       </ng-container>
@@ -22,7 +22,7 @@
         <p>Top decreasing factors are:</p>
         <ul>
           <ng-container *ngFor="let f of decreasingFactors">
-            <li>{{f}}</li>
+            <li>{{ formatDisplayText(formatFactorWithProvenance(f)) }}</li>
           </ng-container>
         </ul>
       </ng-container>
@@ -31,7 +31,8 @@
         <p>Confidence and caveats:</p>
         <ul>
           <ng-container *ngFor="let caveat of confidenceAndCaveats">
-            <li>{{ caveat }}</li>
+            <!-- Keep missingness metadata in the payload; temporarily suppress only this UI paragraph. -->
+            <li *ngIf="!isMissingnessWarning(caveat)">{{ formatDisplayText(caveat) }}</li>
           </ng-container>
         </ul>
       </ng-container>
@@ -48,7 +49,7 @@
     <div class="chat-section d-flex justify-content-between mb-3 pb-2 border-bottom">
       <div class="chat-context text-uppercase">
         <span class="badge bg-primary text-light me-1" *ngIf="disease">Disease:{{disease}}</span>
-        <span class="badge bg-secondary text-light" *ngIf="chart">Chart:{{chart}}</span>
+        <span class="badge bg-secondary text-light" *ngIf="chart">Chart:{{ formatDisplayText(chart) }}</span>
       </div>
       <i class="bi bi-x-lg" style="cursor:pointer;" (click)="summary = true"></i>
     </div>
@@ -68,13 +69,13 @@
     </div>
     <div class="chat-section possible-next-questions" *ngIf="!loading && possibleNextQuestions.length">
       <div class="fw-medium text-center text-uppercase mb-2" style="color: #333">Suggestions</div>
-      <div *ngFor="let question of possibleNextQuestions" class="alert alert-light" (click)="ask(question, chatContainerRoot)">
-        {{question}}
+      <div *ngFor="let question of possibleNextQuestions" class="alert alert-light" (click)="ask(question, chatContainerRoot, 'suggested')">
+        {{ formatDisplayText(question) }}
       </div>
     </div>
     <div class="chat-section chat-footer">
       <div class="input-group">
-        <input type="text" name="question" class="form-control" [disabled]="loading" [ngClass]="{disabled: loading}" #userPrompt (keydown.enter)="ask(userPrompt.value, chatContainerRoot); userPrompt.value = ''">
+        <input type="text" name="question" class="form-control" [disabled]="loading" [ngClass]="{disabled: loading}" #userPrompt (keydown.enter)="ask(userPrompt.value, chatContainerRoot, 'free_text'); userPrompt.value = ''">
       </div>
     </div>
   </div>

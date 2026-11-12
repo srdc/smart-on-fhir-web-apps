@@ -18,8 +18,10 @@ export class HeaderComponent {
   @Input() brandText = '';
   @Input() tabs: HeaderTab[] = [];
   @Input() showLogout = true;  // Show/hide logout button
+  @Input() secondaryActionLabel?: string;
 
   @Output() logout = new EventEmitter<void>();
+  @Output() secondaryAction = new EventEmitter<void>();
 
   loggingOut = false;
 

@@ -1,0 +1,31 @@
+<section class="study-background">
+  <h2>Background questionnaire</h2>
+  <p class="text-muted mb-4">Please answer the following questions before beginning the study.</p>
+  <div *ngIf="loading" class="text-center py-4"><span class="spinner-border"></span></div>
+  <div *ngIf="draftError" class="alert alert-warning">{{ draftError }}</div>
+  <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+  <form *ngIf="!loading && !error" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <h3 class="h5 mt-3">Background</h3>
+    <div class="card shadow-sm mb-3"><div class="card-body">
+      <label class="form-label">1. Age range</label>
+      <select class="form-select" formControlName="ageRange"><option [ngValue]="null">Select</option><option value="age_25_34">25–34</option><option value="age_35_44">35–44</option><option value="age_45_54">45–54</option><option value="age_55_plus">55+</option></select>
+      <div *ngIf="showValidation('ageRange')" class="invalid-feedback d-block">Select one response.</div>
+      <label class="form-label mt-3">2. Gender</label><select class="form-select" formControlName="gender"><option [ngValue]="null">Select</option><option value="female">Female</option><option value="male">Male</option><option value="other">Other</option><option value="prefer_not_to_say">Prefer not to say</option></select>
+      <label class="form-label mt-3">3. Primary specialty</label><input class="form-control" formControlName="primarySpecialty" type="text">
+      <label class="form-label mt-3">4. Years since qualification</label><input class="form-control" formControlName="yearsSinceQualification" type="number" min="0" step="1">
+      <label class="form-label mt-3">5. Current role</label><select class="form-select" formControlName="currentRole"><option [ngValue]="null">Select</option><option value="resident_trainee">Resident or trainee</option><option value="specialist">Specialist</option><option value="consultant_attending">Consultant or attending</option><option value="other">Other</option></select>
+      <ng-container *ngIf="form.get('currentRole')?.value === 'other'"><label class="form-label mt-3">Please specify</label><input class="form-control" formControlName="currentRoleOther" type="text"></ng-container>
+      <label class="form-label mt-3">6. Proportion of time in direct patient care</label><select class="form-select" formControlName="directPatientCareProportion"><option [ngValue]="null">Select</option><option value="less_than_25">&lt;25%</option><option value="25_50">25–50%</option><option value="50_75">50–75%</option><option value="more_than_75">&gt;75%</option></select>
+    </div></div>
+    <h3 class="h5 mt-4">Prior exposure</h3>
+    <div class="card shadow-sm mb-3"><div class="card-body">
+      <label class="form-label">7. Familiarity with machine-learning based risk prediction tools</label><div class="d-flex gap-3 flex-wrap"><label *ngFor="let value of [1,2,3,4,5]" class="form-check"><input class="form-check-input" type="radio" formControlName="mlRiskPredictionFamiliarity" [value]="value">{{ value }}<span *ngIf="value === 1"> = Not at all</span><span *ngIf="value === 5"> = A great deal</span></label></div>
+      <label class="form-label mt-3">8. Familiarity with large language model tools (e.g. ChatGPT, Copilot)</label><div class="d-flex gap-3 flex-wrap"><label *ngFor="let value of [1,2,3,4,5]" class="form-check"><input class="form-check-input" type="radio" formControlName="llmFamiliarity" [value]="value">{{ value }}<span *ngIf="value === 1"> = Not at all</span><span *ngIf="value === 5"> = A great deal</span></label></div>
+      <label class="form-label mt-3">9. Previously used AI-based decision support in clinical practice?</label><div><label class="form-check"><input class="form-check-input" type="radio" formControlName="priorAiDecisionSupport" value="yes">Yes</label><label class="form-check"><input class="form-check-input" type="radio" formControlName="priorAiDecisionSupport" value="no">No</label></div>
+      <label class="form-label mt-3">10. Encountered SHAP waterfall or beeswarm plots before today?</label><div><label class="form-check"><input class="form-check-input" type="radio" formControlName="priorShapExposure" value="yes">Yes</label><label class="form-check"><input class="form-check-input" type="radio" formControlName="priorShapExposure" value="no">No</label><label class="form-check"><input class="form-check-input" type="radio" formControlName="priorShapExposure" value="unsure">Unsure</label></div>
+      <label class="form-label mt-3">11. Frequency of clinical risk calculator use (e.g. QRISK, FRAX, CHA₂DS₂-VASc)</label><select class="form-select" formControlName="clinicalRiskCalculatorFrequency"><option [ngValue]="null">Select</option><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option><option value="rarely">Rarely</option><option value="never">Never</option></select>
+    </div></div>
+    <div *ngIf="submitted && form.invalid" class="alert alert-danger">Please answer all required questions before continuing.</div>
+    <button type="submit" class="btn btn-primary">Begin study</button>
+  </form>
+</section>

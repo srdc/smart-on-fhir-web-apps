@@ -821,8 +821,7 @@
             "inlineStyleLanguage": "scss",
             "assets": [
               "projects/risk-prediction/src/favicon.ico",
-              "projects/risk-prediction/src/assets",
-              { "glob": "**/*", "input": "assets", "output": "assets" }
+              "projects/risk-prediction/src/assets"
             ],
             "styles": [
               "projects/risk-prediction/src/styles.scss"
