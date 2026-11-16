@@ -12,6 +12,8 @@ export class AppComponent {
   scores: number[] = [];
   error: string | undefined;
   patient: fhir4.Patient|undefined;
+  /** User login without a patient context: "Change Patient" opens the patient selection */
+  canSelectPatient = false;
 
   age: number = 0;
 
@@ -30,6 +32,7 @@ export class AppComponent {
   async ngOnInit() {
     this.loadingPatientData = true;
     this.patient = await this.sof.getPatient()
+    this.canSelectPatient = this.sof.canSelectPatient();
     this.age = (new Date().getFullYear()) - (new Date(<string>this.patient?.birthDate).getFullYear())
     this.loadingPatientData = false
   }

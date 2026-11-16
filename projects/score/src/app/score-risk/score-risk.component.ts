@@ -15,6 +15,8 @@ export class ScoreRiskComponent implements OnInit, OnDestroy {
   score: number = 0;
   error: string | undefined;
   patient: fhir4.Patient|undefined;
+  /** User login without a patient context: "Change Patient" opens the patient selection */
+  canSelectPatient = false;
 
   age: number = 0;
 
@@ -43,6 +45,7 @@ export class ScoreRiskComponent implements OnInit, OnDestroy {
   async ngOnInit() {
     this.loadingPatientData = true;
     this.patient = await this.sof.getPatient()
+    this.canSelectPatient = this.sof.canSelectPatient();
     this.age = (new Date().getFullYear()) - (new Date(<string>this.patient?.birthDate).getFullYear())
     this.conceptDefinitions = await this.statefulCdsService.createState({
       patient: this.patient,

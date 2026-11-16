@@ -13,6 +13,7 @@ import {PatientSelectComponent} from "common";
 
 //const routes: Routes = [{ path: '', component: FormComponent },];
 const routes: Routes = [
+  // enableShc: /shc and /shl (opening Smart Health Cards/Links), whether or not the login page has the SHC button
   ...withSmartHandlerRoutes([
     {
       path: 'summary',
@@ -49,7 +50,7 @@ const routes: Routes = [
       component: PatientSelectComponent,
       data: {openPatientUrl: 'summary'}
     }
-  ], '/summary', 'both', true, environment.smart.shcLoginEnabled),
+  ], '/summary', 'both', true, true),
   {
     path: '',
     redirectTo: '/summary',

@@ -31,6 +31,11 @@ export abstract class CdsBaseComponent implements OnInit, OnDestroy, CDSInitiali
   loadingPatientData: boolean = false;
   patient: fhir4.Patient|undefined;
   age: number = 0;
+  /** User login without a patient context (e.g. a clinician): patients are selected on the select-patient page
+   * (withPatientSelection); for the "Change Patient" button of app-patient-info */
+  canSelectPatient = false;
+  /** Logged in, but no patient selected yet: nothing to calculate (the routes send the user to the patient selection) */
+  noPatient = false;
   private destroy$: Subject<void> = new Subject();
 
 
@@ -40,12 +45,21 @@ export abstract class CdsBaseComponent implements OnInit, OnDestroy, CDSInitiali
 
   async ngOnInit() {
     await this.init();
-    this.handlePrefetchStateChange()
+    if (!this.noPatient) {
+      this.handlePrefetchStateChange()
+    }
   }
 
   async init() {
     this.loadingPatientData = true;
-    this.patient = await this.sof.getPatient()
+    const [patient, user] = await Promise.all([this.sof.getPatient(), this.sof.getUser()]);
+    this.patient = patient;
+    this.canSelectPatient = this.sof.canSelectPatient();
+    this.noPatient = !patient && !!user && this.canSelectPatient;
+    if (this.noPatient) {
+      this.loadingPatientData = false;
+      return;
+    }
     this.age = (new Date().getFullYear()) - (new Date(<string>this.patient?.birthDate).getFullYear())
     await this.cdsDataService.init(this.patient, this.serviceName, this.sof.getAllImportedResources())
     this.loadingPatientData = false

@@ -1,7 +1,7 @@
 <div class="vh-100">
   <div class="row w-100 m-auto h-100">
     <div class="col-4 p-0 bg-light h-100 overflow-auto" *ngIf="patient">
-      <app-patient-info title="ACC/AHA Calculator" [patient]="patient" (logout)="logout()">
+      <app-patient-info [selectPatientUrl]="canSelectPatient ? '/select-patient' : undefined" title="ACC/AHA Calculator" [patient]="patient" (logout)="logout()">
         <div *ngIf="!ageValid">
           <div class="card mt-2">
             <div class="card-header fw-bold bg-warning text-dark">Invalid Age</div>

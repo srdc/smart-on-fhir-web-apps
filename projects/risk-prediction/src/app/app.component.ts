@@ -19,10 +19,7 @@ export class AppComponent extends CdsBaseComponent implements CDSInitializer {
 
   user = this.sof.getUser()
   userName = this.user.then(user => user?.name?.flatMap(name => [...(name.given || []), name.family || '']).join(' '));
-  /** User login without a patient context (e.g. a clinician at another EHR): patients are selected by importing their cards */
-  canSelectPatient = false;
-  /** Logged in, but no patient selected yet */
-  noPatient = false;
+  // canSelectPatient, noPatient: CdsBaseComponent (set here before its init, as the patients are selected on /import)
 
   constructor(override cdsDataService: CdsDataService, override sof: SmartOnFhirService, override injector: Injector,
               override cdsService: StatefulCdsService, public menuService: MenuService, private router: Router) {
