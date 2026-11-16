@@ -32,7 +32,7 @@
       <ui-sidebar
         title="Patient Demographics"
         [rows]="sidebarRows">
-        <ul class="nav overflow-y-auto" style="max-height: 50vh" *ngIf="menuService.menuItems?.length">
+        <ul class="nav overflow-y-auto flex-column flex-nowrap d-none d-lg-block" style="max-height: 50vh" *ngIf="menuService.menuItems?.length">
           @for (item of menuService.menuItems; track item.label) {
             <li class="nav-item">
               @if (item.header) {

@@ -1,5 +1,10 @@
-<nav class="navbar navbar-expand bg-primary navbar-dark">
+<nav class="navbar navbar-expand-lg bg-primary navbar-dark">
   <div class="container-fluid justify-content-start">
+
+    <button class="navbar-toggler me-2" type="button" data-bs-toggle="collapse"
+      data-bs-target="#navbarToggleExternalContent" aria-controls="navbarToggleExternalContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
 
     <!-- Brand -->
     <a class="navbar-brand fw-medium d-flex align-items-center" href="/">
@@ -15,7 +20,7 @@
     </a>
 
     <!-- Tabs -->
-    <ul class="navbar-nav ms-4 flex-row">
+    <ul class="navbar-nav ms-4 flex-row d-none d-lg-flex">
       <li class="nav-item me-3" *ngFor="let tab of tabs">
         <a
           class="nav-link px-2"
@@ -57,3 +62,18 @@
 
   </div>
 </nav>
+<div class="collapse d-lg-none" id="navbarToggleExternalContent" data-bs-theme="primary">
+  <div class="bg-primary p-4 navbar">
+    <ul class="navbar-nav ms-4 flex-row">
+      <li class="nav-item me-3" *ngFor="let tab of tabs">
+        <a
+          class="nav-link px-2"
+          [routerLink]="tab.link || null"
+          routerLinkActive="active"
+        >
+          {{ tab.label }}
+        </a>
+      </li>
+    </ul>
+  </div>
+</div>
