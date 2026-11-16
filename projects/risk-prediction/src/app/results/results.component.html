@@ -35,39 +35,79 @@
     </div>
   </div>
 
-  <!-- Overall Risk -->
-
-  <div class="card mb-4 shadow-sm bg-white">
-    <div class="card-body">
-      <h5>Overall Risk Score</h5>
-      <div class="d-flex justify-content-between align-items-center" [ngClass]="getRiskLevelClass(overallRiskScore)">
-        <span class="display-4">
-          {{ (overallRiskScore * 100) | number:'1.2-2' }}<span class="display-6">%</span>
-        </span>
-        <div>
-          <span class="fw-bold" [ngClass]="getRiskLevelClass(overallRiskScore)">
-            {{ getRiskLevelText(overallRiskScore) }}
-          </span>
-          <p class="text-muted mb-0 mt-2">{{ diseases.length }} diseases analyzed</p>
+  <div class="row">
+    <!-- Filters -->
+    <div class="col-12 py-2 pb-4">
+      <div class="card bg-light">
+        <div class="card-body">
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" role="switch" id="hideLowRisks"
+                   [ngModel]="hideLowRisks" (ngModelChange)="setHideLowRisks($event)">
+            <label class="form-check-label" for="hideLowRisks">Hide low risks (&lt;=1%)</label>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-  <div class="card mb-4 shadow-sm bg-white">
-    <div class="card-body">
-      <div class="row">
-        <div class="col-md-6">
-          <h5>Disease Risks</h5>
-          <canvas baseChart style="min-width: 600px; margin: auto" type="radar" [data]="chartData" [options]="chartOptions"></canvas>
+
+    <!-- Overall Risk -->
+    <div class="col-12 col-xl-2">
+      <div class="card mb-4 shadow-sm bg-white">
+        <div class="card-body">
+          <h5 class="m-0">Overall Risk Score</h5>
+          <div class="d-flex flex-column justify-content-between align-items-center" [ngClass]="getRiskLevelClass(overallRiskScore)">
+            <span class="display-4 my-4">
+              {{ (overallRiskScore * 100) | number:'1.2-2' }}<span class="display-6">%</span>
+            </span>
+            <div class="w-100">
+              <span class="fw-bold" [ngClass]="getRiskLevelClass(overallRiskScore)">
+                {{ getRiskLevelText(overallRiskScore) }}
+              </span>
+              <p class="text-muted mb-0 mt-2">{{ diseases.length }} diseases analyzed</p>
+            </div>
+          </div>
+          <a class="btn btn-primary w-100 mt-4 fw-medium text-white" [href]="dashboardDetailsUrl" target="_blank" rel="noopener">
+            <i class="bi bi-info-circle"></i> See how well model predicts
+          </a>
         </div>
-        <div class="col-md-6">
+      </div>
+    </div>
+
+    <!-- Disease Risks -->
+    <div class="col-12 col-xl-10">
+      <div class="card mb-4 shadow-sm bg-white">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h5 class="m-0">Disease Risks</h5>
+            <div class="btn-group btn-group-sm" role="group" aria-label="Chart type">
+              <input type="radio" class="btn-check" name="riskChartType" id="riskChartRadar" autocomplete="off"
+                     [checked]="riskChartType === 'radar'" (change)="riskChartType = 'radar'">
+              <label class="btn btn-outline-primary" for="riskChartRadar">Radar</label>
+              <input type="radio" class="btn-check" name="riskChartType" id="riskChartBar" autocomplete="off"
+                     [checked]="riskChartType === 'bar'" (change)="riskChartType = 'bar'">
+              <label class="btn btn-outline-primary" for="riskChartBar">Bar</label>
+            </div>
+          </div>
+          <div class="row mb-2">
+            <div class="col-12 col-lg-8">
+              <!-- Chart.js sizes the canvas to its parent: each chart has its own box, sized here (results.component.scss), not on the canvas -->
+              <div *ngIf="riskChartType === 'radar'" class="risk-chart risk-chart-radar">
+                <canvas baseChart type="radar" [data]="chartData" [options]="chartOptions"></canvas>
+              </div>
+              <div *ngIf="riskChartType === 'bar'" class="risk-chart" [style.height.px]="barChartHeight">
+                <canvas baseChart type="bar" [data]="barChartData" [options]="barChartOptions"></canvas>
+              </div>
+            </div>
+            <div class="col-4 d-none d-lg-flex flex-column justify-content-center">
+              <ul class="diseases-list">
+                <li *ngFor="let disease of visibleDiseases"><b>{{disease.disease}}:</b> {{(disease.riskScore * 100) | number:'1.0-0'}}%</li>
+              </ul>
+            </div>
+          </div>
           <div class="alert alert-info small">
-            <p>This radar chart presents the patient’s estimated risk levels (%) across multiple chronic conditions, calculated by the STAGE algorithms.
+            <p *ngIf="riskChartType === 'radar'">This radar chart presents the patient’s estimated risk levels (%) across multiple chronic conditions, calculated by the STAGE algorithms.
               Each axis represents a specific disease area, and the distance from the center indicates the relative risk magnitude.</p>
-            <p>The predictions are as following:</p>
-            <ul class="diseases-list">
-              <li *ngFor="let disease of diseases"><b>{{disease.disease}}:</b> {{(disease.riskScore * 100) | number:'1.0-0'}}%</li>
-            </ul>
+            <p *ngIf="riskChartType === 'bar'">This bar chart presents the patient’s estimated risk levels (%) across multiple chronic conditions, calculated by the STAGE algorithms.
+              Each bar represents a specific disease area, sorted from the highest risk to the lowest, and its length indicates the relative risk magnitude.</p>
           </div>
         </div>
       </div>
@@ -77,7 +117,8 @@
   <h3 class="mb-4">Disease Risk Predictions & Details</h3>
 
   <div class="accordion">
-    <div *ngFor="let disease of diseases; let i = index" class="accordion-item shadow-sm">
+    <!-- hidden rather than removed, so the explanations already requested from the LLM are kept -->
+    <div *ngFor="let disease of diseases; let i = index" class="accordion-item shadow-sm" [class.d-none]="isHidden(disease)">
       <div class="accordion-header">
         <button class="accordion-button bg-white" [ngClass]="{collapsed: i}" type="button" data-bs-toggle="collapse" [attr.id]="'accordion-btn-' + disease.diseaseId"
                 (click)="prioritizeExplanation(disease.disease)"
@@ -88,7 +129,7 @@
               <progress-circle [progress]="disease.riskScore * 100"
                                [height]="disease.riskScore >= 0.3 ? '4em' : disease.riskScore >= 0.15 ? '3.5em' : disease.riskScore >= 0.05 ? '3em' : '2.8em'"
                                [width]="disease.riskScore >= 0.3 ? '4em' : disease.riskScore >= 0.15 ? '3.5em' : disease.riskScore >= 0.05 ? '3em' : '2.8em'"
-                               [color]="getRiskLevelColor(disease.riskScore)"></progress-circle>
+                               [color]="diseaseColors[disease.diseaseId]"></progress-circle>
               <span class="ms-4 me-1">See details</span>
             </div>
           </div>

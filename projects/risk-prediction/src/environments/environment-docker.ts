@@ -94,6 +94,8 @@ export const environment = {
   riskPrediction: {
     // The risk questionnaire shows the patient's last saved response instead of collecting the data from the EHR
     // again (20-30 s) when that response is not older than this many days; the user can still re-collect it.
-    savedResponseMaxAgeDays: 7
+    savedResponseMaxAgeDays: 7,
+    // The app's page in the dashboard (description and how well the models predict), opened from the results
+    dashboardDetailsUrl: host + '/smart-apps/dashboard/app/stage-risk-prediction'
   }
 }

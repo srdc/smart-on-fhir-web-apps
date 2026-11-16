@@ -6,6 +6,7 @@ import {SmartOnFhirService} from "ng-smart-on-fhir";
 import {MenuService} from "../menu.service";
 import {beeswarmAssetUrl, LocalPlotResponse} from "./llm-models";
 import {ChatbotComponent} from "../chatbot/chatbot.component";
+import {environment} from "../../environments/environment";
 
 interface ShapFeature {
   name: string;
@@ -46,6 +47,11 @@ export class ResultsComponent implements OnInit, OnDestroy, AfterViewInit {
 
 
   diseases: DiseaseRisk[] = [];
+  /** diseases shown in the radar chart, the predictions list, the details and the menu (all, or only the non-low ones) */
+  visibleDiseases: DiseaseRisk[] = [];
+  /** Hide the diseases with a risk of at most LOW_RISK_THRESHOLD */
+  hideLowRisks = false;
+  static readonly LOW_RISK_THRESHOLD = 0.01;
   overallRiskScore: number = 0;
   loading: boolean = true;
   error: string | null = null;
@@ -60,7 +66,8 @@ export class ResultsComponent implements OnInit, OnDestroy, AfterViewInit {
   allItems: SummaryItem[] = [];
   chartData: ChartData|undefined;
   chartOptions: ChartOptions | undefined = {
-    aspectRatio: 1.25,
+    // fills its box (.risk-chart-radar), whose height follows the screen
+    maintainAspectRatio: false,
     plugins: {
       tooltip: {
         backgroundColor: 'rgba(144, 144, 255, 0.5)',
@@ -70,6 +77,33 @@ export class ResultsComponent implements OnInit, OnDestroy, AfterViewInit {
       }
     }
   };
+  /** Chart of the disease risks shown, the user switches between them */
+  riskChartType: 'radar' | 'bar' = 'radar';
+  /** The app's page in the dashboard: how well the models predict */
+  readonly dashboardDetailsUrl = environment.riskPrediction.dashboardDetailsUrl;
+  /** Colour of each disease (by diseaseId) in the bar chart and the disease details: a tone of the primary colour by its rank */
+  diseaseColors: {[diseaseId: string]: string} = {};
+  /** Same data as the radar chart, one horizontal bar per disease, from high risk to low */
+  barChartData: ChartData<'bar'> | undefined;
+  barChartOptions: ChartOptions<'bar'> = {
+    // fills its box, whose height follows the number of bars (barChartHeight)
+    maintainAspectRatio: false,
+    indexAxis: 'y',
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: { label: ctx => `${(ctx.raw as number).toFixed(1)}%` }
+      }
+    },
+    scales: {
+      x: { beginAtZero: true, title: { display: true, text: 'Disease Risk (%)' } },
+      y: { ticks: { autoSkip: false } }
+    }
+  };
+  /** Same bar thickness on every screen: a fixed height per bar, plus the x axis and its title */
+  get barChartHeight(): number {
+    return Math.max(this.visibleDiseases.length, 4) * 28 + 70;
+  }
   waterfallChartData: {[diseaseId: string]: ChartData} = {}
   waterfallChartOptions: ChartOptions = {
     aspectRatio: 1,
@@ -204,21 +238,6 @@ export class ResultsComponent implements OnInit, OnDestroy, AfterViewInit {
         this.diseases.forEach(disease => {
           this.waterfallChartData[disease.disease] = this.getWaterfallChartData(disease)
         })
-        setTimeout(() => {
-          this.menuService.menuItems.splice(0, this.menuService.menuItems.length, ...[{
-            label: 'Diseases',
-            header: true
-          }, ...this.diseases.map(disease => ({
-            label: disease.disease,
-            callback: () => {
-              const accordionBtn = document.getElementById('accordion-btn-' + disease.diseaseId)
-              accordionBtn?.scrollIntoView({ behavior: 'smooth' });
-              if (accordionBtn?.classList.contains('collapsed')) {
-                accordionBtn?.click()
-              }
-            }
-          }))])
-        })
 
         if (this.diseases.length > 0) {
           const top3 = this.diseases.slice(0, 3);
@@ -272,13 +291,58 @@ export class ResultsComponent implements OnInit, OnDestroy, AfterViewInit {
     this.moderateRiskItems = moderate;
     this.lowRiskItems = low;
     this.allItems = [...this.highRiskItems, ...this.moderateRiskItems, ...this.lowRiskItems];
+    this.applyRiskFilter();
+  }
+
+  isHidden(disease: DiseaseRisk): boolean {
+    return this.hideLowRisks && disease.riskScore <= ResultsComponent.LOW_RISK_THRESHOLD;
+  }
+
+  setHideLowRisks(hide: boolean) {
+    this.hideLowRisks = hide;
+    this.applyRiskFilter();
+  }
+
+  /** Update the radar chart, the predictions list and the menu with the diseases passing the filter */
+  private applyRiskFilter() {
+    this.visibleDiseases = this.diseases.filter(disease => !this.isHidden(disease));
     this.chartData = {
-      labels: this.diseases.map(disease => disease.disease),
+      labels: this.visibleDiseases.map(disease => disease.disease),
       datasets: [{
         label: 'Disease Risk (%)',
-        data: this.diseases.map(disease => disease.riskScore * 100)
+        data: this.visibleDiseases.map(disease => disease.riskScore * 100)
       }]
     }
+    // no risk level thresholds: the primary colour, slightly lighter from the top (highest risk) to the bottom
+    const primaryRgb = getComputedStyle(document.documentElement).getPropertyValue('--bs-primary-rgb').trim() || '13, 110, 253';
+    const count = this.visibleDiseases.length;
+    const colors = this.visibleDiseases.map((_, i) =>
+      `rgba(${primaryRgb}, ${(1 - 0.45 * (count > 1 ? i / (count - 1) : 0)).toFixed(2)})`);
+    this.visibleDiseases.forEach((disease, i) => this.diseaseColors[disease.diseaseId] = colors[i]);
+    this.barChartData = {
+      labels: this.visibleDiseases.map(disease => disease.disease),
+      datasets: [{
+        label: 'Disease Risk (%)',
+        data: this.visibleDiseases.map(disease => disease.riskScore * 100),
+        backgroundColor: colors,
+        borderColor: colors
+      }]
+    }
+    setTimeout(() => {
+      this.menuService.menuItems.splice(0, this.menuService.menuItems.length, ...[{
+        label: 'Diseases',
+        header: true
+      }, ...this.visibleDiseases.map(disease => ({
+        label: disease.disease,
+        callback: () => {
+          const accordionBtn = document.getElementById('accordion-btn-' + disease.diseaseId)
+          accordionBtn?.scrollIntoView({ behavior: 'smooth' });
+          if (accordionBtn?.classList.contains('collapsed')) {
+            accordionBtn?.click()
+          }
+        }
+      }))])
+    })
   }
 
   /**
@@ -312,12 +376,6 @@ export class ResultsComponent implements OnInit, OnDestroy, AfterViewInit {
     if (riskScore >= 0.15) return 'risk-high';
     if (riskScore >= 0.05) return 'risk-moderate';
     return 'risk-low';
-  }
-
-  getRiskLevelColor(riskScore: number): string {
-    if (riskScore >= 0.15) return 'var(--bs-danger)';
-    if (riskScore >= 0.05) return 'var(--bs-warning)';
-    return 'var(--bs-info)';
   }
 
   getRiskLevelText(riskScore: number): string {

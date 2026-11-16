@@ -3,13 +3,30 @@ c-chart { max-width: 50vw; }
   c-chart { max-width: 800px; }
 }
 
+// Chart.js (responsive) sizes the canvas to this box: it must be position: relative, hold the canvas only,
+// and get its size from the layout (never from the canvas, or it grows back no more after shrinking)
+.risk-chart {
+  position: relative;
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+}
+// the radar is round: a height following the screen, between readable on phones and not huge on big screens
+// (at most the maximum width, more would only be empty space)
+.risk-chart-radar {
+  height: clamp(340px, 65vh, 640px);
+}
+
 .accordion-item:not(:has(.accordion-button.collapsed)) {
   margin-top: 1em;
   margin-bottom: 1em;
 }
 
 .diseases-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0 2em;
+  padding: 1em;
+  list-style-type: none;
+  border: 1px solid var(--bs-focus-ring-color);
+  border-radius: 0.5em;
+  color: var(--bs-primary-text-emphasis);
+  font-size: smaller;
 }
