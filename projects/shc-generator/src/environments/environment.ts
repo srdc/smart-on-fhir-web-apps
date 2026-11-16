@@ -16,24 +16,8 @@ export const environment = {
     redirectUrl: appBaseUrl + '/callback',
     loginClients: [
       {
-        label: 'Cerner',
-        image: 'https://logos-world.net/wp-content/uploads/2020/09/Oracle-Logo.png',
-        iss: 'https://fhir-myrecord.cerner.com/r4/bea30cf0-b6fb-4f91-9a7c-7dcd5e24bd3f',
-        redirectUri: appBaseUrl + '/callback',
-        clientId: 'd907dee6-41b2-43cd-a32a-31e19ada06e8',
-        scope: 'launch launch/patient profile patient/Patient.read'
-      },
-      {
-        label: 'EPIC',
-        image: 'https://fhir.epic.com/Content/images/EpicOnFhir.png',
-        iss: 'https://fhir.epic.com/interconnect-fhir-oauth/api/FHIR/R4/',
-        redirectUri: appBaseUrl + '/callback',
-        clientId: '43a60ffa-242a-4bbe-bb17-97666be7189e',
-        scope: 'launch launch/patient patient/*.*'
-      },
-      {
-        label: 'Kroniq',
-        image: 'https://kroniq.health/img/kroniq-colored.png',
+        label: 'STAGE',
+        image: 'assets/stage-x-repofyr.png',
         iss: 'http://localhost:8080/fhir',
         redirectUri: appBaseUrl + '/callback',
         clientId: 'smart-test',
@@ -42,6 +26,27 @@ export const environment = {
         promptLogin: true,
         isPublic: false,
         // logoutUri: 'http://127.0.0.1:8091/api/smart/logout?post_logout_redirect_uri=' + appBaseUrl + '/login'
+      },
+      {
+        // STAGE without a patient context (no launch/patient): clinicians choose a patient in the record or import
+        // the patient's Smart Health Card/Link (the patient selection page)
+        label: 'STAGE (select patient)',
+        image: 'assets/scan-shc.png',
+        iss: 'http://localhost:8080/fhir',
+        redirectUri: appBaseUrl + '/callback',
+        clientId: 'smart-test',
+        scope: 'profile openid email roles offline_access user/*.* patient/*.*',
+        aud: 'fhir-repo',
+        promptLogin: true,
+        isPublic: false,
+      },
+      {
+        label: 'EPIC',
+        image: 'https://fhir.epic.com/Content/images/EpicOnFhir.png',
+        iss: 'https://fhir.epic.com/interconnect-fhir-oauth/api/FHIR/R4/',
+        redirectUri: appBaseUrl + '/callback',
+        clientId: '43a60ffa-242a-4bbe-bb17-97666be7189e',
+        scope: 'launch launch/patient patient/*.*'
       }
     ],
     launchClients: [

@@ -1,20 +1,17 @@
 const appBaseUrl = 'http://localhost:4200';
-// CDS services of the local repositories (stage-fhir-repository, application-stage.conf / application-ehr.conf)
+// CDS services of the local repository (stage-fhir-repository)
 const stageFhir = 'http://localhost:8080/fhir';
-const ehrFhir = 'http://localhost:8180/fhir';
 
 export const environment = {
   smart: {
     shlServerBaseUrl: 'http://localhost:3000',
-    // one SHL server per repository (shl-server with .env.stage / .env.ehr)
+    // one SHL server per repository
     shlServerBaseUrls: {
-      'http://localhost:8080/fhir': 'http://localhost:3000',
-      'http://localhost:8180/fhir': 'http://localhost:3001'
+      'http://localhost:8080/fhir': 'http://localhost:3000'
     },
     // issuers of Smart Health Cards shown by name when importing (the fhir.root-url of each repository)
     trustedIssuers: [
       {iss: 'http://127.0.0.1:8080/fhir', name: 'STAGE FHIR repository'},
-      {iss: 'http://127.0.0.1:8180/fhir', name: 'EHR'},
     ],
     // send the access token when creating links, so that users can list/revoke them with their account (needs SHL_OWNER_JWKS_URL on the SHL server)
     shlOwnerAuth: false,
@@ -23,7 +20,9 @@ export const environment = {
     authStorage: <'localStorage'>'localStorage',
     logo: 'assets/stage-outline-white-cropped.png',
     title: 'Multi-morbidity Risk Prediction &\nIntervention Planning',
-    shcLoginEnabled: true,
+    // no Smart Health Card button on the login page: patients' cards/links are imported after the STAGE login without a
+    // patient (see loginClients); the /shc and /shl routes stay (app-routing.module.ts)
+    shcLoginEnabled: false,
     shcCallbackUrl: '/shl',
     clientIds: {
       'https://lforms-smart-fhir.nlm.nih.gov/v/r4/fhir': 'srdc-qrisk',
@@ -33,8 +32,7 @@ export const environment = {
     redirectUrl: appBaseUrl + '/callback',
     loginClients: [
       {
-        label: 'Kroniq',
-        // image: 'https://kroniq.health/img/kroniq-colored.png',
+        label: 'STAGE',
         image: 'assets/stage-x-repofyr.png',
         iss: 'http://localhost:8080/fhir',
         // iss: 'https://kroniq.srdc.com.tr/stage-fhir',
@@ -51,23 +49,20 @@ export const environment = {
         // logoutUri: 'http://127.0.0.1:8091/api/smart/logout?post_logout_redirect_uri=' + appBaseUrl + '/login'
       },
       {
-        // second repository for the xShare tests (stage-fhir-repository, application-ehr.conf): clinicians log in without a patient
-        // (no launch/patient scope) and open patients by importing their Smart Health Cards/Links
-        label: 'EHR',
-        image: 'assets/xshare-repofyr.png',
-        color: 'white',
-        // iss: 'http://localhost:8180/fhir',
-        iss: 'https://kroniq.srdc.com.tr/ehr',
-        isPublic: false,
+        // STAGE without a patient context (no launch/patient): clinicians choose a patient in the record or import
+        // the patient's Smart Health Card/Link (the patient selection page)
+        label: 'STAGE (select patient)',
+        image: 'assets/scan-shc.png',
+        iss: 'http://localhost:8080/fhir',
         redirectUri: appBaseUrl + '/callback',
         clientId: 'smart-test',
-        scope: 'profile openid email roles offline_access user/*.*',
+        scope: 'profile openid email roles offline_access user/*.* patient/*.*',
         aud: 'fhir-repo',
         promptLogin: true,
         interventions: {
           relatedObservationMethod: '_source',
           value: 'http://stage-healthyageing.eu/data-source/LIVA'
-        }
+        },
       },
       {
         label: 'EPIC',
@@ -96,7 +91,7 @@ export const environment = {
     serviceName: 'risk_prediction',
     // <FHIR base>/cds-hooks of the repository the user is logged in to
     baseUrl: stageFhir,
-    baseUrls: {[stageFhir]: stageFhir, [ehrFhir]: ehrFhir}
+    baseUrls: {[stageFhir]: stageFhir}
   },
   riskPrediction: {
     // The risk questionnaire shows the patient's last saved response instead of collecting the data from the EHR

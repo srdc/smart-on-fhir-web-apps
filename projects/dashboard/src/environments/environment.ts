@@ -170,16 +170,8 @@ export const environment = {
     redirectUrl: appBaseUrl + '/callback',
     loginClients: [
       {
-        label: 'EPIC',
-        image: 'https://fhir.epic.com/Content/images/EpicOnFhir.png',
-        iss: 'https://fhir.epic.com/interconnect-fhir-oauth/api/FHIR/R4/',
-        redirectUri: appBaseUrl + '/callback',
-        clientId: '43a60ffa-242a-4bbe-bb17-97666be7189e',
-        scope: 'launch launch/patient patient/*.*'
-      },
-      {
-        label: 'Kroniq',
-        image: 'https://kroniq.health/img/kroniq-colored.png',
+        label: 'STAGE',
+        image: 'assets/stage-x-repofyr.png',
         iss: 'https://kroniq.srdc.com.tr/stage-fhir',
         isPublic: true,
         redirectUri: appBaseUrl + '/callback',
@@ -188,6 +180,14 @@ export const environment = {
         aud: 'fhir-repo',
         promptLogin: true,
         logoutUri: 'http://127.0.0.1:8091/api/smart/logout?post_logout_redirect_uri=' + appBaseUrl + '/login'
+      },
+      {
+        label: 'EPIC',
+        image: 'https://fhir.epic.com/Content/images/EpicOnFhir.png',
+        iss: 'https://fhir.epic.com/interconnect-fhir-oauth/api/FHIR/R4/',
+        redirectUri: appBaseUrl + '/callback',
+        clientId: '43a60ffa-242a-4bbe-bb17-97666be7189e',
+        scope: 'launch launch/patient patient/*.*'
       }
     ]
   }

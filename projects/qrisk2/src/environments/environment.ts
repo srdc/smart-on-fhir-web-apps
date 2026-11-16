@@ -5,7 +5,9 @@ export const environment = {
   smart: {
     logo: 'assets/stage-outline-white-cropped.png',
     title: 'QRISK2 CALCULATOR',
-    shcLoginEnabled: true,
+    // no Smart Health Card button on the login page: patients' cards/links are imported after the STAGE login without a
+    // patient (see loginClients)
+    shcLoginEnabled: false,
     shcCallbackUrl: '/shl',
     clientIds: {
       'https://lforms-smart-fhir.nlm.nih.gov/v/r4/fhir': 'srdc-qrisk',
@@ -17,12 +19,28 @@ export const environment = {
     redirectUrl: appBaseUrl + '/callback',
     loginClients: [
       {
-        label: 'Cerner',
-        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/50/Oracle_logo.svg/1024px-Oracle_logo.svg.png',
-        iss: 'https://fhir-myrecord.cerner.com/r4/bea30cf0-b6fb-4f91-9a7c-7dcd5e24bd3f',
+        label: 'STAGE',
+        image: 'assets/stage-x-repofyr.png',
+        iss: 'http://localhost:8080/fhir',
         redirectUri: appBaseUrl + '/callback',
-        clientId: 'd907dee6-41b2-43cd-a32a-31e19ada06e8',
-        scope: 'launch launch/patient profile patient/Patient.read'
+        clientId: 'smart-test',
+        scope: 'openid profile launch/patient patient/*.* user/*.*',
+        aud: 'fhir-repo',
+        promptLogin: true,
+        logoutUri: 'http://127.0.0.1:8091/api/smart/logout?post_logout_redirect_uri=' + appBaseUrl + '/login'
+      },
+      {
+        // STAGE without a patient context (no launch/patient): clinicians choose a patient in the record or import
+        // the patient's Smart Health Card/Link (the patient selection page)
+        label: 'STAGE (select patient)',
+        image: 'assets/scan-shc.png',
+        iss: 'http://localhost:8080/fhir',
+        redirectUri: appBaseUrl + '/callback',
+        clientId: 'smart-test',
+        scope: 'profile openid email roles offline_access user/*.* patient/*.*',
+        aud: 'fhir-repo',
+        promptLogin: true,
+        logoutUri: 'http://127.0.0.1:8091/api/smart/logout?post_logout_redirect_uri=' + appBaseUrl + '/login'
       },
       {
         label: 'EPIC',
@@ -31,17 +49,6 @@ export const environment = {
         redirectUri: appBaseUrl + '/callback',
         clientId: '43a60ffa-242a-4bbe-bb17-97666be7189e',
         scope: 'launch launch/patient patient/*.*'
-      },
-      {
-        label: 'Kroniq',
-        image: 'https://kroniq.health/img/kroniq-colored.png',
-        iss: 'http://localhost:8080/fhir',
-        redirectUri: appBaseUrl + '/callback',
-        clientId: 'smart-test',
-        scope: 'openid profile launch/patient patient/*.* user/*.*',
-        aud: 'fhir-repo',
-        promptLogin: true,
-        logoutUri: 'http://127.0.0.1:8091/api/smart/logout?post_logout_redirect_uri=' + appBaseUrl + '/login'
       }
     ],
     launchClients: [

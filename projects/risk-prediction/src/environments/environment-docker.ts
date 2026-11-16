@@ -1,12 +1,10 @@
-// Deployment on https://kroniq.srdc.com.tr (stage-fhir-repository/deploy/kroniq): STAGE and EHR, each with its FHIR repository
+// Deployment on https://kroniq.srdc.com.tr (stage-fhir-repository/deploy/kroniq): STAGE, with its FHIR repository
 // (also the SMART Health Card issuer) and SMART Health Links server
 // The host the apps are served from: https://kroniq.srdc.com.tr, or https://stage.testing.eu locally
 // (stage-fhir-repository/deploy/testing)
 const host = window.location.origin;
 const appBaseUrl = host + '/smart-apps/risk-prediction';
 const stage = {fhir: host + '/stage-fhir', shl: host + '/stage-shl'};
-// second repository for the xShare (SMART Health Cards/Links) tests
-const ehr = {fhir: host + '/ehr', shl: host + '/shl-ehr'};
 const onAuth = host + '/stage-onauth/api/smart';
 
 export const environment = {
@@ -14,13 +12,11 @@ export const environment = {
     shlServerBaseUrl: stage.shl,
     // one SHL server per repository
     shlServerBaseUrls: {
-      [stage.fhir]: stage.shl,
-      [ehr.fhir]: ehr.shl
+      [stage.fhir]: stage.shl
     },
     // issuers of Smart Health Cards shown by name when importing (the fhir.root-url of each repository)
     trustedIssuers: [
-      {iss: stage.fhir, name: 'STAGE FHIR repository'},
-      {iss: ehr.fhir, name: 'EHR'}
+      {iss: stage.fhir, name: 'STAGE FHIR repository'}
     ],
     // send the access token when creating links, so that users can list/revoke them with their account (needs SHL_OWNER_JWKS_URL on the SHL server)
     shlOwnerAuth: false,
@@ -29,7 +25,9 @@ export const environment = {
     authStorage: <'localStorage'>'localStorage',
     logo: 'assets/stage-outline-white-cropped.png',
     title: 'Multi-morbidity Risk Prediction &\nIntervention Planning',
-    shcLoginEnabled: true,
+    // no Smart Health Card button on the login page: patients' cards/links are imported after the STAGE login without a
+    // patient (see loginClients); the /shc and /shl routes stay (app-routing.module.ts)
+    shcLoginEnabled: false,
     shcCallbackUrl: '/shl',
     clientIds: {
       'https://lforms-smart-fhir.nlm.nih.gov/v/r4/fhir': 'srdc-qrisk',
@@ -41,8 +39,7 @@ export const environment = {
       {
         // STAGE: patients (and clinicians) log in with a patient context
         label: 'STAGE',
-        background: '#2c5f2d',
-        color: 'white',
+        image: 'assets/stage-x-repofyr.png',
         iss: stage.fhir,
         isPublic: false,
         redirectUri: appBaseUrl + '/callback',
@@ -57,16 +54,15 @@ export const environment = {
         }
       },
       {
-        // EHR: clinicians log in without a patient (no launch/patient scope) and open patients by importing their
-        // Smart Health Cards/Links or choosing them in the record
-        label: 'EHR',
-        background: '#1f4e79',
-        color: 'white',
-        iss: ehr.fhir,
+        // STAGE without a patient context (no launch/patient): clinicians choose a patient in the record or import
+        // the patient's Smart Health Card/Link (the patient selection page)
+        label: 'STAGE (select patient)',
+        image: 'assets/scan-shc.png',
+        iss: stage.fhir,
         isPublic: false,
         redirectUri: appBaseUrl + '/callback',
         clientId: 'smart-test',
-        scope: 'profile openid email roles offline_access user/*.*',
+        scope: 'profile openid email roles offline_access user/*.* patient/*.*',
         aud: 'fhir-repo',
         promptLogin: true,
         logoutUri: onAuth + '/logout?post_logout_redirect_uri=' + appBaseUrl + '/login',
@@ -74,6 +70,14 @@ export const environment = {
           relatedObservationMethod: '_source',
           value: 'http://stage-healthyageing.eu/data-source/LIVA'
         }
+      },
+      {
+        label: 'EPIC',
+        image: 'https://fhir.epic.com/Content/images/EpicOnFhir.png',
+        iss: 'https://fhir.epic.com/interconnect-fhir-oauth/api/FHIR/R4/',
+        redirectUri: appBaseUrl + '/callback',
+        clientId: '9dc58e42-28ea-446c-8a07-40b169a5b112',
+        scope: 'launch launch/patient patient/*.*'
       }
     ],
     launchClients: [
@@ -89,7 +93,7 @@ export const environment = {
   cds: {
     serviceName: 'risk_prediction',
     baseUrl: stage.fhir,
-    baseUrls: {[stage.fhir]: stage.fhir, [ehr.fhir]: ehr.fhir}
+    baseUrls: {[stage.fhir]: stage.fhir}
   },
   riskPrediction: {
     // The risk questionnaire shows the patient's last saved response instead of collecting the data from the EHR

@@ -175,18 +175,9 @@ export const environment = {
     redirectUrl: appBaseUrl + '/callback',
     loginClients: [
       {
-        label: 'EPIC',
-        image: 'https://fhir.epic.com/Content/images/EpicOnFhir.png',
-        iss: 'https://fhir.epic.com/interconnect-fhir-oauth/api/FHIR/R4/',
-        redirectUri: appBaseUrl + '/callback',
-        clientId: '43a60ffa-242a-4bbe-bb17-97666be7189e',
-        scope: 'launch launch/patient patient/*.*'
-      },
-      {
         // STAGE: patients (and clinicians) log in with a patient context
         label: 'STAGE',
-        background: '#2c5f2d',
-        color: 'white',
+        image: 'assets/stage-x-repofyr.png',
         iss: host + '/stage-fhir',
         isPublic: false,
         redirectUri: appBaseUrl + '/callback',
@@ -197,18 +188,12 @@ export const environment = {
         logoutUri: onAuth + '/logout?post_logout_redirect_uri=' + appBaseUrl + '/'
       },
       {
-        // EHR: clinicians log in without a patient (they choose one in the apps)
-        label: 'EHR',
-        background: '#1f4e79',
-        color: 'white',
-        iss: host + '/ehr',
-        isPublic: false,
+        label: 'EPIC',
+        image: 'https://fhir.epic.com/Content/images/EpicOnFhir.png',
+        iss: 'https://fhir.epic.com/interconnect-fhir-oauth/api/FHIR/R4/',
         redirectUri: appBaseUrl + '/callback',
-        clientId: 'smart-test',
-        scope: 'profile openid email roles offline_access user/*.*',
-        aud: 'fhir-repo',
-        promptLogin: true,
-        logoutUri: onAuth + '/logout?post_logout_redirect_uri=' + appBaseUrl + '/'
+        clientId: '43a60ffa-242a-4bbe-bb17-97666be7189e',
+        scope: 'launch launch/patient patient/*.*'
       }
     ]
   }

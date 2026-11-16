@@ -2,16 +2,17 @@
 // (stage-fhir-repository/deploy/testing)
 const host = window.location.origin;
 const appBaseUrl = host + '/smart-apps/acc_aha';
-// STAGE and EHR repositories (stage-fhir-repository/deploy/kroniq)
+// STAGE repository (stage-fhir-repository/deploy/kroniq)
 const stage = {fhir: host + '/stage-fhir'};
-const ehr = {fhir: host + '/ehr'};
 const onAuth = host + '/stage-onauth/api/smart';
 
 export const environment = {
   smart: {
     // the session is shared with the other STAGE apps on this origin (e.g. opened from the dashboard)
     authStorage: <'localStorage'>'localStorage',
-    shcLoginEnabled: true,
+    // no Smart Health Card button on the login page: patients' cards/links are imported after the STAGE login without a
+    // patient (see loginClients)
+    shcLoginEnabled: false,
     shcCallbackUrl: '/shl',
     clientIds: {
       'https://lforms-smart-fhir.nlm.nih.gov/v/r4/fhir': 'srdc-qrisk',
@@ -21,30 +22,9 @@ export const environment = {
     redirectUrl: appBaseUrl + '/callback',
     loginClients: [
       {
-        label: 'EPIC',
-        image: 'https://fhir.epic.com/Content/images/EpicOnFhir.png',
-        iss: 'https://fhir.epic.com/interconnect-fhir-oauth/api/FHIR/R4/',
-        redirectUri: appBaseUrl + '/callback',
-        clientId: '9dc58e42-28ea-446c-8a07-40b169a5b112',
-        scope: 'launch launch/patient patient/*.*'
-      },
-      {
-        label: 'Kroniq',
-        image: 'https://kroniq.health/img/kroniq-colored.png',
-        iss: 'https://kroniq.srdc.com.tr/fhir',
-        isPublic: false,
-        redirectUri: appBaseUrl + '/callback',
-        clientId: 'smart-test',
-        scope: 'profile openid email roles offline_access launch/patient user/*.* patient/*.*',
-        aud: 'fhir-repo',
-        promptLogin: true,
-        logoutUri: 'https://kroniq.srdc.com.tr/onauth/api/adlife/logout?post_logout_redirect_uri=' + appBaseUrl + '/login'
-      },
-      {
         // STAGE: login with a patient context
         label: 'STAGE',
-        background: '#2c5f2d',
-        color: 'white',
+        image: 'assets/stage-x-repofyr.png',
         iss: stage.fhir,
         isPublic: false,
         redirectUri: appBaseUrl + '/callback',
@@ -55,18 +35,26 @@ export const environment = {
         logoutUri: onAuth + '/logout?post_logout_redirect_uri=' + appBaseUrl + '/login'
       },
       {
-        // EHR: login with a patient context
-        label: 'EHR',
-        background: '#1f4e79',
-        color: 'white',
-        iss: ehr.fhir,
+        // STAGE without a patient context (no launch/patient): clinicians choose a patient in the record or import
+        // the patient's Smart Health Card/Link (the patient selection page)
+        label: 'STAGE (select patient)',
+        image: 'assets/scan-shc.png',
+        iss: stage.fhir,
         isPublic: false,
         redirectUri: appBaseUrl + '/callback',
         clientId: 'smart-test',
-        scope: 'profile openid email roles offline_access launch/patient user/*.* patient/*.*',
+        scope: 'profile openid email roles offline_access user/*.* patient/*.*',
         aud: 'fhir-repo',
         promptLogin: true,
         logoutUri: onAuth + '/logout?post_logout_redirect_uri=' + appBaseUrl + '/login'
+      },
+      {
+        label: 'EPIC',
+        image: 'https://fhir.epic.com/Content/images/EpicOnFhir.png',
+        iss: 'https://fhir.epic.com/interconnect-fhir-oauth/api/FHIR/R4/',
+        redirectUri: appBaseUrl + '/callback',
+        clientId: '9dc58e42-28ea-446c-8a07-40b169a5b112',
+        scope: 'launch launch/patient patient/*.*'
       }
     ],
     launchClients: [
@@ -82,6 +70,6 @@ export const environment = {
   cds: {
     serviceName: 'acc_aha',
     baseUrl: stage.fhir,
-    baseUrls: {[stage.fhir]: stage.fhir, [ehr.fhir]: ehr.fhir}
+    baseUrls: {[stage.fhir]: stage.fhir}
   }
 }

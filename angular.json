@@ -471,17 +471,6 @@
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true
-            },
-            "xshare": {
-              "optimization": false,
-              "extractLicenses": false,
-              "sourceMap": true,
-              "fileReplacements": [
-                {
-                  "replace": "projects/qrisk3/src/environments/environment.ts",
-                  "with": "projects/qrisk3/src/environments/environment-xshare.ts"
-                }
-              ]
             }
           },
           "defaultConfiguration": "production"
@@ -501,9 +490,6 @@
             },
             "development": {
               "buildTarget": "qrisk3:build:development"
-            },
-            "xshare": {
-              "buildTarget": "qrisk3:build:xshare"
             }
           },
           "defaultConfiguration": "development"
@@ -870,17 +856,6 @@
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true
-            },
-            "xshare": {
-              "optimization": false,
-              "extractLicenses": false,
-              "sourceMap": true,
-              "fileReplacements": [
-                {
-                  "replace": "projects/risk-prediction/src/environments/environment.ts",
-                  "with": "projects/risk-prediction/src/environments/environment-xshare.ts"
-                }
-              ]
             }
           },
           "defaultConfiguration": "production"
@@ -900,9 +875,6 @@
             },
             "development": {
               "buildTarget": "risk-prediction:build:development"
-            },
-            "xshare": {
-              "buildTarget": "risk-prediction:build:xshare"
             }
           },
           "defaultConfiguration": "development"
