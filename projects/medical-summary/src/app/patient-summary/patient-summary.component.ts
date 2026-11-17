@@ -15,6 +15,7 @@ interface SummaryItem {
   source?: string;        // badge text
   linkLabel?: string;     // optional link text (e.g., "See response")
   linkHref?: string;      // optional link URL
+  data?: unknown;         // the QuestionnaireResponse of survey items
 }
 
 @Component({
@@ -53,6 +54,11 @@ export class PatientSummaryComponent implements OnInit {
 
 
   private static readonly DATE_FMT = 'DD/MM/YYYY';
+  private questionnaires: { [ref: string]: fhir4.Questionnaire }|undefined;
+
+  /** Questionnaire response shown in the dialog ("See response" of a survey item) */
+  selectedResponse?: fhir4.QuestionnaireResponse;
+  selectedQuestionnaire?: fhir4.Questionnaire;
 
   constructor(private sof: SmartOnFhirService) {}
 
@@ -264,7 +270,18 @@ export class PatientSummaryComponent implements OnInit {
 
   private safeQRSearch(patientId: string): Promise<fhir4.Bundle<fhir4.QuestionnaireResponse> | undefined> {
     return this.sof
-      .search<fhir4.QuestionnaireResponse>('QuestionnaireResponse', { patient: patientId, _count: 50 })
+      .search<fhir4.QuestionnaireResponse|fhir4.Questionnaire>('QuestionnaireResponse', { patient: patientId, _count: 50, _include: '*' })
+      .then(response => {
+        // the included questionnaires: question texts and answer displays in the response dialog
+        this.questionnaires = response.entry?.filter(entry => entry.resource?.resourceType === 'Questionnaire')
+          .map(entry => <fhir4.Questionnaire>entry.resource)
+          .reduce((o, q) => {
+            o['Questionnaire/' + q.id] = q
+            return o;
+          }, {} as {[ref: string]: fhir4.Questionnaire})
+        response.entry = response.entry?.filter(entry => entry.resource?.resourceType === 'QuestionnaireResponse')
+        return <fhir4.Bundle<fhir4.QuestionnaireResponse>>response;
+      })
       .catch((e: any) => {
         if (e?.status === 403 || e?.status === 404) return undefined;
         throw e;
@@ -499,18 +516,41 @@ export class PatientSummaryComponent implements OnInit {
         '';
       const date = raw ? this.formatDate(raw) : undefined;
 
-      const linkHref = e.fullUrl || '';
       const { source } = this.resolveSourceFor(qr || {});
       out.push({
         primary,
         date,
         source,
-        linkLabel: linkHref ? 'See response' : undefined,
-        linkHref: linkHref || undefined
+        linkLabel: 'See response',  // opens the response dialog (openResponse)
+        linkHref: e.fullUrl || '#',
+        data: qr
       });
     }
 
     return out;
+  }
+
+  /** Opens the questionnaire response dialog of a survey item ("See response") */
+  openResponse(item: { data?: unknown }): void {
+    const qr = item.data as fhir4.QuestionnaireResponse | undefined;
+    if (qr?.resourceType !== 'QuestionnaireResponse') return;
+    this.selectedQuestionnaire = this.questionnaireFor(qr);
+    this.selectedResponse = qr;
+  }
+
+  closeResponse(): void {
+    this.selectedResponse = undefined;
+    this.selectedQuestionnaire = undefined;
+  }
+
+  /** The included questionnaire answered by the response: referenced by id, or by its canonical URL */
+  private questionnaireFor(qr: fhir4.QuestionnaireResponse): fhir4.Questionnaire | undefined {
+    const ref = qr.questionnaire;
+    if (!ref || !this.questionnaires) return undefined;
+    const [url, version] = ref.split('|');
+    return this.questionnaires[ref] || Object.values(this.questionnaires)
+      .find(q => q.url === url && (!version || q.version === version))
+      || this.questionnaires['Questionnaire/' + url.split('/').pop()];
   }
 
   /** Build full name if name.text missing */

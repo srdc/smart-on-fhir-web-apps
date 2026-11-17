@@ -1,0 +1,24 @@
+.qr-items {
+  dt {
+    font-weight: 600;
+    padding-top: .5rem;
+
+    &.qr-group {
+      color: var(--bs-primary);
+      padding-top: 1rem;
+      border-bottom: 1px solid var(--bs-border-color);
+      margin-bottom: .25rem;
+    }
+  }
+
+  dt:first-child {
+    padding-top: 0;
+  }
+
+  dd {
+    margin-bottom: .5rem;
+    padding-bottom: .5rem;
+    border-bottom: 1px solid var(--bs-border-color-translucent);
+    white-space: pre-line;
+  }
+}

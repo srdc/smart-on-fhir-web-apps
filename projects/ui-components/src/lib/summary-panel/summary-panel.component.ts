@@ -8,6 +8,7 @@ export interface SummaryItem {
   linkLabel?: string;     // optional link text (e.g., "See response")
   linkHref?: string;      // optional link URL
   diseaseIndex?: number;
+  data?: unknown;         // optional app data of the item (e.g. the FHIR resource), for linkItemClicked
 }
 
 @Component({
@@ -21,6 +22,8 @@ export class SummaryPanelComponent {
   @Input() items: SummaryItem[] = [];
 
   @Output() linkClicked = new EventEmitter<number>();
+  /** The item whose link is clicked (e.g. "See response") */
+  @Output() linkItemClicked = new EventEmitter<SummaryItem>();
 
   sourceClassFor(src?: string): string | null {
     if (!src) return null;
@@ -29,15 +32,11 @@ export class SummaryPanelComponent {
     return null;
   }
   onLinkClick(item: SummaryItem, event: Event) {
-
     event.preventDefault();
-
+    this.linkItemClicked.emit(item);
     if (item.diseaseIndex !== undefined) {
-
       this.linkClicked.emit(item.diseaseIndex);
-
     }
-
   }
 
 }

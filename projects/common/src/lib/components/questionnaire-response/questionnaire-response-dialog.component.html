@@ -1,0 +1,39 @@
+<div class="modal d-block" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="qr-dialog-title"
+     (click)="close()">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg" (click)="$event.stopPropagation()">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div>
+          <h5 class="modal-title" id="qr-dialog-title"><i class="bi bi-clipboard-check"></i> {{ dialogTitle }}</h5>
+          <div class="small text-muted" *ngIf="response.authored">
+            Answered on {{ response.authored | date:'dd/MM/yyyy HH:mm' }}
+            <span *ngIf="response.status && response.status !== 'completed'"> ({{ response.status }})</span>
+          </div>
+        </div>
+        <button type="button" class="btn-close" aria-label="Close" (click)="close()"></button>
+      </div>
+
+      <div class="modal-body">
+        <dl class="qr-items mb-0" *ngIf="rows.length; else noAnswers">
+          <ng-container *ngFor="let row of rows">
+            <dt [style.padding-left.rem]="row.depth" [class.qr-group]="row.group">{{ row.text }}</dt>
+            <dd *ngIf="!row.group" [style.padding-left.rem]="row.depth">
+              <ng-container *ngIf="row.answers.length; else unanswered">
+                <div *ngFor="let answer of row.answers">{{ answer }}</div>
+              </ng-container>
+              <ng-template #unanswered><span class="text-muted fst-italic">Not answered</span></ng-template>
+            </dd>
+          </ng-container>
+        </dl>
+        <ng-template #noAnswers>
+          <p class="text-muted mb-0">This response has no answers.</p>
+        </ng-template>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="close()">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal-backdrop show"></div>

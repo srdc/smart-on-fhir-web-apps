@@ -3,7 +3,7 @@ import { CdsHooksModule, CdsHooksServiceConfig } from 'cds-hooks'
 import { SmartOnFhirModule, SmartOnFhirConfig } from 'ng-smart-on-fhir';
 import {
   CdsPanelsComponent, ImportHealthCardComponent, LinkVaultFormComponent, PatientInfoComponent, PatientSelectComponent,
-  ShareHealthCardDialogComponent
+  QuestionnaireResponseDialogComponent, ShareHealthCardDialogComponent
 } from "./components";
 import {FormsModule} from "@angular/forms";
 import {CommonModule, JsonPipe, KeyValuePipe, NgForOf, NgIf} from "@angular/common";
@@ -51,6 +51,7 @@ const sorting = {
     ImportHealthCardComponent,
     PatientSelectComponent,
     ShareHealthCardDialogComponent,
+    QuestionnaireResponseDialogComponent,
     LinkVaultFormComponent
   ],
   imports: [
@@ -70,6 +71,7 @@ const sorting = {
     ImportHealthCardComponent,
     PatientSelectComponent,
     ShareHealthCardDialogComponent,
+    QuestionnaireResponseDialogComponent,
     LinkVaultFormComponent
   ],
   providers: []

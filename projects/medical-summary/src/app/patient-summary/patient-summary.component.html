@@ -144,7 +144,8 @@
         <div class="col-lg-6">
           <ui-summary-panel
             [title]="'Questionnaires & Surveys'"
-            [items]="surveyItems! | paginate: { id: 'surveys', itemsPerPage: itemsPerPage, currentPage: surveyPage }">
+            [items]="surveyItems! | paginate: { id: 'surveys', itemsPerPage: itemsPerPage, currentPage: surveyPage }"
+            (linkItemClicked)="openResponse($event)">
           </ui-summary-panel>
           <pagination-controls
             id="surveys"
@@ -167,3 +168,6 @@
   </div>
 </div>
 
+<app-questionnaire-response-dialog *ngIf="selectedResponse" [response]="selectedResponse"
+                                   [questionnaire]="selectedQuestionnaire" (closed)="closeResponse()">
+</app-questionnaire-response-dialog>
