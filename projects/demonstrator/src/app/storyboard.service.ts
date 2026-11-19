@@ -139,7 +139,7 @@ export const STEP_SCREENS: Record<StepKey, StepScreen> = {
   'results': {
     route: '/results',
     hint: 'The results follow "Calculate risks" in the disease selection. Open a disease to see its contributing ' +
-      'factors, then continue to intervention planning.'
+      'factors, then click "Manage Intervention Plan".'
   },
   'interventions': {
     route: '/interventions',

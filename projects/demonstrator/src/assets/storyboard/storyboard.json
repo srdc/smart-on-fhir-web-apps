@@ -103,9 +103,9 @@
     "Red bars show how much a factor increases the risk, blue bars how much it decreases it.",
     "Next to each chart, the AI assistant explains it.",
     "Ask the AI assistant about anything in the chart you don't understand.",
-    "Click \"Next step\" to continue with intervention planning: suggesting goals to the patient to lower the disease risks."
+    "Click \"Manage Intervention Plan\", at the top or the bottom of the disease risk list, to continue with intervention planning: suggesting goals to the patient to lower the disease risks."
    ],
-   "canSkip": true
+   "canSkip": false
   },
   {
    "key": "interventions",
