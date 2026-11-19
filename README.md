@@ -40,6 +40,8 @@ And 5 applications which are the user interfaces for the CDS services implemente
 - **qrisk3**: Interface for [QRISK3](https://qrisk.org/) service
 - **score**: Interface for [SCORE2](https://www.escardio.org/Education/Practice-Tools/CVD-prevention-toolbox/SCORE-Risk-Charts) service
 - **~~shc-generator~~**: An example application to store and share Smart Health Cards (requires SHL server application, which is not yet available in Github)
+- **demonstrator**: STAGE WP7 storyboard demonstrator: the four storyboard patients, their stories step by step next to the
+  risk-prediction app (in a frame), and simulated partner applications; see [projects/demonstrator/README.md](projects/demonstrator/README.md)
 
 Even the application codes are simple and similar, the Angular Monorepo architecture is chosen so the service interfaces can be deployed as separate applications.
 

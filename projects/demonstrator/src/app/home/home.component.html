@@ -1,0 +1,118 @@
+<div class="row" style="min-height: 100%">
+  <div class="col-lg-4 demo-hero p-4 p-lg-5 bg-primary text-white">
+    <h3 class="text-white"><img src="assets/stage-circle-white.png" width="32" height="32"> STAGE</h3>
+    <div>
+      <h1 id="hero-h" class="demo-hero__title">Multimorbidity risk prediction for clinicians</h1>
+      <p class="demo-hero__lead">Follow four synthetic patients through the STAGE tools: the questionnaires they answer
+        at home, the risk prediction with its explanations, and a personal intervention plan.</p>
+      @if (storyboard) {
+        <ul class="demo-facts list-unstyled">
+          <li><b>{{ storyboard.patients.length }}</b> patients, one per model group</li>
+          <li><b>{{ diseaseCount }}</b> diseases predicted</li>
+          <li><b>{{ storyboard.steps.length }}</b> steps in each story</li>
+        </ul>
+      }
+      <ol class="demo-how list-unstyled mb-0">
+        <li><span>1</span><div><b>Choose a patient</b> and read their story.</div></li>
+        <li><span>2</span><div><b>Follow the steps</b> beside the live application: what the clinician or the patient
+          does, and what happens behind the screen.</div></li>
+        <li><span>3</span><div><b>Change the data</b> in the simulated partner applications (Health Monitoring App,
+          LIVA coaching) and the risk questionnaire, and calculate again.</div></li>
+      </ol>
+    </div>
+    <div class="py-4">
+      <p class="mb-2">The patients and their data are synthetic. Each visitor works on a temporary copy in the STAGE FHIR
+        repository; the copies are deleted after a day.</p>
+      <p class="mb-0 small">STAGE, Stay Healthy Through Ageing, is funded by the European Union under the Horizon Europe
+        grant agreement No 101137146, and by UKRI. Views and opinions expressed are those of the authors only and do not
+        necessarily reflect those of the European Union or the granting authority, who cannot be held responsible for them.</p>
+    </div>
+  </div>
+  <div class="col-lg-8 p-4 p-lg-5">
+    @if (error) {
+      <div class="alert alert-danger">{{ error }}</div>
+    }
+
+    <h2 id="patients" class="h4 fw-semibold mb-1">Four storyboard patients</h2>
+    <p class="text-muted mb-3">Each one represents a group of the WP6 prediction models, by sex and age.</p>
+    <div class="row g-3">
+      @for (p of storyboard?.patients; track p.id) {
+        <div class="col-md-12 col-xl-6">
+          <article class="card h-100 demo-patient-card" [attr.aria-labelledby]="'p-' + p.id">
+            <div class="card-body d-flex flex-column">
+              <div class="d-flex align-items-center gap-2 mb-2">
+                <div class="demo-avatar" [class.female]="p.gender === 'female'" aria-hidden="true">{{ p.given[0] }}{{ p.family[0] }}</div>
+                <div>
+                  <h3 class="h6 fw-semibold mb-0" [id]="'p-' + p.id">{{ p.given }} {{ p.family }}</h3>
+                  <div class="small text-muted">{{ p.gender === 'female' ? 'Woman' : 'Man' }}, {{ p.age }} years</div>
+                </div>
+              </div>
+              <span class="demo-group align-self-start mb-2" [title]="p.stratum">
+              <i class="bi bi-diagram-3 me-1" aria-hidden="true"></i>{{ stratum(p) }}</span>
+              <p class="fw-medium mb-2">{{ p.headline }}</p>
+              <p class="small text-muted mb-3"><b>Visit:</b> {{ p.visitReason }}</p>
+<!--              @if (expanded === p.id) {-->
+                <p class="small" [id]="'bg-' + p.id">{{ p.background }}</p>
+<!--              }-->
+              <div class="mt-auto">
+                <demo-risk-chart class="d-block mb-3" [model]="storyboard?.model?.[p.id]"></demo-risk-chart>
+                <div class="d-flex gap-2">
+                  <button class="btn btn-primary btn-sm flex-grow-1" (click)="start(p.id)">
+                    <i class="bi bi-play-fill me-1" aria-hidden="true"></i>Start the story</button>
+<!--                  <button class="btn btn-outline-secondary btn-sm" (click)="expanded = expanded === p.id ? undefined : p.id"-->
+<!--                          [attr.aria-expanded]="expanded === p.id" [attr.aria-controls]="'bg-' + p.id">-->
+<!--                    {{ expanded === p.id ? 'Hide background' : 'Read background' }}</button>-->
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+      }
+    </div>
+
+<!--    <section class="card mt-4 demo-own" aria-labelledby="own-h">-->
+<!--      <div class="card-body">-->
+<!--        <h2 id="own-h" class="h5 fw-semibold">Make your own patient</h2>-->
+<!--        <p class="small text-muted">A new patient with the record of one of the storyboard patients, under another name.-->
+<!--          Change their answers in the steps and see how the risks change.</p>-->
+<!--        <form class="row g-2 align-items-end" (ngSubmit)="startCustom()">-->
+<!--          <div class="col-sm-4">-->
+<!--            <label class="form-label small" for="base">Record</label>-->
+<!--            <select id="base" class="form-select form-select-sm" name="base" [(ngModel)]="custom.storyId">-->
+<!--              @for (p of storyboard?.patients; track p.id) {-->
+<!--                <option [value]="p.id">{{ p.given }} {{ p.family }} ({{ stratum(p) }})</option>-->
+<!--              }-->
+<!--            </select>-->
+<!--          </div>-->
+<!--          <div class="col-sm-3">-->
+<!--            <label class="form-label small" for="given">Given name</label>-->
+<!--            <input id="given" class="form-control form-control-sm" name="given" [(ngModel)]="custom.given" autocomplete="off">-->
+<!--          </div>-->
+<!--          <div class="col-sm-3">-->
+<!--            <label class="form-label small" for="family">Family name</label>-->
+<!--            <input id="family" class="form-control form-control-sm" name="family" [(ngModel)]="custom.family" autocomplete="off">-->
+<!--          </div>-->
+<!--          <div class="col-sm-2 d-grid">-->
+<!--            <button class="btn btn-secondary btn-sm" type="submit" [disabled]="!custom.storyId">Create patient</button>-->
+<!--          </div>-->
+<!--        </form>-->
+<!--      </div>-->
+<!--    </section>-->
+    @if (copies.length) {
+      <h2 class="h5 fw-semibold mt-4">Your patient copies</h2>
+      <div class="d-flex flex-wrap gap-2 mb-4">
+        @for (copy of copies.slice(0, 6); track copy.patientId) {
+          <button class="btn btn-outline-secondary btn-sm" (click)="open(copy)">
+            <i class="bi bi-person me-1" aria-hidden="true"></i>{{ copy.name }}
+            @if (story(copy.storyId); as s) {
+              @if (copy.name !== s.given + ' ' + s.family) {
+                <span class="demo-chip-muted">· record of {{ s.given }}</span>
+              }
+            }
+            <span class="demo-chip-muted">· {{ copy.created | date: 'd MMM, HH:mm' }}</span>
+          </button>
+        }
+      </div>
+    }
+  </div>
+</div>

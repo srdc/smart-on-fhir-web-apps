@@ -1,0 +1,59 @@
+<div class="container py-4 py-lg-5" style="max-width: 760px">
+  <a routerLink="/" class="small text-decoration-none"><i class="bi bi-arrow-left me-1" aria-hidden="true"></i>All patients</a>
+
+  <h1 class="h3 fw-semibold mt-3 mb-2">Log in as the clinician</h1>
+  <p class="text-muted mb-4">
+    @if (patientName) {
+      In {{ story?.given }}'s story you are the clinician who sees {{ patientName }} at the visit.
+    } @else {
+      In the stories you are the clinician who sees the patient at the visit.
+    }
+    The risk-prediction app works with a clinician login: the STAGE login page opens, you log in with the test
+    practitioner account and come back here.
+    @if (patientName) {
+      The demonstrator then makes your own copy of {{ patientName }}'s record.
+    }
+  </p>
+
+  <section class="card mb-3" aria-labelledby="account-h">
+    <div class="card-body">
+      <h2 id="account-h" class="h6 fw-semibold mb-3"><i class="bi bi-person-badge me-1" aria-hidden="true"></i>Test practitioner account</h2>
+      @if (account) {
+        <dl class="demo-account mb-0">
+          <dt>Username</dt>
+          <dd><code>{{ account.username }}</code>
+            <button class="btn btn-link btn-sm p-0 ms-2" type="button" (click)="copy('username')">
+              {{ copied === 'username' ? 'Copied' : 'Copy' }}</button></dd>
+          @if (account.password) {
+            <dt>Password</dt>
+            <dd><code>{{ account.password }}</code>
+              <button class="btn btn-link btn-sm p-0 ms-2" type="button" (click)="copy('password')">
+                {{ copied === 'password' ? 'Copied' : 'Copy' }}</button></dd>
+          }
+        </dl>
+        @if (account.note) {
+          <p class="small text-muted mt-2 mb-0">{{ account.note }}</p>
+        }
+      } @else {
+        <p class="mb-0">{{ loginHint }}</p>
+      }
+    </div>
+  </section>
+
+  <ol class="small text-muted ps-3 mb-4">
+    <li>Click "Log in to STAGE": the STAGE login page (onAuth) opens.</li>
+    <li>Log in with the account above.</li>
+    <li>You come back to the demonstrator, which makes your copy of the patient and opens the story.</li>
+  </ol>
+
+  <div class="d-flex flex-wrap gap-2">
+    <button class="btn btn-primary" type="button" (click)="login()" [disabled]="starting">
+      @if (starting) {
+        <span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
+      } @else {
+        <i class="bi bi-box-arrow-in-right me-1" aria-hidden="true"></i>
+      }
+      Log in to STAGE</button>
+    <a class="btn btn-outline-secondary" routerLink="/">Choose another patient</a>
+  </div>
+</div>

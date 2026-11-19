@@ -1,0 +1,218 @@
+@if (error) {
+  <div class="container py-5" style="max-width: 720px">
+    <div class="alert alert-danger">
+      <p class="mb-2">{{ error }}</p>
+      <a class="btn btn-outline-secondary btn-sm" routerLink="/">Back to the patients</a>
+    </div>
+  </div>
+} @else if (!story || !patient) {
+  <div class="container py-5 d-flex align-items-center gap-3">
+    <span class="spinner-border text-primary" role="status"></span><span>Opening the story…</span>
+  </div>
+} @else {
+  <div class="demo-story">
+    <!-- story and steps -->
+    <aside class="demo-story-panel">
+      <div class="demo-story-head">
+        <a routerLink="/" class="small text-decoration-none"><i class="bi bi-arrow-left me-1"></i>All patients</a>
+        <div class="d-flex align-items-center gap-2 mt-2">
+          <div class="demo-avatar" [class.female]="story.gender === 'female'">{{ initials }}</div>
+          <div class="min-w-0">
+            <div class="fw-semibold text-truncate">{{ copy?.name }}</div>
+            <div class="small text-muted">{{ story.gender === 'female' ? 'Woman' : 'Man' }}, {{ story.age }} years ·
+              {{ stratum(story) }}</div>
+          </div>
+        </div>
+        <p class="small fw-medium mt-2 mb-1">{{ story.headline }}</p>
+        <p class="small text-muted mb-1"><b>Visit:</b> {{ story.visitReason }}</p>
+        @if (showBackground) {
+          <p class="small mb-1">{{ story.background }}</p>
+        }
+        <div class="d-flex gap-3 small">
+          <a href="javascript:void(0)" (click)="showBackground = !showBackground">{{ showBackground ? 'Less' : 'Background' }}</a>
+          <a href="javascript:void(0)" (click)="restart()" title="Discard your changes: a new copy of the storyboard patient">
+            <i class="bi bi-arrow-counterclockwise me-1"></i>Start over</a>
+        </div>
+      </div>
+
+      <ol class="demo-steps list-unstyled mb-0">
+        @for (s of steps; track s.key; let i = $index) {
+          <li [class.active]="s === step" [class.done]="i < index">
+            <button class="demo-step-title" [disabled]="i > index" (click)="select(s)">
+              <span class="demo-step-no">{{ i + 1 }}</span>
+              <span class="flex-grow-1 text-start">{{ s.title }}</span>
+              <span class="badge rounded-pill" [class]="s.actor === 'Patient' ? 'text-bg-info' : 'text-bg-light border'">{{ s.actor }}</span>
+            </button>
+            @if (s === step) {
+              <div class="demo-step-body">
+                <p class="mb-2">{{ s.actionDescription }}</p>
+
+                <!-- what is particular to this patient (storyboard document, patient-specific storyboards) -->
+                @switch (s.key) {
+                  @case ('login') {
+                    <div class="demo-note"><i class="bi bi-check2-circle me-1"></i>You logged in{{ userName ? ' as ' + userName : '' }}.
+                      The demonstrator uses a login without a patient context, so that it can open the patient copies it makes.</div>
+                  }
+                  @case ('patient-selection') {
+                    <div class="demo-note"><i class="bi bi-check2-circle me-1"></i>The demonstrator selected your copy of
+                      {{ story.given }} {{ story.family }}: <code>Patient/{{ patient.id }}</code>. In the clinic, the clinician
+                      selects the patient on the onAuth page shown beside.</div>
+                  }
+                  @case ('summary') {
+                    <div class="demo-note"><b>In {{ story.given }}'s story:</b> {{ story.summary }}</div>
+                  }
+                  @case ('patient-reported') {
+                    <div class="demo-note">The questionnaires are shown to the clinician and prefill the risk questionnaire.
+                      The current prediction models do not use their answers as inputs: answering them differently does
+                      not change the risks (see "What changes the risks" in step 5).</div>
+                  }
+                  @case ('form') {
+                    @if (inputs.length) {
+                      <details class="demo-behind">
+                        <summary>What changes the risks</summary>
+                        <p class="mb-1">The models for {{ stratum(story).toLowerCase() }} (version {{ storyboard?.modelInputs?.version }},
+                          {{ inputCount }} inputs) mostly use measurements: laboratory results, vital signs, body measurements. The other inputs:</p>
+                        <ul class="mb-1 ps-3">
+                          @for (i of inputs; track i) { <li>{{ i }}</li> }
+                        </ul>
+                        <p class="mb-1">Change these answers in the risk questionnaire (or a measurement) and calculate again to
+                          see the risks change. Answers the models do not use are kept with the patient's data but leave the
+                          risks as they are.</p>
+                        @if (imputed.length) {
+                          <p class="mb-0 text-muted">{{ imputed.length }} of the {{ inputCount }} inputs are not collected in
+                            STAGE and are always imputed: {{ imputed.join(', ') }}.</p>
+                        }
+                      </details>
+                    }
+                    @if (answersChanged) {
+                      <div class="alert alert-warning small py-2 mb-2">You changed the questionnaire answers: in the risk
+                        questionnaire, collect the data from the EHR again to use them (a response saved in the last 7
+                        days is shown otherwise).</div>
+                    }
+                    @if (story.findings.length) {
+                      <div class="demo-note"><b>Findings of the visit:</b>
+                        <ul class="mb-0 ps-3">
+                          @for (f of story.findings; track f.measure) {
+                            <li>{{ f.measure }}: {{ f.value }} <span class="text-muted">– {{ f.interpretation }}</span></li>
+                          }
+                        </ul>
+                      </div>
+                    }
+                  }
+                  @case ('diseases') {
+                    <div class="demo-note"><b>In {{ story.given }}'s story:</b> {{ story.selectionNote }}</div>
+                  }
+                  @case ('results') {
+                    <div class="demo-note"><b>In {{ story.given }}'s story:</b> {{ story.resultsNote }}
+                      <div class="mt-2 small text-muted">Risks in the storyboard document:
+                        @for (r of topRisks(); track r.disease; let last = $last) {
+                          {{ r.disease }} {{ r.p * 100 | number: '1.0-1' }}%{{ last ? '' : ',' }}
+                        }
+                      </div>
+                    </div>
+                  }
+                  @case ('interventions') {
+                    <div class="demo-note"><b>Agreed with {{ story.given }}:</b>
+                      <ul class="mb-0 ps-3">
+                        @for (iv of story.interventions; track iv.measure) {
+                          <li><b>{{ iv.measure }}</b>: {{ iv.goal }}</li>
+                        }
+                      </ul>
+                    </div>
+                  }
+                }
+
+                <details class="demo-behind">
+                  <summary>Behind the screen</summary>
+                  <p class="mb-0">{{ s.system }}</p>
+                </details>
+
+                @if (screen(s).hint) {
+                  <div class="demo-hint"><i class="bi bi-hand-index me-1"></i>{{ screen(s).hint }}</div>
+                }
+<!--                <div class="d-flex gap-2 mt-2">-->
+<!--                  <button class="btn btn-outline-secondary btn-sm" [disabled]="i === 0" (click)="move(-1)">Previous step</button>-->
+<!--                  <button class="btn btn-primary btn-sm" [disabled]="i === steps.length - 1" (click)="move(1)">Next step</button>-->
+<!--                </div>-->
+              </div>
+            }
+          </li>
+        }
+      </ol>
+    </aside>
+
+    <!-- the application of the step -->
+    <section class="demo-stage">
+      <!-- user actions: what the guide (the robot doctor) asks the visitor to do; rebuilt on each step, so it fades in again -->
+      @for (s of step?.actions?.length ? [step!] : []; track s.key) {
+        <div class="demo-guide" role="status" aria-live="polite">
+          <img class="demo-guide__avatar" src="assets/ai-doc.png" alt="" width="121" height="121">
+          <div class="demo-guide__bubble">
+            <div class="demo-guide__title">Step {{ index + 1 }}: {{ s.title }}</div>
+            <ul>
+              @for (action of s.actions; track $index) {
+                <li [style.animation-delay.ms]="180 + $index * 70">{{ action }}</li>
+              }
+            </ul>
+            @if (s.canSkip && index < steps.length - 1) {
+              <button class="btn btn-primary btn-sm" (click)="move(1)">Next step<i class="bi bi-arrow-right ms-1" aria-hidden="true"></i></button>
+            }
+          </div>
+        </div>
+      }
+      <!-- what the stage shows: the live application, a simulated partner application, or screenshots -->
+      <div class="demo-stage-tabs">
+        @if (screen(step).route && screen(step).simulator) {
+          <button [class.active]="view === 'app'" [attr.aria-pressed]="view === 'app'" (click)="select(step!, 'app')">
+            <i class="bi bi-window me-1" aria-hidden="true"></i>Risk-prediction app</button>
+          <button [class.active]="view === 'simulator'" [attr.aria-pressed]="view === 'simulator'" (click)="select(step!, 'simulator')">
+            <i class="bi bi-phone me-1" aria-hidden="true"></i>{{ simulatorName(step) }}</button>
+        } @else {
+          <span class="demo-stage-label">
+            @switch (showing) {
+              @case ('app') { <i class="bi bi-window me-1" aria-hidden="true"></i>Risk-prediction app }
+              @case ('simulator') { <i class="bi bi-phone me-1" aria-hidden="true"></i>{{ simulatorName(step) }} }
+              @default { <i class="bi bi-images me-1" aria-hidden="true"></i>Screenshots from the clinic }
+            }
+          </span>
+        }
+        <span class="demo-stage-kind" [class.live]="showing === 'app'">{{ showing === 'app' ? 'Live' : showing === 'simulator' ? 'Simulated' : 'Done for you' }}</span>
+        @if (showing === 'app') {
+          <a class="demo-stage-open" [href]="appUrl + (frame?.route || '/summary')" target="_blank" rel="noopener">
+            Open in a new tab<i class="bi bi-box-arrow-up-right ms-1" aria-hidden="true"></i></a>
+        }
+      </div>
+      @if (sessionEnded) {
+        <div class="alert alert-warning m-3 d-flex flex-wrap align-items-center gap-2">
+          <span class="flex-grow-1">The login of the demonstrator ended (logout in the application, or a new login).</span>
+          <button class="btn btn-primary btn-sm" (click)="loginAgain()">Log in again</button>
+        </div>
+      }
+      <div class="demo-stage-body">
+        <!-- the app stays loaded while other steps are shown -->
+        @if (frameLoaded) {
+          <demo-app-frame [class.d-none]="showing !== 'app' || sessionEnded" [baseUrl]="appUrl"
+                          (routeChange)="onAppRoute($event)" (left)="sessionEnded = true"></demo-app-frame>
+        }
+        @if (showing === 'simulator') {
+          @if (screen(step).simulator === 'abacus') {
+            <demo-abacus-simulator [patientId]="patient.id!" [patientName]="copy?.name || ''"
+                                   (saved)="onAnswersSaved()"></demo-abacus-simulator>
+          } @else {
+            <demo-liva-simulator [patientId]="patient.id!" [patientName]="copy?.name || ''"
+                                 (changed)="onPlanChanged()"></demo-liva-simulator>
+          }
+        }
+        @if (showing === 'screenshots') {
+          <div class="demo-screenshots">
+            <p class="text-muted">The demonstrator did this step for you. In the clinic the clinician sees these pages of
+              the integrated STAGE deployment.</p>
+            @for (shot of screen(step).screenshots; track shot.src) {
+              <img [src]="shot.src" class="demo-shot" [alt]="shot.caption" loading="lazy">
+            }
+          </div>
+        }
+      </div>
+    </section>
+  </div>
+}

@@ -40,3 +40,6 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+
+# Demonstrator: the test practitioner account of a deployment (projects/demonstrator/demo-account.example.json)
+/projects/demonstrator/src/assets/config/demo-account.json

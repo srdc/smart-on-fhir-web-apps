@@ -1,0 +1,22 @@
+{
+  "/smart-apps": {
+    "target": "https://stage.testing.eu",
+    "secure": false,
+    "changeOrigin": true
+  },
+  "/stage-fhir": {
+    "target": "https://stage.testing.eu",
+    "secure": false,
+    "changeOrigin": true
+  },
+  "/stage-shl": {
+    "target": "https://stage.testing.eu",
+    "secure": false,
+    "changeOrigin": true
+  },
+  "/stage-onauth": {
+    "target": "https://stage.testing.eu",
+    "secure": false,
+    "changeOrigin": true
+  }
+}

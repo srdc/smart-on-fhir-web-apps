@@ -1,0 +1,88 @@
+<div class="demo-sim">
+  <div class="demo-sim-note">
+    <i class="bi bi-info-circle me-1"></i><b>Simulated.</b> LIVA is the health-coaching platform. Through the STAGE FHIR
+    repository its health coach receives the interventions the clinician suggested for {{ patientName }}, agrees the
+    goals with the patient, and LIVA sends back the patient's measurements. Switch to the risk-prediction app to see them
+    in the intervention plan.
+  </div>
+
+  <div class="card">
+    <div class="card-header d-flex align-items-center gap-2" style="background: var(--demo-liva); color: #fff">
+      <i class="bi bi-heart-pulse"></i><span class="fw-semibold">LIVA · health coach</span>
+      <span class="ms-auto small opacity-75">{{ patientName }}</span>
+    </div>
+    <div class="card-body">
+      @if (loading) {
+        <div class="text-center py-3"><span class="spinner-border spinner-border-sm"></span></div>
+      } @else if (error) {
+        <div class="alert alert-danger small">{{ error }}</div>
+      } @else if (!carePlan) {
+        <p class="small text-muted mb-0">No active care plan yet. Suggest interventions in the risk-prediction app
+          (step "Intervention planning") first.</p>
+      } @else {
+        @if (message) {
+          <div class="alert alert-info small py-2">{{ message }}</div>
+        }
+        <div class="d-flex align-items-center mb-2">
+          <h3 class="h6 fw-semibold mb-0">Goals</h3>
+          @if (hasProposed()) {
+            <button class="btn btn-sm demo-liva-button ms-auto" [disabled]="busy" (click)="acceptAll()">Accept all</button>
+          }
+        </div>
+        <ul class="list-group mb-3">
+          @for (goal of goals; track goal.id) {
+            <li class="list-group-item d-flex align-items-center gap-2 small">
+              <div class="flex-grow-1">
+                <div class="fw-medium">{{ goal.description.text || goal.description.coding?.[0]?.display }}</div>
+                @if (target(goal)) { <div class="text-muted">Target: {{ target(goal) }}</div> }
+              </div>
+              @if (accepted(goal)) {
+                <span class="badge demo-liva-badge">Accepted</span>
+              } @else if (goal.lifecycleStatus === 'proposed') {
+                <button class="btn btn-sm demo-liva-button-outline" [disabled]="busy" (click)="accept(goal)">Accept</button>
+              } @else {
+                <span class="badge text-bg-light border">{{ goal.lifecycleStatus }}</span>
+              }
+            </li>
+          }
+        </ul>
+
+        <h3 class="h6 fw-semibold">Send a measurement</h3>
+        @if (!measurements.length) {
+          <p class="small text-muted">Accept goals with a measurable target first.</p>
+        }
+        @for (m of measurements; track m.key) {
+          <div class="input-group input-group-sm mb-2">
+            <span class="input-group-text demo-measure-label" [title]="m.label">{{ m.label }}</span>
+            @if (m.kind === 'blood-pressure') {
+              <input class="form-control" [(ngModel)]="values[m.key]" placeholder="systolic/diastolic, e.g. 135/85">
+              <span class="input-group-text">mmHg</span>
+            } @else if (m.kind === 'quantity') {
+              <input class="form-control" type="number" [(ngModel)]="values[m.key]" [placeholder]="m.target || ''">
+              <span class="input-group-text">{{ m.unit?.unit || m.unit?.code }}</span>
+            } @else {
+              <select class="form-select" [(ngModel)]="values[m.key]">
+                <option [ngValue]="undefined">Choose…</option>
+                @for (c of m.targetConcepts; track c.code) {
+                  <option [value]="c.code">{{ c.display || c.code }}</option>
+                }
+              </select>
+            }
+            <button class="btn btn-outline-primary" [disabled]="busy || values[m.key] == null || values[m.key] === ''"
+                    (click)="post(m)">Send</button>
+          </div>
+        }
+
+        @if (posted.length) {
+          <h3 class="h6 fw-semibold mt-3">Sent by LIVA</h3>
+          <ul class="list-unstyled small mb-0">
+            @for (o of posted; track o.id) {
+              <li>{{ o.effectiveDateTime | date: 'd MMM, HH:mm' }} · {{ o.code.coding?.[0]?.display || o.code.text }}:
+                <b>{{ value(o) }}</b></li>
+            }
+          </ul>
+        }
+      }
+    </div>
+  </div>
+</div>

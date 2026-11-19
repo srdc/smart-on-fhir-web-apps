@@ -1,0 +1,3716 @@
+{
+ "anchor": "2026-11-04",
+ "title": "End-to-End Risk Prediction Storyboards with the STAGE WP7 Clinician Tools",
+ "summary": [
+  "STAGE develops person-centred decision support for healthy ageing with multimorbidity. Work package 7 (WP7) delivers the clinician-facing tools that bring the multimorbidity risk models of WP6 to the point of care: a SMART-on-FHIR risk-prediction application, a CDS-Hooks decision-support server, a FHIR-based feature extraction layer, an explainable ML service and the exchange of intervention plans with the LIVA coaching platform.",
+  "This document demonstrates how these tools work together, from the patient reporting questionnaire answers and daily routine in the Health Monitoring App, through the clinician's risk assessment, to the planning of interventions, through storyboards of four synthetic patients. Each patient represents one of the four population strata of the deployed models (women and men, younger and older than 60) and has a realistic clinical background whose data is consistent with medical knowledge and covers every input the models require.",
+  "For every patient the document describes the clinical story, the data recorded in the electronic health record and in the Health Monitoring App, the information the clinician completes on the risk questionnaire, the risk predictions and explanations the tools produce, and the interventions the clinician proposes."
+ ],
+ "modelText": [
+  "The storyboards use the WP6 proof-of-concept models deployed in the ML service (poc-srdc-v0.3). The models are trained on UK Biobank data and stratified by sex and age (under 60 / 60 and over), giving four SRDC strata. Each stratum contains one calibrated model per disease: 23 diseases per patient (24 in total, breast cancer for women and prostate cancer for men only), grouped as cardiovascular, metabolic, kidney and liver, respiratory, musculoskeletal, mental health and cancer.",
+  "The models use 110 inputs. They are collected from the patient record: demographics; observations (body measurements, blood pressure, grip strength, spirometry, 70 blood and urine biomarkers, routine events for sleep and fasting time, smoking and drinking status); conditions (hearing difficulty, fractures, dental problems, pain types); family history; and seven questionnaires the patient completes in the Health Monitoring App (WHO-5, PHQ-2, physical activity level and four HDI diet questionnaires); the app also records the daily routine used for sleep duration and fasting time. Twelve inputs that are not normally recorded in an EHR (e.g. sitting height, trunk fat percentage, household income, snoring, weekly alcohol by drink type) are asked on the risk questionnaire. Eleven environmental and cognitive inputs are not collected and are imputed by the models.",
+  "The application classifies each predicted risk as low (< 5%), moderate (5–15%) or high (≥ 15%)."
+ ],
+ "steps": [
+  {
+   "key": "patient-reported",
+   "title": "Patient-reported data",
+   "actionDescription": "Before the visit, the patient opens the Health Monitoring App, completes the STAGE questionnaires (WHO-5 well-being, PHQ-2 mood, physical activity level and the four Healthy Diet Index questionnaires on dishes; fruit, vegetables, bread and spreads; cheese; drinks) and records the daily routine: bedtime, wake-up time and the times of the first and last meal.",
+   "system": "The app stores each completed questionnaire as a FHIR QuestionnaireResponse and the daily routine as an Observation in the STAGE FHIR repository, linked to the patient. The clinician tools read them from there: they appear in the patient summary, and the risk questionnaire is prefilled from them (e.g. sleep duration and fasting time are derived from the routine times).",
+   "actor": "Patient",
+   "actions": [
+    "The patient has already filled in their questionnaires in the Health Monitoring App. Click a questionnaire to see the answers.",
+    "If you like, answer a questionnaire again as the patient. The new answers appear in the patient summary and prefill the risk questionnaire in the later steps."
+   ],
+   "canSkip": true
+  },
+  {
+   "key": "login",
+   "title": "Login",
+   "actionDescription": "Opens the risk-prediction application and chooses where to log in: the STAGE repository (Repofyr), Epic on FHIR, a SMART launcher, or a SMART Health Card received from the patient. For the STAGE repository, logs in with the clinician account on the onAuth login page.",
+   "system": "SMART App Launch (standalone launch): the app is redirected to onAuth, the clinician authenticates and grants the requested scopes; onAuth returns an access token. Alternatively the app is launched from an EHR (EHR launch), which provides the patient context directly.",
+   "actor": "Clinician",
+   "actions": [
+    "You logged in with the test practitioner account before the story started: the risk prediction tools need a clinician login.",
+    "In the clinic, the clinician chooses where to log in and then logs in on the STAGE login page. See the screenshots below.",
+    "Click \"Next step\" to continue with the patient selection."
+   ],
+   "canSkip": true
+  },
+  {
+   "key": "patient-selection",
+   "title": "Patient selection",
+   "actionDescription": "Searches for the patient by name on the patient selection page of onAuth and selects them.",
+   "system": "Patient selection is part of the authorisation (launch/patient scope): onAuth returns the selected patient as the SMART patient context with the access token, and all following FHIR and CDS requests are made for this patient. Without a patient context, the clinician can also open a patient by importing their SMART Health Card or Link.",
+   "actor": "Clinician",
+   "actions": [
+    "In the clinic, the clinician searches for the patient by name after logging in and selects them. The access is then authorised for that patient only. See the screenshot below.",
+    "The demonstrator has selected your copy of the patient for you. Click \"Next step\" to see the patient summary."
+   ],
+   "canSkip": true
+  },
+  {
+   "key": "summary",
+   "title": "Patient summary and history",
+   "actionDescription": "Reviews the patient summary: demographics, active problems, medications, family history, recent vital signs and laboratory results, questionnaires completed in the Health Monitoring App; opens the patient history timeline.",
+   "system": "The app queries the FHIR repository (Patient, Condition, MedicationStatement/Request, FamilyMemberHistory, Observation by category, QuestionnaireResponse, Encounter) and builds the summary and the timeline of conditions, medications and lifestyle factors.",
+   "actor": "Clinician",
+   "actions": [
+    "Check the patient's problems, medications, measurements and questionnaires on the patient summary page.",
+    "The timeline at the bottom shows a preconfigured selection of the patient's data over time.",
+    "When you're done, click the \"Risks\" tab in the top navigation bar to continue with the risk prediction."
+   ],
+   "canSkip": false
+  },
+  {
+   "key": "form",
+   "title": "Risk questionnaire (prefetch form)",
+   "actionDescription": "Opens the risk questionnaire. Reviews the answers prefilled from the record (marked as prefilled), corrects them if needed, and answers the questions that have no EHR source, asking the patient where needed. Saves the answers.",
+   "system": "The app calls the risk_prediction_form CDS service with the FHIR base URL and token. smart-cds asks onfhir-feast to extract the hop-1 features from the patient record (about 6–15 s) and returns the questionnaire with the prefilled response. If a response was saved in the last 7 days, it is shown instead, with the option to collect the data from the EHR again. On save, the QuestionnaireResponse (stage_wp6_features) is stored in the repository.",
+   "actor": "Clinician",
+   "actions": [
+    "Wait until the data the risk prediction models need is extracted from the patient's record. This takes up to about 15 seconds.",
+    "The answers found in the patient's data are prefilled.",
+    "Some inputs can't be extracted from the EHR or Health Monitoring App data. Fill in the empty fields, such as sitting height, overall health rating and average total income.",
+    "Click the \"Save Answers and Continue\" button at the bottom."
+   ],
+   "canSkip": false
+  },
+  {
+   "key": "diseases",
+   "title": "Disease selection",
+   "actionDescription": "Chooses the diseases to calculate the risk for, by group or individually; deselects diseases the patient already has. Clicks 'Calculate risks'.",
+   "system": "The risk_prediction_diseases CDS service returns the diseases available for the patient (sex-specific cancers only for the matching sex).",
+   "actor": "Clinician",
+   "actions": [
+    "Select the diseases you want to calculate the risks for.",
+    "Keep all the diseases selected and click the \"Calculate risks\" button.",
+    "Wait until the risks are calculated. This may take a while."
+   ],
+   "canSkip": false
+  },
+  {
+   "key": "results",
+   "title": "Risk results",
+   "actionDescription": "Reviews the overall risk and the disease risks with their risk class; opens the details of a disease to see the contributing factors, the waterfall and beeswarm plots, and the LLM explanation; asks the chatbot about the chart.",
+   "system": "The risk_prediction CDS service asks onfhir-feast for the hop-2 model inputs computed from the saved response, calls the ML service, which selects the stratum from the patient's sex and age, scores the selected diseases and computes local SHAP values, and returns the results as CDS cards. The results are stored with the patient. The AI explanations are requested one disease at a time, starting with the highest risk; a disease the clinician opens is explained next.",
+   "actor": "Clinician",
+   "actions": [
+    "The card at the top left shows the patient's overall risk for the selected diseases.",
+    "Next to it, a radar chart shows the risk of each disease. Click the \"Bar\" button at the top to switch to a bar chart.",
+    "Turn on the \"Hide low risks\" switch at the top to hide the diseases with a risk below 1%.",
+    "The list below shows the risk of each disease and the factors that contribute to it.",
+    "Red bars show how much a factor increases the risk, blue bars how much it decreases it.",
+    "Next to each chart, the AI assistant explains it.",
+    "Ask the AI assistant about anything in the chart you don't understand.",
+    "Click \"Next step\" to continue with intervention planning: suggesting goals to the patient to lower the disease risks."
+   ],
+   "canSkip": true
+  },
+  {
+   "key": "interventions",
+   "title": "Intervention planning",
+   "actionDescription": "Opens intervention planning. Reviews the modifiable risk factors and selects the interventions to propose. Clicks 'Suggest Interventions'.",
+   "system": "The interventions CDS service returns the modifiable risk factors and the intervention catalogue as Goal templates; interventions already in the patient's plan are marked. On submission, the selected Goals are created with status 'proposed' and added to the patient's active CarePlan (created if absent) in one FHIR transaction.",
+   "actor": "Clinician",
+   "actions": [
+    "Check the modifiable risk factors of each disease. In the demonstration they are fixed; the AI algorithms will calculate them later.",
+    "Select at least one intervention from the list.",
+    "Click \"Suggest Interventions\" at the bottom.",
+    "After seeing the success message, click the \"Interventions\" tab from the top navigation bar."
+   ],
+   "canSkip": false
+  },
+  {
+   "key": "plan",
+   "title": "Intervention plan follow-up",
+   "actionDescription": "Opens the intervention plan: suggested and active interventions with their status, related measurements; adds a measurement or shares the plan with the patient as a SMART Health Link.",
+   "system": "LIVA queries the active CarePlan and its Goals, the health coach accepts the goals (status 'active') and LIVA posts measurements (Observations with source LIVA), which appear under 'Related Measurements'.",
+   "actor": "Clinician",
+   "actions": [
+    "In the risk-prediction app, the intervention plan shows the interventions you suggested as goals with the status \"proposed\".",
+    "Switch to the \"LIVA health coach\" tab above. As the health coach, accept the suggested goals.",
+    "Still in LIVA, send a measurement for an accepted goal, for example the daily steps or the weight.",
+    "Switch back to the \"Risk-prediction app\" tab: the accepted goals are now active, and the measurement appears under \"Related Measurements\".",
+    "This is the end of the story. Go back to \"All patients\" to try another patient, or click \"Start over\" for a fresh copy of this one."
+   ],
+   "canSkip": true
+  }
+ ],
+ "patients": [
+  {
+   "id": "sb-p1",
+   "given": "Sarah",
+   "family": "Mitchell",
+   "gender": "female",
+   "birthDate": "1972-03-18",
+   "age": 54,
+   "stratum": "Female_under60_srdc_poc",
+   "headline": "Office worker with central obesity, rising HbA1c and poor sleep",
+   "background": "Sarah (54) is an administrative officer at a municipal office. She works long days at a desk, commutes by car and describes her lifestyle as 'busy and sedentary'. Since menopause (age 51) she has gained about 6 kg. She sleeps about six hours a night, her partner says she snores, and she often feels tired in the mornings. Her mother has type 2 diabetes and high blood pressure; her father had coronary heart disease. She has never smoked and drinks two to three glasses of wine a week. She has had no chronic diagnoses so far apart from obesity recorded at an occupational health visit in 2024, and takes no regular medication.",
+   "visitReason": "Occupational health check-up: fasting glucose and HbA1c have increased over the last three years.",
+   "summary": "No chronic problems except obesity (2024); no medications. Family history: mother type 2 diabetes and hypertension, father ischaemic heart disease. The history timeline shows weight 79 → 82 → 85 kg and HbA1c 37 → 40 → 42 mmol/mol.",
+   "selectionNote": "Selects all diseases (Sarah has no chronic diagnoses).",
+   "resultsNote": "Diabetes mellitus is the highest risk (23.0%, high). HbA1c, waist circumference, triglycerides, BMI, low HDL and fasting glucose push the risk up: all are modifiable. Hypertension (11.7%) is driven by diastolic pressure, low HDL and central obesity. Osteoarthritis (11.3%) is driven by BMI and age. The clinician explains that weight loss and more activity address most of the factors at once.",
+   "focus": [
+    "Diabetes Mellitus",
+    "Hypertension",
+    "Osteoarthritis",
+    "Hyperlipidemia"
+   ],
+   "deselect": [],
+   "interventions": [
+    {
+     "measure": "Weight",
+     "goal": "Reduce weight from 85 kg by 5–7% (≈ 5 kg) in 6 months"
+    },
+    {
+     "measure": "Daily Steps",
+     "goal": "Increase to 7 000–8 000 steps/day"
+    },
+    {
+     "measure": "Diet",
+     "goal": "Diet programme: whole-grain bread instead of white, vegetables ≥ 2 portions/day, plant-oil spread"
+    },
+    {
+     "measure": "HbA1c",
+     "goal": "HbA1c below 42 mmol/mol at the 6-month check"
+    },
+    {
+     "measure": "Nightly Sleep",
+     "goal": "Increase sleep to ≥ 7 h; assess snoring if it persists"
+    }
+   ],
+   "findings": [
+    {
+     "measure": "BMI / waist",
+     "value": "31.2 kg/m² / 102 cm",
+     "interpretation": "Obesity class I, central obesity (waist ≥ 88 cm)"
+    },
+    {
+     "measure": "Blood pressure",
+     "value": "137/87 mmHg (mean of automated and manual)",
+     "interpretation": "High-normal; 132/84 one year ago"
+    },
+    {
+     "measure": "Fasting glucose / HbA1c",
+     "value": "6.3 mmol/L / 42 mmol/mol",
+     "interpretation": "Impaired fasting glucose, prediabetes range; HbA1c 37 → 40 → 42 over three years"
+    },
+    {
+     "measure": "Lipids",
+     "value": "TC 5.9, LDL 3.7, HDL 1.05, TG 2.4 mmol/L",
+     "interpretation": "Atherogenic profile: low HDL, raised triglycerides"
+    },
+    {
+     "measure": "ALT / GGT / CRP",
+     "value": "38 U/L / 48 U/L / 4.1 mg/L",
+     "interpretation": "Mildly raised, consistent with fatty liver and low-grade inflammation of obesity"
+    },
+    {
+     "measure": "Sleep / snoring",
+     "value": "6 h (00:00–06:00) / yes",
+     "interpretation": "Short sleep; wakes unrested (WHO-5)"
+    },
+    {
+     "measure": "Activity",
+     "value": "Light exercise once a week, walks 20 min on 3 days",
+     "interpretation": "Sedentary"
+    },
+    {
+     "measure": "Diet (HDI)",
+     "value": "3 slices of white bread/day, butter, fatty cheese, few vegetables",
+     "interpretation": "Low fibre, high saturated fat"
+    }
+   ]
+  },
+  {
+   "id": "sb-p2",
+   "given": "Margaret",
+   "family": "Wilson",
+   "gender": "female",
+   "birthDate": "1954-06-02",
+   "age": 72,
+   "stratum": "Female_60plus_srdc_poc",
+   "headline": "Recently widowed retired teacher with a previous wrist fracture, low vitamin D and joint pain",
+   "background": "Margaret (72) is a retired primary-school teacher who has lived alone since her husband died in 2024. She is slim and has lost about 4 kg over the last three years. In 2023 she fractured her left wrist after a fall on ice and a bone density scan afterwards showed osteopenia. She has hearing loss, wears partial dentures and has knee and hip pain that limits her walks, for which she takes paracetamol when needed. Since her husband's death she feels low on some days and has less interest in meeting friends. Her mother had a stroke, her father coronary heart disease and her sister breast cancer. She has never smoked and drinks a glass of red wine a week.",
+   "visitReason": "Annual check-up; she reports knee pain, fear of falling and feeling low since her bereavement.",
+   "summary": "Problems: hearing loss, osteopenia, wrist fracture (2023), knee and hip pain, dentures. Medication: paracetamol as needed. Family: mother stroke, father ischaemic heart disease, sister breast cancer. Timeline: weight 58 → 56 → 54 kg, vitamin D 41 → 38 → 32 nmol/L, grip strength decreasing.",
+   "selectionNote": "Selects all diseases; breast cancer is offered because she is female.",
+   "resultsNote": "Hypertension is the highest risk (23.0%), mainly explained by age; her low BMI and triglycerides lower it. Osteoarthritis (11.0%) and osteoporosis (9.1%) are moderate: for osteoporosis, low BMI, low fat-free mass, low IGF-1 and low grip strength increase the risk, in line with her fracture history. The chronic kidney disease risk (7.8%) is driven by creatinine and cystatin C. Depression is low (3.1%), which the clinician discusses against the PHQ-2 answers: the model does not see her bereavement.",
+   "focus": [
+    "Hypertension",
+    "Osteoarthritis",
+    "Osteoporosis",
+    "Chronic Kidney Disease"
+   ],
+   "deselect": [],
+   "interventions": [
+    {
+     "measure": "Exercise",
+     "goal": "Strength and balance exercise programme 2–3 times/week (fall prevention)"
+    },
+    {
+     "measure": "Record Pain",
+     "goal": "Record knee and hip pain weekly"
+    },
+    {
+     "measure": "Daily Steps",
+     "goal": "Walk daily, 5 000 steps/day as tolerated"
+    },
+    {
+     "measure": "Medicine Tracking",
+     "goal": "Vitamin D supplement started; track adherence"
+    },
+    {
+     "measure": "Blood Pressure",
+     "goal": "Home blood-pressure monitoring, target below 140/90 mmHg"
+    }
+   ],
+   "findings": [
+    {
+     "measure": "BMI / weight trend",
+     "value": "21.1 kg/m² / 58 → 56 → 54 kg",
+     "interpretation": "Normal BMI with unintended weight loss after bereavement"
+    },
+    {
+     "measure": "Hand grip strength",
+     "value": "17 / 19 kg (left / right)",
+     "interpretation": "Low muscle strength (sarcopenia threshold < 16 kg)"
+    },
+    {
+     "measure": "Blood pressure",
+     "value": "145/77 mmHg",
+     "interpretation": "Isolated systolic hypertension, untreated"
+    },
+    {
+     "measure": "25-OH vitamin D",
+     "value": "32 nmol/L (41 three years ago)",
+     "interpretation": "Insufficient (< 50 nmol/L)"
+    },
+    {
+     "measure": "Bone history",
+     "value": "Wrist fracture after a fall (2023), osteopenia",
+     "interpretation": "Fragility fracture, risk of falls"
+    },
+    {
+     "measure": "Kidney function",
+     "value": "Creatinine 72 µmol/L, cystatin C 1.05 mg/L",
+     "interpretation": "eGFR around 70 mL/min/1.73 m² for age"
+    },
+    {
+     "measure": "Lipids",
+     "value": "TC 6.1, LDL 3.7, HDL 1.85 mmol/L; Lp(a) 95 nmol/L",
+     "interpretation": "High HDL; raised lipoprotein(a)"
+    },
+    {
+     "measure": "Mood (PHQ-2 / WHO-5)",
+     "value": "Several days for both PHQ-2 items; cheerful less than half of the time",
+     "interpretation": "Low mood since bereavement; PHQ-2 score 2 (below 3)"
+    },
+    {
+     "measure": "Pain",
+     "value": "Knee and hip pain, paracetamol as needed",
+     "interpretation": "Limits walking"
+    }
+   ]
+  },
+  {
+   "id": "sb-p3",
+   "given": "David",
+   "family": "Taylor",
+   "gender": "male",
+   "birthDate": "1974-09-23",
+   "age": 52,
+   "stratum": "Male_under60_srdc_poc",
+   "headline": "Long-haul truck driver, heavy smoker with untreated high blood pressure and cholesterol",
+   "background": "David (52) is a long-haul truck driver. He has smoked about 20 cigarettes a day since he was 18 (about 34 pack-years), drinks around twelve beers a week, mostly at weekends, and eats irregularly on the road - often fast food and deli meat, few vegetables. He sleeps five to six hours on working days and snores. He has a morning cough he attributes to smoking. His father had a myocardial infarction at 58 and type 2 diabetes; his mother and brother have high blood pressure. A raised blood pressure (144/92) was noted at a roadside health check in 2024 but was not followed up. He has no diagnoses apart from tobacco dependence and takes no medication.",
+   "visitReason": "Driving-licence medical examination; elevated blood pressure and lipids, cough.",
+   "summary": "Problems: tobacco dependence, back pain, gum problems; no medications. Family: father myocardial infarction at 58 and type 2 diabetes, mother and brother hypertension. Timeline: blood pressure 144/92 two years ago without follow-up; weight 92 → 94 → 96 kg.",
+   "selectionNote": "Selects all diseases; prostate cancer is offered because he is male.",
+   "resultsNote": "Hypertension (17.9%) and hyperlipidaemia (17.1%) are high, coronary heart disease (10.0%) moderate. Diastolic and systolic pressure, low HDL, total cholesterol and CRP are the main contributors. COPD and lung cancer are low despite heavy smoking (see 'Observations and open issues'): the clinician uses the spirometry result and the smoking history rather than the model to address lung health.",
+   "focus": [
+    "Hypertension",
+    "Hyperlipidemia",
+    "Coronary Heart Disease",
+    "Diabetes Mellitus"
+   ],
+   "deselect": [],
+   "interventions": [
+    {
+     "measure": "Cigarettes",
+     "goal": "Smoking cessation programme with nicotine replacement"
+    },
+    {
+     "measure": "Alcohol",
+     "goal": "Reduce alcohol to ≤ 7 drinks/week"
+    },
+    {
+     "measure": "Blood Pressure",
+     "goal": "Home monitoring; treatment decision at follow-up"
+    },
+    {
+     "measure": "LDL",
+     "goal": "LDL below 3.0 mmol/L (statin to be considered)"
+    },
+    {
+     "measure": "Daily Steps",
+     "goal": "Walk during driving breaks, 6 000 steps/day"
+    }
+   ],
+   "findings": [
+    {
+     "measure": "Smoking",
+     "value": "20 cigarettes/day since age 18 (≈ 34 pack-years)",
+     "interpretation": "Heavy current smoker"
+    },
+    {
+     "measure": "Blood pressure",
+     "value": "151/95 mmHg (144/92 two years ago)",
+     "interpretation": "Grade 1 hypertension, never treated"
+    },
+    {
+     "measure": "Lipids",
+     "value": "TC 6.4, LDL 4.2, HDL 0.98, TG 2.6 mmol/L; ApoB 1.30 g/L",
+     "interpretation": "Untreated dyslipidaemia"
+    },
+    {
+     "measure": "Spirometry",
+     "value": "FEV1 2.95 L, FVC 4.30 L, FEV1/FVC 0.69",
+     "interpretation": "Airflow obstruction (< 0.70), undiagnosed; morning cough"
+    },
+    {
+     "measure": "Liver / alcohol",
+     "value": "GGT 92, ALT 52, AST 38 U/L; 12 beers/week",
+     "interpretation": "Alcohol-related liver enzyme rise"
+    },
+    {
+     "measure": "Inflammation / blood count",
+     "value": "CRP 5.6 mg/L, WBC 9.4 ×10⁹/L, Hb 16.4 g/dL",
+     "interpretation": "Smoking-related"
+    },
+    {
+     "measure": "BMI / waist",
+     "value": "29.6 kg/m² / 106 cm",
+     "interpretation": "Overweight, central obesity"
+    },
+    {
+     "measure": "Sleep / activity",
+     "value": "5.5 h, snores; walks 15 min on 2 days",
+     "interpretation": "Short sleep, sedentary"
+    },
+    {
+     "measure": "Diet (HDI)",
+     "value": "5 meat dishes/week, 4 slices deli meat/day, little fruit and vegetables",
+     "interpretation": "High processed meat, low fibre"
+    }
+   ]
+  },
+  {
+   "id": "sb-p4",
+   "given": "Robert",
+   "family": "Johnson",
+   "gender": "male",
+   "birthDate": "1952-01-11",
+   "age": 74,
+   "stratum": "Male_60plus_srdc_poc",
+   "headline": "Retired engineer with type 2 diabetes and hypertension whose kidney function is declining",
+   "background": "Robert (74) is a retired civil engineer who lives with his wife and walks the dog every day. He has had hypertension since 2012 and type 2 diabetes and hyperlipidaemia since 2015, treated with metformin, losartan, amlodipine and atorvastatin. He stopped smoking in 2008 after about 25 pack-years. His HbA1c has crept up to 58 mmol/mol and his creatinine has risen from 98 to 128 umol/L over three years, with moderately increased albuminuria; chronic kidney disease has not yet been diagnosed. He snores, has hearing loss and wears dentures. His father died of a stroke at 70; his mother had type 2 diabetes and hypertension. He drinks about three glasses of red wine and two beers a week.",
+   "visitReason": "Diabetes follow-up visit: rising creatinine and albuminuria, HbA1c above target.",
+   "summary": "Problems: hypertension, type 2 diabetes, hyperlipidaemia, hearing loss, knee pain, dentures; four medications. Family: father stroke, mother type 2 diabetes and hypertension. Timeline: creatinine 98 → 128 µmol/L and HbA1c 52 → 58 mmol/mol over three years.",
+   "selectionNote": "Deselects Diabetes Mellitus, Hypertension and Hyperlipidemia, which are already diagnosed, and keeps the other diseases.",
+   "resultsNote": "After deselecting the known diagnoses, chronic kidney disease is the highest risk (47.4%), driven by creatinine, cystatin C, HbA1c, glucose and age, matching the trend in his record. Atrial fibrillation (26.3%), coronary heart disease (24.6%), stroke (18.8%), heart failure (18.4%) and peripheral vascular disease (16.8%) are all high; cystatin C is among the top contributors of each, and HbA1c of all but atrial fibrillation, which supports intensifying glycaemic and blood-pressure control and protecting kidney function.",
+   "focus": [
+    "Chronic Kidney Disease",
+    "Atrial Fibrillation",
+    "Coronary Heart Disease",
+    "Stroke Cerebrovascular",
+    "Heart Failure"
+   ],
+   "deselect": [
+    "Diabetes Mellitus",
+    "Hypertension",
+    "Hyperlipidemia"
+   ],
+   "interventions": [
+    {
+     "measure": "HbA1c",
+     "goal": "HbA1c ≤ 53 mmol/mol"
+    },
+    {
+     "measure": "Blood Pressure",
+     "goal": "Below 130/80 mmHg (diabetes with CKD)"
+    },
+    {
+     "measure": "Medicine Tracking",
+     "goal": "Track adherence after treatment review (kidney-protective therapy)"
+    },
+    {
+     "measure": "Weight",
+     "goal": "Reduce weight by 3–4 kg"
+    },
+    {
+     "measure": "Diet",
+     "goal": "Diet programme: lower salt and red/processed meat, kidney-friendly protein intake"
+    }
+   ],
+   "findings": [
+    {
+     "measure": "Known conditions",
+     "value": "Hypertension (2012), type 2 diabetes and hyperlipidaemia (2015)",
+     "interpretation": "Metformin, losartan, amlodipine, atorvastatin"
+    },
+    {
+     "measure": "Glycaemic control",
+     "value": "HbA1c 58 mmol/mol (52 → 54 → 55 → 58), glucose 8.2 mmol/L",
+     "interpretation": "Above individual target (≤ 53 mmol/mol)"
+    },
+    {
+     "measure": "Kidney function",
+     "value": "Creatinine 98 → 108 → 118 → 128 µmol/L; cystatin C 1.45 mg/L",
+     "interpretation": "eGFR about 50 mL/min/1.73 m² (G3a), declining; CKD not yet diagnosed"
+    },
+    {
+     "measure": "Albuminuria",
+     "value": "Urine albumin 18 → 35 → 60 mg/L",
+     "interpretation": "Moderately increased"
+    },
+    {
+     "measure": "Blood pressure",
+     "value": "143/79 mmHg on two drugs",
+     "interpretation": "Above target for diabetes with CKD"
+    },
+    {
+     "measure": "Blood count",
+     "value": "Hb 13.2 g/dL, RDW 14.6%",
+     "interpretation": "Mild anaemia, compatible with CKD"
+    },
+    {
+     "measure": "Urate / urea",
+     "value": "445 µmol/L / 9.1 mmol/L",
+     "interpretation": "Raised, compatible with reduced kidney function"
+    },
+    {
+     "measure": "Lifestyle",
+     "value": "Ex-smoker (25 pack-years, quit 2008); walks the dog 45 min/day; snores",
+     "interpretation": "Active, overweight (BMI 29.1)"
+    }
+   ]
+  }
+ ],
+ "model": {
+  "sb-p1": {
+   "stratum": "Female_under60_srdc_poc",
+   "predictions": {
+    "Diabetes Mellitus": 0.2304677435475361,
+    "Hypertension": 0.11653256963256617,
+    "Osteoarthritis": 0.11253194062653332,
+    "Hyperlipidemia": 0.0589112139479114,
+    "Coronary Heart Disease": 0.04723099921300048,
+    "Anxiety": 0.04201195938039119,
+    "COPD": 0.03556616187692382,
+    "Depression": 0.03533582165620469,
+    "Chronic Liver Disease": 0.03334906284900028,
+    "Cancer Other": 0.030413897655775776,
+    "Cancer Breast": 0.02883533116200304,
+    "Hypothyroidism": 0.02330914658909147,
+    "Atrial Fibrillation": 0.022287903306465462,
+    "Chronic Kidney Disease": 0.015403869829510643,
+    "Sleep Apnea": 0.013496778772997297,
+    "Stroke Cerebrovascular": 0.011933775217295635,
+    "Rheumatoid Arthritis": 0.010924825814130219,
+    "Osteoporosis": 0.010335363939150787,
+    "Cancer Colorectal": 0.006164850591641431,
+    "Heart Failure": 0.005484551281086072,
+    "Cancer Lung": 0.004807962223658632,
+    "Peripheral Vascular Disease": 0.004119373188397656,
+    "Substance Use Disorder": 0.003594262455040944
+   },
+   "shap": {
+    "Diabetes Mellitus": {
+     "base": 0.014435170134821203,
+     "p": 0.2304677435475361,
+     "top": [
+      {
+       "feature": "HbA1c 0.0",
+       "shap": 0.0852,
+       "value": 42.0,
+       "imputed": false
+      },
+      {
+       "feature": "Waist circumference 0.0",
+       "shap": 0.0457,
+       "value": 102.0,
+       "imputed": false
+      },
+      {
+       "feature": "Triglycerides 0.0",
+       "shap": 0.0199,
+       "value": 2.4,
+       "imputed": false
+      },
+      {
+       "feature": "BMI 0.0",
+       "shap": 0.0199,
+       "value": 31.2,
+       "imputed": false
+      },
+      {
+       "feature": "HDL cholesterol 0.0",
+       "shap": 0.0194,
+       "value": 1.05,
+       "imputed": false
+      },
+      {
+       "feature": "Glucose 0.0",
+       "shap": 0.0143,
+       "value": 6.3,
+       "imputed": false
+      },
+      {
+       "feature": "Urea 0.0",
+       "shap": 0.0044,
+       "value": 4.8,
+       "imputed": false
+      },
+      {
+       "feature": "Alanine aminotransferase 0.0",
+       "shap": 0.0036,
+       "value": 38.0,
+       "imputed": false
+      }
+     ]
+    },
+    "Hypertension": {
+     "base": 0.0499030873455792,
+     "p": 0.11653256963256617,
+     "top": [
+      {
+       "feature": "Diastolic blood pressure_average",
+       "shap": 0.0124,
+       "value": 87.0,
+       "imputed": false
+      },
+      {
+       "feature": "HDL cholesterol 0.0",
+       "shap": 0.0121,
+       "value": 1.05,
+       "imputed": false
+      },
+      {
+       "feature": "Waist circumference 0.0",
+       "shap": 0.0097,
+       "value": 102.0,
+       "imputed": false
+      },
+      {
+       "feature": "BMI 0.0",
+       "shap": 0.0096,
+       "value": 31.2,
+       "imputed": false
+      },
+      {
+       "feature": "HbA1c 0.0",
+       "shap": 0.009,
+       "value": 42.0,
+       "imputed": false
+      },
+      {
+       "feature": "Age 0.0",
+       "shap": 0.0052,
+       "value": 54.0,
+       "imputed": false
+      },
+      {
+       "feature": "Forced vital capacity (FVC) 0.0",
+       "shap": 0.0038,
+       "value": 3.3,
+       "imputed": false
+      },
+      {
+       "feature": "Systolic blood pressure_average",
+       "shap": 0.0021,
+       "value": 137.0,
+       "imputed": false
+      }
+     ]
+    },
+    "Osteoarthritis": {
+     "base": 0.060576939893344395,
+     "p": 0.11253194062653332,
+     "top": [
+      {
+       "feature": "BMI 0.0",
+       "shap": 0.0223,
+       "value": 31.2,
+       "imputed": false
+      },
+      {
+       "feature": "Age 0.0",
+       "shap": 0.0178,
+       "value": 54.0,
+       "imputed": false
+      },
+      {
+       "feature": "Average total household income before tax_num_missing",
+       "shap": -0.0073,
+       "value": 0,
+       "imputed": false
+      },
+      {
+       "feature": "Body fat-free mass 0.0",
+       "shap": 0.0053,
+       "value": 49.3,
+       "imputed": false
+      },
+      {
+       "feature": "Triglycerides 0.0",
+       "shap": 0.004,
+       "value": 2.4,
+       "imputed": false
+      },
+      {
+       "feature": "IGF-1 0.0",
+       "shap": 0.0039,
+       "value": 18.0,
+       "imputed": false
+      },
+      {
+       "feature": "Sitting height 0.0",
+       "shap": 0.0038,
+       "value": 86.0,
+       "imputed": false
+      },
+      {
+       "feature": "Average total household income before tax_num",
+       "shap": 0.0029,
+       "value": 41.0,
+       "imputed": false
+      }
+     ]
+    },
+    "Hyperlipidemia": {
+     "base": 0.03611259752359339,
+     "p": 0.0589112139479114,
+     "top": [
+      {
+       "feature": "HbA1c 0.0",
+       "shap": 0.0105,
+       "value": 42.0,
+       "imputed": false
+      },
+      {
+       "feature": "HDL cholesterol 0.0",
+       "shap": 0.0098,
+       "value": 1.05,
+       "imputed": false
+      },
+      {
+       "feature": "Triglycerides 0.0",
+       "shap": 0.0071,
+       "value": 2.4,
+       "imputed": false
+      },
+      {
+       "feature": "Forced expiratory volume in 1-second (FEV1) 0.0",
+       "shap": -0.0054,
+       "value": 2.65,
+       "imputed": false
+      },
+      {
+       "feature": "Age 0.0",
+       "shap": 0.0032,
+       "value": 54.0,
+       "imputed": false
+      },
+      {
+       "feature": "Systolic blood pressure_average",
+       "shap": 0.0032,
+       "value": 137.0,
+       "imputed": false
+      },
+      {
+       "feature": "MCH concentration 0.0",
+       "shap": -0.0028,
+       "value": 33.6,
+       "imputed": false
+      },
+      {
+       "feature": "Lipoprotein A 0.0",
+       "shap": -0.0025,
+       "value": 30.0,
+       "imputed": false
+      }
+     ]
+    },
+    "Coronary Heart Disease": {
+     "base": 0.019686907052090197,
+     "p": 0.04723099921300048,
+     "top": [
+      {
+       "feature": "HDL cholesterol 0.0",
+       "shap": 0.0059,
+       "value": 1.05,
+       "imputed": false
+      },
+      {
+       "feature": "Age 0.0",
+       "shap": 0.0052,
+       "value": 54.0,
+       "imputed": false
+      },
+      {
+       "feature": "Triglycerides 0.0",
+       "shap": 0.0049,
+       "value": 2.4,
+       "imputed": false
+      },
+      {
+       "feature": "HbA1c 0.0",
+       "shap": 0.0045,
+       "value": 42.0,
+       "imputed": false
+      },
+      {
+       "feature": "Systolic blood pressure_average",
+       "shap": 0.0021,
+       "value": 137.0,
+       "imputed": false
+      },
+      {
+       "feature": "Lymphocyte count 0.0",
+       "shap": 0.0014,
+       "value": 2.3,
+       "imputed": false
+      },
+      {
+       "feature": "Domestic garden pct 1000m 0.0",
+       "shap": 0.0012,
+       "value": null,
+       "imputed": true
+      },
+      {
+       "feature": "Forced vital capacity (FVC) 0.0",
+       "shap": 0.0011,
+       "value": 3.3,
+       "imputed": false
+      }
+     ]
+    },
+    "Anxiety": {
+     "base": 0.02818721034275293,
+     "p": 0.04201195938039119,
+     "top": [
+      {
+       "feature": "HDL cholesterol 0.0",
+       "shap": 0.0058,
+       "value": 1.05,
+       "imputed": false
+      },
+      {
+       "feature": "SHBG 0.0",
+       "shap": -0.0031,
+       "value": 38.0,
+       "imputed": false
+      },
+      {
+       "feature": "Triglycerides 0.0",
+       "shap": 0.0026,
+       "value": 2.4,
+       "imputed": false
+      },
+      {
+       "feature": "IGF-1 0.0",
+       "shap": 0.0018,
+       "value": 18.0,
+       "imputed": false
+      },
+      {
+       "feature": "Pulse rate, automated reading 0.0",
+       "shap": 0.0017,
+       "value": 78.0,
+       "imputed": false
+      },
+      {
+       "feature": "Aspartate aminotransferase 0.0",
+       "shap": 0.0014,
+       "value": 28.0,
+       "imputed": false
+      },
+      {
+       "feature": "Total MET-min/week",
+       "shap": 0.0011,
+       "value": 366.0,
+       "imputed": false
+      },
+      {
+       "feature": "Lymphocyte count 0.0",
+       "shap": 0.0009,
+       "value": 2.3,
+       "imputed": false
+      }
+     ]
+    }
+   }
+  },
+  "sb-p2": {
+   "stratum": "Female_60plus_srdc_poc",
+   "predictions": {
+    "Hypertension": 0.23022369387534594,
+    "Osteoarthritis": 0.11012616413796644,
+    "Osteoporosis": 0.09121692280812493,
+    "Chronic Kidney Disease": 0.07777213248793878,
+    "Hyperlipidemia": 0.07139045763560696,
+    "Atrial Fibrillation": 0.06738121302295075,
+    "Coronary Heart Disease": 0.0530128350458113,
+    "Stroke Cerebrovascular": 0.05175014420446221,
+    "COPD": 0.05106482563743099,
+    "Anxiety": 0.0457091515106778,
+    "Cancer Other": 0.04374134920414852,
+    "Depression": 0.031084240129229786,
+    "Hypothyroidism": 0.025275597549855918,
+    "Heart Failure": 0.023448358425198528,
+    "Cancer Breast": 0.022078283311549023,
+    "Peripheral Vascular Disease": 0.015441502370963534,
+    "Rheumatoid Arthritis": 0.013251538534355676,
+    "Cancer Colorectal": 0.012532161747382352,
+    "Cancer Lung": 0.011082492561414144,
+    "Diabetes Mellitus": 0.008579594266959905,
+    "Sleep Apnea": 0.002873703439801335,
+    "Chronic Liver Disease": 0.001464738997011183,
+    "Substance Use Disorder": 0.0014221484711977883
+   },
+   "shap": {
+    "Hypertension": {
+     "base": 0.19171009193805524,
+     "p": 0.23022369387534594,
+     "top": [
+      {
+       "feature": "Age 0.0",
+       "shap": 0.068,
+       "value": 72.0,
+       "imputed": false
+      },
+      {
+       "feature": "Lymphocyte percentage 0.0",
+       "shap": -0.0249,
+       "value": 31.5,
+       "imputed": false
+      },
+      {
+       "feature": "BMI 0.0",
+       "shap": -0.0156,
+       "value": 21.1,
+       "imputed": false
+      },
+      {
+       "feature": "MCH concentration 0.0",
+       "shap": 0.0154,
+       "value": 32.6,
+       "imputed": false
+      },
+      {
+       "feature": "Triglycerides 0.0",
+       "shap": -0.0101,
+       "value": 1.1,
+       "imputed": false
+      },
+      {
+       "feature": "Diastolic blood pressure_average",
+       "shap": -0.0075,
+       "value": 77.0,
+       "imputed": false
+      },
+      {
+       "feature": "Calcium 0.0",
+       "shap": 0.0069,
+       "value": 2.32,
+       "imputed": false
+      },
+      {
+       "feature": "Albumin 0.0",
+       "shap": 0.006,
+       "value": 41.0,
+       "imputed": false
+      }
+     ]
+    },
+    "Osteoarthritis": {
+     "base": 0.17596817498933945,
+     "p": 0.11012616413796644,
+     "top": [
+      {
+       "feature": "BMI 0.0",
+       "shap": -0.0439,
+       "value": 21.1,
+       "imputed": false
+      },
+      {
+       "feature": "Age 0.0",
+       "shap": 0.0267,
+       "value": 72.0,
+       "imputed": false
+      },
+      {
+       "feature": "Body fat-free mass 0.0",
+       "shap": -0.0246,
+       "value": 37.260000000000005,
+       "imputed": false
+      },
+      {
+       "feature": "C-reactive protein 0.0",
+       "shap": -0.0139,
+       "value": 1.2,
+       "imputed": false
+      },
+      {
+       "feature": "Platelet distribution width 0.0",
+       "shap": -0.0091,
+       "value": 16.5,
+       "imputed": false
+      },
+      {
+       "feature": "Gamma glutamyltransferase 0.0",
+       "shap": -0.0082,
+       "value": 18.0,
+       "imputed": false
+      },
+      {
+       "feature": "Urea 0.0",
+       "shap": 0.0038,
+       "value": 6.4,
+       "imputed": false
+      },
+      {
+       "feature": "Red blood cell count 0.0",
+       "shap": 0.0028,
+       "value": 4.2,
+       "imputed": false
+      }
+     ]
+    },
+    "Osteoporosis": {
+     "base": 0.03418686898820138,
+     "p": 0.09121692280812493,
+     "top": [
+      {
+       "feature": "BMI 0.0",
+       "shap": 0.0171,
+       "value": 21.1,
+       "imputed": false
+      },
+      {
+       "feature": "Age 0.0",
+       "shap": 0.0141,
+       "value": 72.0,
+       "imputed": false
+      },
+      {
+       "feature": "Body fat-free mass 0.0",
+       "shap": 0.0095,
+       "value": 37.260000000000005,
+       "imputed": false
+      },
+      {
+       "feature": "Sitting height 0.0",
+       "shap": 0.0056,
+       "value": 83.0,
+       "imputed": false
+      },
+      {
+       "feature": "IGF-1 0.0",
+       "shap": 0.0033,
+       "value": 13.0,
+       "imputed": false
+      },
+      {
+       "feature": "Hand grip strength (left) 0.0",
+       "shap": 0.0023,
+       "value": 17.0,
+       "imputed": false
+      },
+      {
+       "feature": "Alanine aminotransferase 0.0",
+       "shap": 0.0021,
+       "value": 16.0,
+       "imputed": false
+      },
+      {
+       "feature": "Cystatin C 0.0",
+       "shap": 0.002,
+       "value": 1.05,
+       "imputed": false
+      }
+     ]
+    },
+    "Chronic Kidney Disease": {
+     "base": 0.022969374349219654,
+     "p": 0.07777213248793878,
+     "top": [
+      {
+       "feature": "Creatinine 0.0",
+       "shap": 0.0289,
+       "value": 72.0,
+       "imputed": false
+      },
+      {
+       "feature": "Cystatin C 0.0",
+       "shap": 0.0157,
+       "value": 1.05,
+       "imputed": false
+      },
+      {
+       "feature": "Age 0.0",
+       "shap": 0.0145,
+       "value": 72.0,
+       "imputed": false
+      },
+      {
+       "feature": "Haemoglobin concentration 0.0",
+       "shap": 0.0121,
+       "value": 12.6,
+       "imputed": false
+      },
+      {
+       "feature": "Triglycerides 0.0",
+       "shap": -0.0092,
+       "value": 1.1,
+       "imputed": false
+      },
+      {
+       "feature": "Gamma glutamyltransferase 0.0",
+       "shap": -0.007,
+       "value": 18.0,
+       "imputed": false
+      },
+      {
+       "feature": "Albumin 0.0",
+       "shap": 0.0042,
+       "value": 41.0,
+       "imputed": false
+      },
+      {
+       "feature": "Mean reticulocyte volume 0.0",
+       "shap": -0.0022,
+       "value": 106.0,
+       "imputed": false
+      }
+     ]
+    },
+    "Hyperlipidemia": {
+     "base": 0.09582204132018794,
+     "p": 0.07139045763560696,
+     "top": [
+      {
+       "feature": "Age 0.0",
+       "shap": 0.0213,
+       "value": 72.0,
+       "imputed": false
+      },
+      {
+       "feature": "HDL cholesterol 0.0",
+       "shap": -0.0141,
+       "value": 1.85,
+       "imputed": false
+      },
+      {
+       "feature": "Waist circumference 0.0",
+       "shap": -0.0106,
+       "value": 78.0,
+       "imputed": false
+      },
+      {
+       "feature": "C-reactive protein 0.0",
+       "shap": -0.0098,
+       "value": 1.2,
+       "imputed": false
+      },
+      {
+       "feature": "Triglycerides 0.0",
+       "shap": -0.0081,
+       "value": 1.1,
+       "imputed": false
+      },
+      {
+       "feature": "Gamma glutamyltransferase 0.0",
+       "shap": -0.0061,
+       "value": 18.0,
+       "imputed": false
+      },
+      {
+       "feature": "Direct bilirubin 0.0",
+       "shap": 0.0032,
+       "value": 2.4,
+       "imputed": false
+      },
+      {
+       "feature": "Total bilirubin 0.0",
+       "shap": -0.0028,
+       "value": 9.0,
+       "imputed": false
+      }
+     ]
+    },
+    "Atrial Fibrillation": {
+     "base": 0.05338802386988958,
+     "p": 0.06738121302295075,
+     "top": [
+      {
+       "feature": "Body fat-free mass 0.0",
+       "shap": -0.0188,
+       "value": 37.260000000000005,
+       "imputed": false
+      },
+      {
+       "feature": "Age 0.0",
+       "shap": 0.0159,
+       "value": 72.0,
+       "imputed": false
+      },
+      {
+       "feature": "Direct bilirubin 0.0",
+       "shap": 0.0065,
+       "value": 2.4,
+       "imputed": false
+      },
+      {
+       "feature": "Cystatin C 0.0",
+       "shap": 0.0037,
+       "value": 1.05,
+       "imputed": false
+      },
+      {
+       "feature": "Urea 0.0",
+       "shap": 0.0024,
+       "value": 6.4,
+       "imputed": false
+      },
+      {
+       "feature": "Platelet distribution width 0.0",
+       "shap": 0.0011,
+       "value": 16.5,
+       "imputed": false
+      },
+      {
+       "feature": "Forced vital capacity (FVC) 0.0",
+       "shap": 0.001,
+       "value": 2.5,
+       "imputed": false
+      },
+      {
+       "feature": "High light scatter reticulocyte pct 0.0",
+       "shap": 0.0008,
+       "value": 0.45,
+       "imputed": false
+      }
+     ]
+    }
+   }
+  },
+  "sb-p3": {
+   "stratum": "Male_under60_srdc_poc",
+   "predictions": {
+    "Hypertension": 0.17883590235922012,
+    "Hyperlipidemia": 0.1706371496016254,
+    "Coronary Heart Disease": 0.09956374141376531,
+    "Diabetes Mellitus": 0.0663641206045342,
+    "Osteoarthritis": 0.05915065944379871,
+    "Atrial Fibrillation": 0.027250007096884195,
+    "Chronic Liver Disease": 0.026996207973746366,
+    "COPD": 0.025571320940333424,
+    "Cancer Other": 0.025099553762178338,
+    "Sleep Apnea": 0.022209685991552482,
+    "Cancer Prostate": 0.02205463288146363,
+    "Anxiety": 0.021624176054845127,
+    "Depression": 0.020112333681285306,
+    "Substance Use Disorder": 0.01869533137602419,
+    "Stroke Cerebrovascular": 0.016426629154951574,
+    "Cancer Colorectal": 0.012399007584475869,
+    "Heart Failure": 0.012195675048216394,
+    "Chronic Kidney Disease": 0.011238255729914255,
+    "Peripheral Vascular Disease": 0.0083938798468491,
+    "Hypothyroidism": 0.006708115150404622,
+    "Cancer Lung": 0.0046655730613338504
+   },
+   "shap": {
+    "Hypertension": {
+     "base": 0.15800318283217007,
+     "p": 0.17883590235922012,
+     "top": [
+      {
+       "feature": "Diastolic blood pressure_average",
+       "shap": 0.035,
+       "value": 95.0,
+       "imputed": false
+      },
+      {
+       "feature": "Systolic blood pressure_average",
+       "shap": 0.0217,
+       "value": 151.0,
+       "imputed": false
+      },
+      {
+       "feature": "Creatinine 0.0",
+       "shap": -0.0192,
+       "value": 88.0,
+       "imputed": false
+      },
+      {
+       "feature": "Triglycerides 0.0",
+       "shap": -0.0128,
+       "value": 2.6,
+       "imputed": false
+      },
+      {
+       "feature": "Cystatin C 0.0",
+       "shap": -0.011,
+       "value": 0.88,
+       "imputed": false
+      },
+      {
+       "feature": "Age 0.0",
+       "shap": 0.0097,
+       "value": 52.0,
+       "imputed": false
+      },
+      {
+       "feature": "Mean corpuscular haemoglobin 0.0",
+       "shap": -0.0064,
+       "value": 31.2,
+       "imputed": false
+      },
+      {
+       "feature": "HbA1c 0.0",
+       "shap": 0.0057,
+       "value": 38.0,
+       "imputed": false
+      }
+     ]
+    },
+    "Hyperlipidemia": {
+     "base": 0.06184975971756622,
+     "p": 0.1706371496016254,
+     "top": [
+      {
+       "feature": "HDL cholesterol 0.0",
+       "shap": 0.0303,
+       "value": 0.98,
+       "imputed": false
+      },
+      {
+       "feature": "Systolic blood pressure_average",
+       "shap": 0.0224,
+       "value": 151.0,
+       "imputed": false
+      },
+      {
+       "feature": "Cholesterol 0.0",
+       "shap": 0.0184,
+       "value": 6.4,
+       "imputed": false
+      },
+      {
+       "feature": "HbA1c 0.0",
+       "shap": 0.0111,
+       "value": 38.0,
+       "imputed": false
+      },
+      {
+       "feature": "C-reactive protein 0.0",
+       "shap": 0.0075,
+       "value": 5.6,
+       "imputed": false
+      },
+      {
+       "feature": "Age 0.0",
+       "shap": 0.0075,
+       "value": 52.0,
+       "imputed": false
+      },
+      {
+       "feature": "White blood cell count 0.0",
+       "shap": 0.0065,
+       "value": 9.4,
+       "imputed": false
+      },
+      {
+       "feature": "Greenspace pct 300m 0.0",
+       "shap": 0.0017,
+       "value": null,
+       "imputed": true
+      }
+     ]
+    },
+    "Coronary Heart Disease": {
+     "base": 0.057498577454454386,
+     "p": 0.09956374141376531,
+     "top": [
+      {
+       "feature": "HDL cholesterol 0.0",
+       "shap": 0.012,
+       "value": 0.98,
+       "imputed": false
+      },
+      {
+       "feature": "Systolic blood pressure_average",
+       "shap": 0.0096,
+       "value": 151.0,
+       "imputed": false
+      },
+      {
+       "feature": "Cystatin C 0.0",
+       "shap": -0.0086,
+       "value": 0.88,
+       "imputed": false
+      },
+      {
+       "feature": "HbA1c 0.0",
+       "shap": 0.0085,
+       "value": 38.0,
+       "imputed": false
+      },
+      {
+       "feature": "C-reactive protein 0.0",
+       "shap": 0.0078,
+       "value": 5.6,
+       "imputed": false
+      },
+      {
+       "feature": "Pulse rate, automated reading 0.0",
+       "shap": 0.0053,
+       "value": 84.0,
+       "imputed": false
+      },
+      {
+       "feature": "White blood cell count 0.0",
+       "shap": 0.0051,
+       "value": 9.4,
+       "imputed": false
+      },
+      {
+       "feature": "Greenspace pct 1000m 0.0",
+       "shap": 0.0015,
+       "value": null,
+       "imputed": true
+      }
+     ]
+    },
+    "Diabetes Mellitus": {
+     "base": 0.027758111468047738,
+     "p": 0.0663641206045342,
+     "top": [
+      {
+       "feature": "HbA1c 0.0",
+       "shap": 0.0296,
+       "value": 38.0,
+       "imputed": false
+      },
+      {
+       "feature": "Cholesterol 0.0",
+       "shap": -0.0143,
+       "value": 6.4,
+       "imputed": false
+      },
+      {
+       "feature": "Glucose 0.0",
+       "shap": 0.007,
+       "value": 5.8,
+       "imputed": false
+      },
+      {
+       "feature": "C-reactive protein 0.0",
+       "shap": 0.0046,
+       "value": 5.6,
+       "imputed": false
+      },
+      {
+       "feature": "HDL cholesterol 0.0",
+       "shap": 0.0041,
+       "value": 0.98,
+       "imputed": false
+      },
+      {
+       "feature": "Forced vital capacity (FVC) 0.0",
+       "shap": 0.0026,
+       "value": 4.3,
+       "imputed": false
+      },
+      {
+       "feature": "Eosinophil percentage 0.0",
+       "shap": 0.0021,
+       "value": 2.1,
+       "imputed": false
+      },
+      {
+       "feature": "Average daytime noise 0.0",
+       "shap": 0.0018,
+       "value": null,
+       "imputed": true
+      }
+     ]
+    },
+    "Osteoarthritis": {
+     "base": 0.05997377806421011,
+     "p": 0.05915065944379871,
+     "top": [
+      {
+       "feature": "Total MET-min/week",
+       "shap": -0.0102,
+       "value": 123.0,
+       "imputed": false
+      },
+      {
+       "feature": "Age 0.0",
+       "shap": 0.0064,
+       "value": 52.0,
+       "imputed": false
+      },
+      {
+       "feature": "Duration walking 0.0",
+       "shap": -0.0045,
+       "value": 15.0,
+       "imputed": false
+      },
+      {
+       "feature": "Mean sphered cell volume 0.0",
+       "shap": 0.0035,
+       "value": 87.0,
+       "imputed": false
+      },
+      {
+       "feature": "Mean reticulocyte volume 0.0",
+       "shap": 0.0025,
+       "value": 107.0,
+       "imputed": false
+      },
+      {
+       "feature": "Urea 0.0",
+       "shap": 0.002,
+       "value": 5.9,
+       "imputed": false
+      },
+      {
+       "feature": "Albumin 0.0",
+       "shap": 0.002,
+       "value": 45.0,
+       "imputed": false
+      },
+      {
+       "feature": "Phosphate 0.0",
+       "shap": -0.0012,
+       "value": 0.95,
+       "imputed": false
+      }
+     ]
+    },
+    "Atrial Fibrillation": {
+     "base": 0.017913363440810688,
+     "p": 0.027250007096884195,
+     "top": [
+      {
+       "feature": "Urate 0.0",
+       "shap": 0.0042,
+       "value": 430.0,
+       "imputed": false
+      },
+      {
+       "feature": "Age 0.0",
+       "shap": 0.0041,
+       "value": 52.0,
+       "imputed": false
+      },
+      {
+       "feature": "Weight 0.0",
+       "shap": 0.0022,
+       "value": 96.0,
+       "imputed": false
+      },
+      {
+       "feature": "SHBG 0.0",
+       "shap": -0.0018,
+       "value": 28.0,
+       "imputed": false
+      },
+      {
+       "feature": "Cystatin C 0.0",
+       "shap": -0.0017,
+       "value": 0.88,
+       "imputed": false
+      },
+      {
+       "feature": "Sodium in urine 0.0",
+       "shap": -0.0015,
+       "value": 160.0,
+       "imputed": false
+      },
+      {
+       "feature": "Lymphocyte percentage 0.0",
+       "shap": 0.0013,
+       "value": 25.5,
+       "imputed": false
+      },
+      {
+       "feature": "Systolic blood pressure_average",
+       "shap": 0.001,
+       "value": 151.0,
+       "imputed": false
+      }
+     ]
+    }
+   }
+  },
+  "sb-p4": {
+   "stratum": "Male_60plus_srdc_poc",
+   "predictions": {
+    "Hypertension": 0.5101764578166726,
+    "Chronic Kidney Disease": 0.4743881273553585,
+    "Diabetes Mellitus": 0.4647424475258758,
+    "Osteoarthritis": 0.30565218805229966,
+    "Hyperlipidemia": 0.2720359103789319,
+    "Atrial Fibrillation": 0.2626988974545553,
+    "Coronary Heart Disease": 0.24641474585696857,
+    "Stroke Cerebrovascular": 0.1878069248008839,
+    "Heart Failure": 0.1835091122703943,
+    "Peripheral Vascular Disease": 0.16755964763139578,
+    "COPD": 0.13496647018905258,
+    "Cancer Other": 0.0975481531907097,
+    "Cancer Prostate": 0.05544267957850328,
+    "Sleep Apnea": 0.05421343377621611,
+    "Anxiety": 0.026140865978048447,
+    "Cancer Lung": 0.024121366124512513,
+    "Cancer Colorectal": 0.022865538468156383,
+    "Depression": 0.02282038613282592,
+    "Hypothyroidism": 0.019922236236985018,
+    "Chronic Liver Disease": 0.016999802807997105,
+    "Osteoporosis": 0.01396361931010184,
+    "Rheumatoid Arthritis": 0.011527391145136318,
+    "Substance Use Disorder": 0.009473282118833797
+   },
+   "shap": {
+    "Chronic Kidney Disease": {
+     "base": 0.03750590393839602,
+     "p": 0.4743881273553585,
+     "top": [
+      {
+       "feature": "Creatinine 0.0",
+       "shap": 0.1685,
+       "value": 128.0,
+       "imputed": false
+      },
+      {
+       "feature": "Cystatin C 0.0",
+       "shap": 0.0508,
+       "value": 1.45,
+       "imputed": false
+      },
+      {
+       "feature": "HbA1c 0.0",
+       "shap": 0.0423,
+       "value": 58.0,
+       "imputed": false
+      },
+      {
+       "feature": "Glucose 0.0",
+       "shap": 0.0387,
+       "value": 8.2,
+       "imputed": false
+      },
+      {
+       "feature": "Age 0.0",
+       "shap": 0.0369,
+       "value": 74.0,
+       "imputed": false
+      },
+      {
+       "feature": "Cholesterol 0.0",
+       "shap": 0.0308,
+       "value": 4.2,
+       "imputed": false
+      },
+      {
+       "feature": "Red blood cell count 0.0",
+       "shap": 0.0203,
+       "value": 4.4,
+       "imputed": false
+      },
+      {
+       "feature": "Mean reticulocyte volume 0.0",
+       "shap": 0.0169,
+       "value": 105.0,
+       "imputed": false
+      }
+     ]
+    },
+    "Osteoarthritis": {
+     "base": 0.12210052231906428,
+     "p": 0.30565218805229966,
+     "top": [
+      {
+       "feature": "Age 0.0",
+       "shap": 0.0888,
+       "value": 74.0,
+       "imputed": false
+      },
+      {
+       "feature": "Hand grip strength (right) 0.0",
+       "shap": 0.0252,
+       "value": 32.0,
+       "imputed": false
+      },
+      {
+       "feature": "Urea 0.0",
+       "shap": 0.0192,
+       "value": 9.1,
+       "imputed": false
+      },
+      {
+       "feature": "Cystatin C 0.0",
+       "shap": 0.0111,
+       "value": 1.45,
+       "imputed": false
+      },
+      {
+       "feature": "Haemoglobin concentration 0.0",
+       "shap": 0.0093,
+       "value": 13.2,
+       "imputed": false
+      },
+      {
+       "feature": "Alkaline phosphatase 0.0",
+       "shap": 0.0091,
+       "value": 92.0,
+       "imputed": false
+      },
+      {
+       "feature": "Triglycerides 0.0",
+       "shap": 0.0062,
+       "value": 2.0,
+       "imputed": false
+      },
+      {
+       "feature": "Alanine aminotransferase 0.0",
+       "shap": 0.0054,
+       "value": 22.0,
+       "imputed": false
+      }
+     ]
+    },
+    "Atrial Fibrillation": {
+     "base": 0.09365631481857016,
+     "p": 0.2626988974545553,
+     "top": [
+      {
+       "feature": "Age 0.0",
+       "shap": 0.0325,
+       "value": 74.0,
+       "imputed": false
+      },
+      {
+       "feature": "Red blood cell distribution width 0.0",
+       "shap": 0.028,
+       "value": 14.6,
+       "imputed": false
+      },
+      {
+       "feature": "Cystatin C 0.0",
+       "shap": 0.0279,
+       "value": 1.45,
+       "imputed": false
+      },
+      {
+       "feature": "Forced expiratory volume in 1-second (FEV1) 0.0",
+       "shap": 0.0259,
+       "value": 2.45,
+       "imputed": false
+      },
+      {
+       "feature": "Cholesterol 0.0",
+       "shap": 0.0168,
+       "value": 4.2,
+       "imputed": false
+      },
+      {
+       "feature": "Albumin 0.0",
+       "shap": 0.0125,
+       "value": 40.0,
+       "imputed": false
+      },
+      {
+       "feature": "Mean sphered cell volume 0.0",
+       "shap": 0.0097,
+       "value": 85.0,
+       "imputed": false
+      },
+      {
+       "feature": "Weight 0.0",
+       "shap": 0.0081,
+       "value": 89.0,
+       "imputed": false
+      }
+     ]
+    },
+    "Coronary Heart Disease": {
+     "base": 0.11547668889677928,
+     "p": 0.24641474585696857,
+     "top": [
+      {
+       "feature": "HbA1c 0.0",
+       "shap": 0.0553,
+       "value": 58.0,
+       "imputed": false
+      },
+      {
+       "feature": "Cystatin C 0.0",
+       "shap": 0.0155,
+       "value": 1.45,
+       "imputed": false
+      },
+      {
+       "feature": "Urea 0.0",
+       "shap": 0.0154,
+       "value": 9.1,
+       "imputed": false
+      },
+      {
+       "feature": "HDL cholesterol 0.0",
+       "shap": 0.0121,
+       "value": 1.1,
+       "imputed": false
+      },
+      {
+       "feature": "Haemoglobin concentration 0.0",
+       "shap": 0.0121,
+       "value": 13.2,
+       "imputed": false
+      },
+      {
+       "feature": "Forced vital capacity (FVC) 0.0",
+       "shap": 0.0063,
+       "value": 3.3,
+       "imputed": false
+      },
+      {
+       "feature": "Albumin 0.0",
+       "shap": 0.0041,
+       "value": 40.0,
+       "imputed": false
+      },
+      {
+       "feature": "Forced expiratory volume in 1-second (FEV1) 0.0",
+       "shap": 0.0039,
+       "value": 2.45,
+       "imputed": false
+      }
+     ]
+    },
+    "Stroke Cerebrovascular": {
+     "base": 0.04104727457474668,
+     "p": 0.1878069248008839,
+     "top": [
+      {
+       "feature": "HbA1c 0.0",
+       "shap": 0.0331,
+       "value": 58.0,
+       "imputed": false
+      },
+      {
+       "feature": "Age 0.0",
+       "shap": 0.0326,
+       "value": 74.0,
+       "imputed": false
+      },
+      {
+       "feature": "Cystatin C 0.0",
+       "shap": 0.0207,
+       "value": 1.45,
+       "imputed": false
+      },
+      {
+       "feature": "Forced expiratory volume in 1-second (FEV1) 0.0",
+       "shap": 0.0175,
+       "value": 2.45,
+       "imputed": false
+      },
+      {
+       "feature": "Red blood cell distribution width 0.0",
+       "shap": 0.015,
+       "value": 14.6,
+       "imputed": false
+      },
+      {
+       "feature": "Glucose 0.0",
+       "shap": 0.0079,
+       "value": 8.2,
+       "imputed": false
+      },
+      {
+       "feature": "IGF-1 0.0",
+       "shap": 0.0058,
+       "value": 14.0,
+       "imputed": false
+      },
+      {
+       "feature": "Urea 0.0",
+       "shap": 0.0057,
+       "value": 9.1,
+       "imputed": false
+      }
+     ]
+    },
+    "Heart Failure": {
+     "base": 0.03340483951550317,
+     "p": 0.1835091122703943,
+     "top": [
+      {
+       "feature": "Cystatin C 0.0",
+       "shap": 0.0456,
+       "value": 1.45,
+       "imputed": false
+      },
+      {
+       "feature": "HbA1c 0.0",
+       "shap": 0.0304,
+       "value": 58.0,
+       "imputed": false
+      },
+      {
+       "feature": "Age 0.0",
+       "shap": 0.0235,
+       "value": 74.0,
+       "imputed": false
+      },
+      {
+       "feature": "Urea 0.0",
+       "shap": 0.0185,
+       "value": 9.1,
+       "imputed": false
+      },
+      {
+       "feature": "Cholesterol 0.0",
+       "shap": 0.0066,
+       "value": 4.2,
+       "imputed": false
+      },
+      {
+       "feature": "Red blood cell distribution width 0.0",
+       "shap": 0.0065,
+       "value": 14.6,
+       "imputed": false
+      },
+      {
+       "feature": "Red blood cell count 0.0",
+       "shap": 0.0054,
+       "value": 4.4,
+       "imputed": false
+      },
+      {
+       "feature": "Glucose 0.0",
+       "shap": 0.0052,
+       "value": 8.2,
+       "imputed": false
+      }
+     ]
+    }
+   }
+  }
+ },
+ "modelInputs": {
+  "version": "poc-srdc-v0.3.1",
+  "featureSelection": "outputs/c4_survey_excl/feature_selection",
+  "strata": {
+   "Female_under60_srdc_poc": [
+    {
+     "feature": "Cholesterol 0.0",
+     "diseases": 57,
+     "produced": true
+    },
+    {
+     "feature": "Phosphate 0.0",
+     "diseases": 56,
+     "produced": true
+    },
+    {
+     "feature": "Red blood cell distribution width 0.0",
+     "diseases": 56,
+     "produced": true
+    },
+    {
+     "feature": "Sodium in urine 0.0",
+     "diseases": 56,
+     "produced": true
+    },
+    {
+     "feature": "Urea 0.0",
+     "diseases": 56,
+     "produced": true
+    },
+    {
+     "feature": "Creatinine 0.0",
+     "diseases": 55,
+     "produced": true
+    },
+    {
+     "feature": "Gamma glutamyltransferase 0.0",
+     "diseases": 55,
+     "produced": true
+    },
+    {
+     "feature": "Glucose 0.0",
+     "diseases": 55,
+     "produced": true
+    },
+    {
+     "feature": "Total protein 0.0",
+     "diseases": 55,
+     "produced": true
+    },
+    {
+     "feature": "HbA1c 0.0",
+     "diseases": 54,
+     "produced": true
+    },
+    {
+     "feature": "IGF-1 0.0",
+     "diseases": 54,
+     "produced": true
+    },
+    {
+     "feature": "Testosterone 0.0",
+     "diseases": 54,
+     "produced": true
+    },
+    {
+     "feature": "Total bilirubin 0.0",
+     "diseases": 54,
+     "produced": true
+    },
+    {
+     "feature": "Lipoprotein A 0.0",
+     "diseases": 53,
+     "produced": true
+    },
+    {
+     "feature": "Sum road lengths near home 0.0",
+     "diseases": 53,
+     "produced": false
+    },
+    {
+     "feature": "Body fat-free mass 0.0",
+     "diseases": 52,
+     "produced": true
+    },
+    {
+     "feature": "Mean platelet volume 0.0",
+     "diseases": 52,
+     "produced": true
+    },
+    {
+     "feature": "Urate 0.0",
+     "diseases": 52,
+     "produced": true
+    },
+    {
+     "feature": "Alkaline phosphatase 0.0",
+     "diseases": 51,
+     "produced": true
+    },
+    {
+     "feature": "Cystatin C 0.0",
+     "diseases": 51,
+     "produced": true
+    },
+    {
+     "feature": "HDL cholesterol 0.0",
+     "diseases": 51,
+     "produced": true
+    },
+    {
+     "feature": "MCH concentration 0.0",
+     "diseases": 51,
+     "produced": true
+    },
+    {
+     "feature": "C-reactive protein 0.0",
+     "diseases": 50,
+     "produced": true
+    },
+    {
+     "feature": "Eosinophil percentage 0.0",
+     "diseases": 49,
+     "produced": true
+    },
+    {
+     "feature": "Forced expiratory volume in 1-second (FEV1) 0.0",
+     "diseases": 49,
+     "produced": true
+    },
+    {
+     "feature": "SHBG 0.0",
+     "diseases": 49,
+     "produced": true
+    },
+    {
+     "feature": "Triglycerides 0.0",
+     "diseases": 49,
+     "produced": true
+    },
+    {
+     "feature": "Vitamin D 0.0",
+     "diseases": 49,
+     "produced": true
+    },
+    {
+     "feature": "Monocyte percentage 0.0",
+     "diseases": 48,
+     "produced": true
+    },
+    {
+     "feature": "Platelet distribution width 0.0",
+     "diseases": 48,
+     "produced": true
+    },
+    {
+     "feature": "Albumin 0.0",
+     "diseases": 47,
+     "produced": true
+    },
+    {
+     "feature": "Aspartate aminotransferase 0.0",
+     "diseases": 46,
+     "produced": true
+    },
+    {
+     "feature": "Mean time to correctly identify matches 0.0",
+     "diseases": 46,
+     "produced": false
+    },
+    {
+     "feature": "Calcium 0.0",
+     "diseases": 45,
+     "produced": true
+    },
+    {
+     "feature": "Mean reticulocyte volume 0.0",
+     "diseases": 45,
+     "produced": true
+    },
+    {
+     "feature": "Potassium in urine 0.0",
+     "diseases": 45,
+     "produced": true
+    },
+    {
+     "feature": "Creatinine in urine 0.0",
+     "diseases": 44,
+     "produced": true
+    },
+    {
+     "feature": "Greenspace pct 1000m 0.0",
+     "diseases": 44,
+     "produced": false
+    },
+    {
+     "feature": "Mean sphered cell volume 0.0",
+     "diseases": 44,
+     "produced": true
+    },
+    {
+     "feature": "Lymphocyte count 0.0",
+     "diseases": 42,
+     "produced": true
+    },
+    {
+     "feature": "Lymphocyte percentage 0.0",
+     "diseases": 42,
+     "produced": true
+    },
+    {
+     "feature": "Haemoglobin concentration 0.0",
+     "diseases": 41,
+     "produced": true
+    },
+    {
+     "feature": "Domestic garden pct 1000m 0.0",
+     "diseases": 40,
+     "produced": false
+    },
+    {
+     "feature": "Alanine aminotransferase 0.0",
+     "diseases": 39,
+     "produced": true
+    },
+    {
+     "feature": "Average daytime noise 0.0",
+     "diseases": 36,
+     "produced": false
+    },
+    {
+     "feature": "Greenspace pct 300m 0.0",
+     "diseases": 36,
+     "produced": false
+    },
+    {
+     "feature": "Age 0.0",
+     "diseases": 35,
+     "produced": true
+    },
+    {
+     "feature": "Forced vital capacity (FVC) 0.0",
+     "diseases": 35,
+     "produced": true
+    },
+    {
+     "feature": "Immature reticulocyte fraction 0.0",
+     "diseases": 35,
+     "produced": true
+    },
+    {
+     "feature": "Mean corpuscular volume 0.0",
+     "diseases": 35,
+     "produced": true
+    },
+    {
+     "feature": "PM10 air pollution 0.0",
+     "diseases": 33,
+     "produced": false
+    },
+    {
+     "feature": "Platelet crit 0.0",
+     "diseases": 33,
+     "produced": true
+    },
+    {
+     "feature": "Red blood cell count 0.0",
+     "diseases": 33,
+     "produced": true
+    },
+    {
+     "feature": "BMI 0.0",
+     "diseases": 32,
+     "produced": true
+    },
+    {
+     "feature": "Systolic blood pressure_average",
+     "diseases": 32,
+     "produced": true
+    },
+    {
+     "feature": "Pulse rate, automated reading 0.0",
+     "diseases": 30,
+     "produced": true
+    },
+    {
+     "feature": "Reticulocyte percentage 0.0",
+     "diseases": 25,
+     "produced": true
+    },
+    {
+     "feature": "NOx air pollution 0.0",
+     "diseases": 24,
+     "produced": false
+    },
+    {
+     "feature": "Platelet count 0.0",
+     "diseases": 24,
+     "produced": true
+    },
+    {
+     "feature": "Basophil percentage 0.0",
+     "diseases": 23,
+     "produced": true
+    },
+    {
+     "feature": "PM coarse fraction 0.0",
+     "diseases": 19,
+     "produced": false
+    },
+    {
+     "feature": "Neutrophil count 0.0",
+     "diseases": 18,
+     "produced": true
+    },
+    {
+     "feature": "Diastolic blood pressure_average",
+     "diseases": 17,
+     "produced": true
+    },
+    {
+     "feature": "Waist circumference 0.0",
+     "diseases": 15,
+     "produced": true
+    },
+    {
+     "feature": "White blood cell count 0.0",
+     "diseases": 15,
+     "produced": true
+    },
+    {
+     "feature": "Hip circumference 0.0",
+     "diseases": 14,
+     "produced": true
+    },
+    {
+     "feature": "Mean corpuscular haemoglobin 0.0",
+     "diseases": 14,
+     "produced": true
+    },
+    {
+     "feature": "Monocyte count 0.0",
+     "diseases": 11,
+     "produced": true
+    },
+    {
+     "feature": "Overall health rating_num",
+     "diseases": 11,
+     "produced": true
+    },
+    {
+     "feature": "Standing height 0.0",
+     "diseases": 11,
+     "produced": true
+    },
+    {
+     "feature": "High light scatter reticulocyte pct 0.0",
+     "diseases": 9,
+     "produced": true
+    },
+    {
+     "feature": "Hand grip strength (right) 0.0",
+     "diseases": 7,
+     "produced": true
+    },
+    {
+     "feature": "PM2.5 air pollution 0.0",
+     "diseases": 7,
+     "produced": false
+    },
+    {
+     "feature": "Sitting height 0.0",
+     "diseases": 7,
+     "produced": true
+    },
+    {
+     "feature": "Total MET-min/week",
+     "diseases": 7,
+     "produced": true
+    },
+    {
+     "feature": "Average total household income before tax_num",
+     "diseases": 6,
+     "produced": true
+    },
+    {
+     "feature": "Average total household income before tax_num_missing",
+     "diseases": 6,
+     "produced": true
+    },
+    {
+     "feature": "Duration moderate activity 0.0",
+     "diseases": 6,
+     "produced": true
+    },
+    {
+     "feature": "Duration walking 0.0",
+     "diseases": 5,
+     "produced": true
+    },
+    {
+     "feature": "Hand grip strength (left) 0.0",
+     "diseases": 4,
+     "produced": true
+    },
+    {
+     "feature": "PM2.5 absorbance 0.0",
+     "diseases": 4,
+     "produced": false
+    },
+    {
+     "feature": "Average weekly champagne plus white wine intake 0.0",
+     "diseases": 2,
+     "produced": true
+    },
+    {
+     "feature": "Basophil count 0.0",
+     "diseases": 1,
+     "produced": false
+    },
+    {
+     "feature": "Bread intake 0.0",
+     "diseases": 1,
+     "produced": true
+    },
+    {
+     "feature": "High light scatter reticulocyte count 0.0",
+     "diseases": 1,
+     "produced": false
+    },
+    {
+     "feature": "Sleep duration 0.0",
+     "diseases": 1,
+     "produced": true
+    },
+    {
+     "feature": "Variation in diet_num",
+     "diseases": 1,
+     "produced": false
+    },
+    {
+     "feature": "fam_cardio",
+     "diseases": 1,
+     "produced": true
+    }
+   ],
+   "Female_60plus_srdc_poc": [
+    {
+     "feature": "Alkaline phosphatase 0.0",
+     "diseases": 59,
+     "produced": true
+    },
+    {
+     "feature": "SHBG 0.0",
+     "diseases": 59,
+     "produced": true
+    },
+    {
+     "feature": "IGF-1 0.0",
+     "diseases": 58,
+     "produced": true
+    },
+    {
+     "feature": "Testosterone 0.0",
+     "diseases": 57,
+     "produced": true
+    },
+    {
+     "feature": "Albumin 0.0",
+     "diseases": 56,
+     "produced": true
+    },
+    {
+     "feature": "Urate 0.0",
+     "diseases": 56,
+     "produced": true
+    },
+    {
+     "feature": "Alanine aminotransferase 0.0",
+     "diseases": 55,
+     "produced": true
+    },
+    {
+     "feature": "Cholesterol 0.0",
+     "diseases": 55,
+     "produced": true
+    },
+    {
+     "feature": "Phosphate 0.0",
+     "diseases": 55,
+     "produced": true
+    },
+    {
+     "feature": "Total protein 0.0",
+     "diseases": 55,
+     "produced": true
+    },
+    {
+     "feature": "Gamma glutamyltransferase 0.0",
+     "diseases": 54,
+     "produced": true
+    },
+    {
+     "feature": "Lipoprotein A 0.0",
+     "diseases": 54,
+     "produced": true
+    },
+    {
+     "feature": "Urea 0.0",
+     "diseases": 54,
+     "produced": true
+    },
+    {
+     "feature": "Vitamin D 0.0",
+     "diseases": 54,
+     "produced": true
+    },
+    {
+     "feature": "C-reactive protein 0.0",
+     "diseases": 53,
+     "produced": true
+    },
+    {
+     "feature": "Platelet distribution width 0.0",
+     "diseases": 53,
+     "produced": true
+    },
+    {
+     "feature": "Cystatin C 0.0",
+     "diseases": 52,
+     "produced": true
+    },
+    {
+     "feature": "Lymphocyte percentage 0.0",
+     "diseases": 52,
+     "produced": true
+    },
+    {
+     "feature": "Mean platelet volume 0.0",
+     "diseases": 52,
+     "produced": true
+    },
+    {
+     "feature": "Glucose 0.0",
+     "diseases": 51,
+     "produced": true
+    },
+    {
+     "feature": "Mean reticulocyte volume 0.0",
+     "diseases": 51,
+     "produced": true
+    },
+    {
+     "feature": "Mean time to correctly identify matches 0.0",
+     "diseases": 51,
+     "produced": false
+    },
+    {
+     "feature": "Creatinine 0.0",
+     "diseases": 50,
+     "produced": true
+    },
+    {
+     "feature": "Sodium in urine 0.0",
+     "diseases": 50,
+     "produced": true
+    },
+    {
+     "feature": "Triglycerides 0.0",
+     "diseases": 50,
+     "produced": true
+    },
+    {
+     "feature": "MCH concentration 0.0",
+     "diseases": 49,
+     "produced": true
+    },
+    {
+     "feature": "Systolic blood pressure_average",
+     "diseases": 49,
+     "produced": true
+    },
+    {
+     "feature": "Total bilirubin 0.0",
+     "diseases": 48,
+     "produced": true
+    },
+    {
+     "feature": "Calcium 0.0",
+     "diseases": 47,
+     "produced": true
+    },
+    {
+     "feature": "Domestic garden pct 1000m 0.0",
+     "diseases": 47,
+     "produced": false
+    },
+    {
+     "feature": "Forced expiratory volume in 1-second (FEV1) 0.0",
+     "diseases": 47,
+     "produced": true
+    },
+    {
+     "feature": "Monocyte percentage 0.0",
+     "diseases": 46,
+     "produced": true
+    },
+    {
+     "feature": "Red blood cell count 0.0",
+     "diseases": 46,
+     "produced": true
+    },
+    {
+     "feature": "Red blood cell distribution width 0.0",
+     "diseases": 46,
+     "produced": true
+    },
+    {
+     "feature": "Creatinine in urine 0.0",
+     "diseases": 45,
+     "produced": true
+    },
+    {
+     "feature": "HbA1c 0.0",
+     "diseases": 45,
+     "produced": true
+    },
+    {
+     "feature": "Potassium in urine 0.0",
+     "diseases": 45,
+     "produced": true
+    },
+    {
+     "feature": "Aspartate aminotransferase 0.0",
+     "diseases": 43,
+     "produced": true
+    },
+    {
+     "feature": "Immature reticulocyte fraction 0.0",
+     "diseases": 43,
+     "produced": true
+    },
+    {
+     "feature": "Platelet crit 0.0",
+     "diseases": 43,
+     "produced": true
+    },
+    {
+     "feature": "Sum road lengths near home 0.0",
+     "diseases": 43,
+     "produced": false
+    },
+    {
+     "feature": "Body fat-free mass 0.0",
+     "diseases": 42,
+     "produced": true
+    },
+    {
+     "feature": "Mean sphered cell volume 0.0",
+     "diseases": 42,
+     "produced": true
+    },
+    {
+     "feature": "Direct bilirubin 0.0",
+     "diseases": 41,
+     "produced": true
+    },
+    {
+     "feature": "Apolipoprotein A 0.0",
+     "diseases": 40,
+     "produced": true
+    },
+    {
+     "feature": "Greenspace pct 1000m 0.0",
+     "diseases": 40,
+     "produced": false
+    },
+    {
+     "feature": "Haemoglobin concentration 0.0",
+     "diseases": 40,
+     "produced": true
+    },
+    {
+     "feature": "Lymphocyte count 0.0",
+     "diseases": 38,
+     "produced": true
+    },
+    {
+     "feature": "Forced vital capacity (FVC) 0.0",
+     "diseases": 35,
+     "produced": true
+    },
+    {
+     "feature": "Platelet count 0.0",
+     "diseases": 35,
+     "produced": true
+    },
+    {
+     "feature": "Pulse rate, automated reading 0.0",
+     "diseases": 35,
+     "produced": true
+    },
+    {
+     "feature": "BMI 0.0",
+     "diseases": 34,
+     "produced": true
+    },
+    {
+     "feature": "Mean corpuscular volume 0.0",
+     "diseases": 32,
+     "produced": true
+    },
+    {
+     "feature": "PM10 air pollution 0.0",
+     "diseases": 31,
+     "produced": false
+    },
+    {
+     "feature": "Age 0.0",
+     "diseases": 29,
+     "produced": true
+    },
+    {
+     "feature": "HDL cholesterol 0.0",
+     "diseases": 29,
+     "produced": true
+    },
+    {
+     "feature": "Neutrophil count 0.0",
+     "diseases": 29,
+     "produced": true
+    },
+    {
+     "feature": "Greenspace pct 300m 0.0",
+     "diseases": 28,
+     "produced": false
+    },
+    {
+     "feature": "NOx air pollution 0.0",
+     "diseases": 28,
+     "produced": false
+    },
+    {
+     "feature": "Basophil percentage 0.0",
+     "diseases": 25,
+     "produced": true
+    },
+    {
+     "feature": "Diastolic blood pressure_average",
+     "diseases": 25,
+     "produced": true
+    },
+    {
+     "feature": "Average daytime noise 0.0",
+     "diseases": 24,
+     "produced": false
+    },
+    {
+     "feature": "White blood cell count 0.0",
+     "diseases": 20,
+     "produced": true
+    },
+    {
+     "feature": "PM coarse fraction 0.0",
+     "diseases": 18,
+     "produced": false
+    },
+    {
+     "feature": "Waist circumference 0.0",
+     "diseases": 16,
+     "produced": true
+    },
+    {
+     "feature": "PM2.5 air pollution 0.0",
+     "diseases": 15,
+     "produced": false
+    },
+    {
+     "feature": "Monocyte count 0.0",
+     "diseases": 13,
+     "produced": true
+    },
+    {
+     "feature": "Reticulocyte percentage 0.0",
+     "diseases": 8,
+     "produced": true
+    },
+    {
+     "feature": "Standing height 0.0",
+     "diseases": 8,
+     "produced": true
+    },
+    {
+     "feature": "Total MET-min/week",
+     "diseases": 8,
+     "produced": true
+    },
+    {
+     "feature": "Eosinophil count 0.0",
+     "diseases": 7,
+     "produced": true
+    },
+    {
+     "feature": "High light scatter reticulocyte pct 0.0",
+     "diseases": 7,
+     "produced": true
+    },
+    {
+     "feature": "Mean corpuscular haemoglobin 0.0",
+     "diseases": 7,
+     "produced": true
+    },
+    {
+     "feature": "PM2.5 absorbance 0.0",
+     "diseases": 7,
+     "produced": false
+    },
+    {
+     "feature": "Sitting height 0.0",
+     "diseases": 6,
+     "produced": true
+    },
+    {
+     "feature": "Duration moderate activity 0.0",
+     "diseases": 5,
+     "produced": true
+    },
+    {
+     "feature": "Hand grip strength (left) 0.0",
+     "diseases": 5,
+     "produced": true
+    },
+    {
+     "feature": "Average total household income before tax_num",
+     "diseases": 4,
+     "produced": true
+    },
+    {
+     "feature": "Average total household income before tax_num_missing",
+     "diseases": 4,
+     "produced": true
+    },
+    {
+     "feature": "Hand grip strength (right) 0.0",
+     "diseases": 4,
+     "produced": true
+    },
+    {
+     "feature": "Hip circumference 0.0",
+     "diseases": 4,
+     "produced": true
+    },
+    {
+     "feature": "Average weekly champagne plus white wine intake 0.0",
+     "diseases": 2,
+     "produced": true
+    },
+    {
+     "feature": "Reticulocyte count 0.0",
+     "diseases": 2,
+     "produced": true
+    },
+    {
+     "feature": "Basophil count 0.0",
+     "diseases": 1,
+     "produced": false
+    },
+    {
+     "feature": "Overall health rating_num",
+     "diseases": 1,
+     "produced": true
+    },
+    {
+     "feature": "Variation in diet_num",
+     "diseases": 1,
+     "produced": false
+    },
+    {
+     "feature": "fam_cardio",
+     "diseases": 1,
+     "produced": true
+    }
+   ],
+   "Male_under60_srdc_poc": [
+    {
+     "feature": "Albumin 0.0",
+     "diseases": 55,
+     "produced": true
+    },
+    {
+     "feature": "Creatinine 0.0",
+     "diseases": 55,
+     "produced": true
+    },
+    {
+     "feature": "Gamma glutamyltransferase 0.0",
+     "diseases": 55,
+     "produced": true
+    },
+    {
+     "feature": "IGF-1 0.0",
+     "diseases": 54,
+     "produced": true
+    },
+    {
+     "feature": "Phosphate 0.0",
+     "diseases": 54,
+     "produced": true
+    },
+    {
+     "feature": "Sodium in urine 0.0",
+     "diseases": 54,
+     "produced": true
+    },
+    {
+     "feature": "Total protein 0.0",
+     "diseases": 54,
+     "produced": true
+    },
+    {
+     "feature": "C-reactive protein 0.0",
+     "diseases": 53,
+     "produced": true
+    },
+    {
+     "feature": "Mean time to correctly identify matches 0.0",
+     "diseases": 53,
+     "produced": false
+    },
+    {
+     "feature": "Alkaline phosphatase 0.0",
+     "diseases": 52,
+     "produced": true
+    },
+    {
+     "feature": "Cystatin C 0.0",
+     "diseases": 52,
+     "produced": true
+    },
+    {
+     "feature": "Eosinophil percentage 0.0",
+     "diseases": 52,
+     "produced": true
+    },
+    {
+     "feature": "HbA1c 0.0",
+     "diseases": 52,
+     "produced": true
+    },
+    {
+     "feature": "Lipoprotein A 0.0",
+     "diseases": 52,
+     "produced": true
+    },
+    {
+     "feature": "Red blood cell distribution width 0.0",
+     "diseases": 51,
+     "produced": true
+    },
+    {
+     "feature": "SHBG 0.0",
+     "diseases": 51,
+     "produced": true
+    },
+    {
+     "feature": "Urate 0.0",
+     "diseases": 51,
+     "produced": true
+    },
+    {
+     "feature": "Urea 0.0",
+     "diseases": 51,
+     "produced": true
+    },
+    {
+     "feature": "Cholesterol 0.0",
+     "diseases": 50,
+     "produced": true
+    },
+    {
+     "feature": "Glucose 0.0",
+     "diseases": 50,
+     "produced": true
+    },
+    {
+     "feature": "Mean platelet volume 0.0",
+     "diseases": 49,
+     "produced": true
+    },
+    {
+     "feature": "Vitamin D 0.0",
+     "diseases": 49,
+     "produced": true
+    },
+    {
+     "feature": "Calcium 0.0",
+     "diseases": 48,
+     "produced": true
+    },
+    {
+     "feature": "HDL cholesterol 0.0",
+     "diseases": 48,
+     "produced": true
+    },
+    {
+     "feature": "Lymphocyte percentage 0.0",
+     "diseases": 47,
+     "produced": true
+    },
+    {
+     "feature": "Alanine aminotransferase 0.0",
+     "diseases": 46,
+     "produced": true
+    },
+    {
+     "feature": "MCH concentration 0.0",
+     "diseases": 46,
+     "produced": true
+    },
+    {
+     "feature": "Potassium in urine 0.0",
+     "diseases": 46,
+     "produced": true
+    },
+    {
+     "feature": "Greenspace pct 1000m 0.0",
+     "diseases": 45,
+     "produced": false
+    },
+    {
+     "feature": "Direct bilirubin 0.0",
+     "diseases": 44,
+     "produced": true
+    },
+    {
+     "feature": "Domestic garden pct 1000m 0.0",
+     "diseases": 44,
+     "produced": false
+    },
+    {
+     "feature": "Testosterone 0.0",
+     "diseases": 44,
+     "produced": true
+    },
+    {
+     "feature": "Sum road lengths near home 0.0",
+     "diseases": 43,
+     "produced": false
+    },
+    {
+     "feature": "Aspartate aminotransferase 0.0",
+     "diseases": 42,
+     "produced": true
+    },
+    {
+     "feature": "Creatinine in urine 0.0",
+     "diseases": 42,
+     "produced": true
+    },
+    {
+     "feature": "Mean reticulocyte volume 0.0",
+     "diseases": 42,
+     "produced": true
+    },
+    {
+     "feature": "Forced expiratory volume in 1-second (FEV1) 0.0",
+     "diseases": 41,
+     "produced": true
+    },
+    {
+     "feature": "Immature reticulocyte fraction 0.0",
+     "diseases": 41,
+     "produced": true
+    },
+    {
+     "feature": "Platelet distribution width 0.0",
+     "diseases": 41,
+     "produced": true
+    },
+    {
+     "feature": "Systolic blood pressure_average",
+     "diseases": 41,
+     "produced": true
+    },
+    {
+     "feature": "Triglycerides 0.0",
+     "diseases": 41,
+     "produced": true
+    },
+    {
+     "feature": "Age 0.0",
+     "diseases": 40,
+     "produced": true
+    },
+    {
+     "feature": "Lymphocyte count 0.0",
+     "diseases": 40,
+     "produced": true
+    },
+    {
+     "feature": "Forced vital capacity (FVC) 0.0",
+     "diseases": 39,
+     "produced": true
+    },
+    {
+     "feature": "Monocyte percentage 0.0",
+     "diseases": 39,
+     "produced": true
+    },
+    {
+     "feature": "Haematocrit percentage 0.0",
+     "diseases": 36,
+     "produced": true
+    },
+    {
+     "feature": "Mean sphered cell volume 0.0",
+     "diseases": 36,
+     "produced": true
+    },
+    {
+     "feature": "Total bilirubin 0.0",
+     "diseases": 36,
+     "produced": true
+    },
+    {
+     "feature": "Trunk fat percentage 0.0",
+     "diseases": 35,
+     "produced": true
+    },
+    {
+     "feature": "Mean corpuscular haemoglobin 0.0",
+     "diseases": 32,
+     "produced": true
+    },
+    {
+     "feature": "Red blood cell count 0.0",
+     "diseases": 32,
+     "produced": true
+    },
+    {
+     "feature": "PM10 air pollution 0.0",
+     "diseases": 31,
+     "produced": false
+    },
+    {
+     "feature": "Platelet crit 0.0",
+     "diseases": 31,
+     "produced": true
+    },
+    {
+     "feature": "Mean corpuscular volume 0.0",
+     "diseases": 30,
+     "produced": true
+    },
+    {
+     "feature": "Platelet count 0.0",
+     "diseases": 30,
+     "produced": true
+    },
+    {
+     "feature": "Pulse rate, automated reading 0.0",
+     "diseases": 30,
+     "produced": true
+    },
+    {
+     "feature": "White blood cell count 0.0",
+     "diseases": 29,
+     "produced": true
+    },
+    {
+     "feature": "Diastolic blood pressure_average",
+     "diseases": 28,
+     "produced": true
+    },
+    {
+     "feature": "BMI 0.0",
+     "diseases": 27,
+     "produced": true
+    },
+    {
+     "feature": "Basophil percentage 0.0",
+     "diseases": 25,
+     "produced": true
+    },
+    {
+     "feature": "Neutrophil count 0.0",
+     "diseases": 25,
+     "produced": true
+    },
+    {
+     "feature": "Average daytime noise 0.0",
+     "diseases": 24,
+     "produced": false
+    },
+    {
+     "feature": "Greenspace pct 300m 0.0",
+     "diseases": 23,
+     "produced": false
+    },
+    {
+     "feature": "Body fat-free mass 0.0",
+     "diseases": 21,
+     "produced": true
+    },
+    {
+     "feature": "NOx air pollution 0.0",
+     "diseases": 15,
+     "produced": false
+    },
+    {
+     "feature": "PM coarse fraction 0.0",
+     "diseases": 11,
+     "produced": false
+    },
+    {
+     "feature": "PM2.5 air pollution 0.0",
+     "diseases": 11,
+     "produced": false
+    },
+    {
+     "feature": "Monocyte count 0.0",
+     "diseases": 10,
+     "produced": true
+    },
+    {
+     "feature": "Reticulocyte count 0.0",
+     "diseases": 10,
+     "produced": true
+    },
+    {
+     "feature": "Hand grip strength (right) 0.0",
+     "diseases": 9,
+     "produced": true
+    },
+    {
+     "feature": "Weight 0.0",
+     "diseases": 9,
+     "produced": true
+    },
+    {
+     "feature": "Hand grip strength (left) 0.0",
+     "diseases": 8,
+     "produced": true
+    },
+    {
+     "feature": "High light scatter reticulocyte pct 0.0",
+     "diseases": 8,
+     "produced": true
+    },
+    {
+     "feature": "PM2.5 absorbance 0.0",
+     "diseases": 8,
+     "produced": false
+    },
+    {
+     "feature": "Total MET-min/week",
+     "diseases": 7,
+     "produced": true
+    },
+    {
+     "feature": "Average total household income before tax_num",
+     "diseases": 6,
+     "produced": true
+    },
+    {
+     "feature": "Average total household income before tax_num_missing",
+     "diseases": 6,
+     "produced": true
+    },
+    {
+     "feature": "Sitting height 0.0",
+     "diseases": 6,
+     "produced": true
+    },
+    {
+     "feature": "Bread intake 0.0",
+     "diseases": 4,
+     "produced": true
+    },
+    {
+     "feature": "Average weekly beer plus cider intake 0.0",
+     "diseases": 3,
+     "produced": true
+    },
+    {
+     "feature": "Duration moderate activity 0.0",
+     "diseases": 3,
+     "produced": true
+    },
+    {
+     "feature": "Standing height 0.0",
+     "diseases": 3,
+     "produced": true
+    },
+    {
+     "feature": "Summer time outdoors 0.0",
+     "diseases": 3,
+     "produced": false
+    },
+    {
+     "feature": "Waist circumference 0.0",
+     "diseases": 3,
+     "produced": true
+    },
+    {
+     "feature": "Average weekly red wine intake 0.0",
+     "diseases": 2,
+     "produced": true
+    },
+    {
+     "feature": "Cereal intake 0.0",
+     "diseases": 2,
+     "produced": true
+    },
+    {
+     "feature": "Duration vigorous activity 0.0",
+     "diseases": 2,
+     "produced": true
+    },
+    {
+     "feature": "Duration walking 0.0",
+     "diseases": 2,
+     "produced": true
+    },
+    {
+     "feature": "Frequency of tenseness_num",
+     "diseases": 1,
+     "produced": true
+    },
+    {
+     "feature": "Hip circumference 0.0",
+     "diseases": 1,
+     "produced": true
+    },
+    {
+     "feature": "Overall health rating_num",
+     "diseases": 1,
+     "produced": true
+    },
+    {
+     "feature": "Water intake 0.0",
+     "diseases": 1,
+     "produced": true
+    },
+    {
+     "feature": "fam_cardio",
+     "diseases": 1,
+     "produced": true
+    }
+   ],
+   "Male_60plus_srdc_poc": [
+    {
+     "feature": "Phosphate 0.0",
+     "diseases": 62,
+     "produced": true
+    },
+    {
+     "feature": "Calcium 0.0",
+     "diseases": 60,
+     "produced": true
+    },
+    {
+     "feature": "Sodium in urine 0.0",
+     "diseases": 60,
+     "produced": true
+    },
+    {
+     "feature": "Vitamin D 0.0",
+     "diseases": 60,
+     "produced": true
+    },
+    {
+     "feature": "Albumin 0.0",
+     "diseases": 59,
+     "produced": true
+    },
+    {
+     "feature": "Alkaline phosphatase 0.0",
+     "diseases": 59,
+     "produced": true
+    },
+    {
+     "feature": "Eosinophil percentage 0.0",
+     "diseases": 59,
+     "produced": true
+    },
+    {
+     "feature": "HbA1c 0.0",
+     "diseases": 59,
+     "produced": true
+    },
+    {
+     "feature": "C-reactive protein 0.0",
+     "diseases": 58,
+     "produced": true
+    },
+    {
+     "feature": "Mean time to correctly identify matches 0.0",
+     "diseases": 58,
+     "produced": false
+    },
+    {
+     "feature": "Red blood cell distribution width 0.0",
+     "diseases": 58,
+     "produced": true
+    },
+    {
+     "feature": "HDL cholesterol 0.0",
+     "diseases": 57,
+     "produced": true
+    },
+    {
+     "feature": "Potassium in urine 0.0",
+     "diseases": 57,
+     "produced": true
+    },
+    {
+     "feature": "Cystatin C 0.0",
+     "diseases": 56,
+     "produced": true
+    },
+    {
+     "feature": "Gamma glutamyltransferase 0.0",
+     "diseases": 56,
+     "produced": true
+    },
+    {
+     "feature": "Lipoprotein A 0.0",
+     "diseases": 56,
+     "produced": true
+    },
+    {
+     "feature": "Mean platelet volume 0.0",
+     "diseases": 56,
+     "produced": true
+    },
+    {
+     "feature": "Monocyte percentage 0.0",
+     "diseases": 55,
+     "produced": true
+    },
+    {
+     "feature": "SHBG 0.0",
+     "diseases": 55,
+     "produced": true
+    },
+    {
+     "feature": "Urate 0.0",
+     "diseases": 55,
+     "produced": true
+    },
+    {
+     "feature": "Alanine aminotransferase 0.0",
+     "diseases": 54,
+     "produced": true
+    },
+    {
+     "feature": "Creatinine in urine 0.0",
+     "diseases": 54,
+     "produced": true
+    },
+    {
+     "feature": "Domestic garden pct 1000m 0.0",
+     "diseases": 54,
+     "produced": false
+    },
+    {
+     "feature": "Forced expiratory volume in 1-second (FEV1) 0.0",
+     "diseases": 54,
+     "produced": true
+    },
+    {
+     "feature": "Lymphocyte percentage 0.0",
+     "diseases": 53,
+     "produced": true
+    },
+    {
+     "feature": "Testosterone 0.0",
+     "diseases": 53,
+     "produced": true
+    },
+    {
+     "feature": "Triglycerides 0.0",
+     "diseases": 52,
+     "produced": true
+    },
+    {
+     "feature": "Cholesterol 0.0",
+     "diseases": 51,
+     "produced": true
+    },
+    {
+     "feature": "Creatinine 0.0",
+     "diseases": 51,
+     "produced": true
+    },
+    {
+     "feature": "MCH concentration 0.0",
+     "diseases": 51,
+     "produced": true
+    },
+    {
+     "feature": "Platelet distribution width 0.0",
+     "diseases": 51,
+     "produced": true
+    },
+    {
+     "feature": "Urea 0.0",
+     "diseases": 51,
+     "produced": true
+    },
+    {
+     "feature": "Total protein 0.0",
+     "diseases": 50,
+     "produced": true
+    },
+    {
+     "feature": "Glucose 0.0",
+     "diseases": 49,
+     "produced": true
+    },
+    {
+     "feature": "IGF-1 0.0",
+     "diseases": 49,
+     "produced": true
+    },
+    {
+     "feature": "Sum road lengths near home 0.0",
+     "diseases": 48,
+     "produced": false
+    },
+    {
+     "feature": "Aspartate aminotransferase 0.0",
+     "diseases": 47,
+     "produced": true
+    },
+    {
+     "feature": "Platelet crit 0.0",
+     "diseases": 47,
+     "produced": true
+    },
+    {
+     "feature": "Haemoglobin concentration 0.0",
+     "diseases": 46,
+     "produced": true
+    },
+    {
+     "feature": "Forced vital capacity (FVC) 0.0",
+     "diseases": 45,
+     "produced": true
+    },
+    {
+     "feature": "Systolic blood pressure_average",
+     "diseases": 44,
+     "produced": true
+    },
+    {
+     "feature": "Body fat-free mass 0.0",
+     "diseases": 43,
+     "produced": true
+    },
+    {
+     "feature": "Lymphocyte count 0.0",
+     "diseases": 43,
+     "produced": true
+    },
+    {
+     "feature": "Mean reticulocyte volume 0.0",
+     "diseases": 43,
+     "produced": true
+    },
+    {
+     "feature": "Red blood cell count 0.0",
+     "diseases": 43,
+     "produced": true
+    },
+    {
+     "feature": "Mean sphered cell volume 0.0",
+     "diseases": 41,
+     "produced": true
+    },
+    {
+     "feature": "Total bilirubin 0.0",
+     "diseases": 39,
+     "produced": true
+    },
+    {
+     "feature": "Direct bilirubin 0.0",
+     "diseases": 38,
+     "produced": true
+    },
+    {
+     "feature": "Trunk fat percentage 0.0",
+     "diseases": 38,
+     "produced": true
+    },
+    {
+     "feature": "Greenspace pct 1000m 0.0",
+     "diseases": 37,
+     "produced": false
+    },
+    {
+     "feature": "Reticulocyte percentage 0.0",
+     "diseases": 37,
+     "produced": true
+    },
+    {
+     "feature": "Mean corpuscular volume 0.0",
+     "diseases": 35,
+     "produced": true
+    },
+    {
+     "feature": "Average daytime noise 0.0",
+     "diseases": 34,
+     "produced": false
+    },
+    {
+     "feature": "Immature reticulocyte fraction 0.0",
+     "diseases": 34,
+     "produced": true
+    },
+    {
+     "feature": "Pulse rate, automated reading 0.0",
+     "diseases": 34,
+     "produced": true
+    },
+    {
+     "feature": "Diastolic blood pressure_average",
+     "diseases": 32,
+     "produced": true
+    },
+    {
+     "feature": "Age 0.0",
+     "diseases": 31,
+     "produced": true
+    },
+    {
+     "feature": "Basophil percentage 0.0",
+     "diseases": 30,
+     "produced": true
+    },
+    {
+     "feature": "Greenspace pct 300m 0.0",
+     "diseases": 30,
+     "produced": false
+    },
+    {
+     "feature": "PM10 air pollution 0.0",
+     "diseases": 29,
+     "produced": false
+    },
+    {
+     "feature": "Platelet count 0.0",
+     "diseases": 27,
+     "produced": true
+    },
+    {
+     "feature": "BMI 0.0",
+     "diseases": 22,
+     "produced": true
+    },
+    {
+     "feature": "High light scatter reticulocyte pct 0.0",
+     "diseases": 21,
+     "produced": true
+    },
+    {
+     "feature": "Neutrophil count 0.0",
+     "diseases": 21,
+     "produced": true
+    },
+    {
+     "feature": "Mean corpuscular haemoglobin 0.0",
+     "diseases": 18,
+     "produced": true
+    },
+    {
+     "feature": "NOx air pollution 0.0",
+     "diseases": 18,
+     "produced": false
+    },
+    {
+     "feature": "White blood cell count 0.0",
+     "diseases": 16,
+     "produced": true
+    },
+    {
+     "feature": "Monocyte count 0.0",
+     "diseases": 13,
+     "produced": true
+    },
+    {
+     "feature": "PM coarse fraction 0.0",
+     "diseases": 11,
+     "produced": false
+    },
+    {
+     "feature": "Total MET-min/week",
+     "diseases": 11,
+     "produced": true
+    },
+    {
+     "feature": "Hand grip strength (right) 0.0",
+     "diseases": 10,
+     "produced": true
+    },
+    {
+     "feature": "Standing height 0.0",
+     "diseases": 10,
+     "produced": true
+    },
+    {
+     "feature": "Weight 0.0",
+     "diseases": 9,
+     "produced": true
+    },
+    {
+     "feature": "PM2.5 absorbance 0.0",
+     "diseases": 7,
+     "produced": false
+    },
+    {
+     "feature": "Hand grip strength (left) 0.0",
+     "diseases": 6,
+     "produced": true
+    },
+    {
+     "feature": "Waist circumference 0.0",
+     "diseases": 6,
+     "produced": true
+    },
+    {
+     "feature": "PM2.5 air pollution 0.0",
+     "diseases": 5,
+     "produced": false
+    },
+    {
+     "feature": "Average weekly beer plus cider intake 0.0",
+     "diseases": 4,
+     "produced": true
+    },
+    {
+     "feature": "Average weekly red wine intake 0.0",
+     "diseases": 3,
+     "produced": true
+    },
+    {
+     "feature": "Duration moderate activity 0.0",
+     "diseases": 3,
+     "produced": true
+    },
+    {
+     "feature": "Sitting height 0.0",
+     "diseases": 2,
+     "produced": true
+    },
+    {
+     "feature": "Average total household income before tax_num",
+     "diseases": 1,
+     "produced": true
+    },
+    {
+     "feature": "Average total household income before tax_num_missing",
+     "diseases": 1,
+     "produced": true
+    },
+    {
+     "feature": "Basophil count 0.0",
+     "diseases": 1,
+     "produced": false
+    },
+    {
+     "feature": "Bread intake 0.0",
+     "diseases": 1,
+     "produced": true
+    },
+    {
+     "feature": "Difference phone use_num",
+     "diseases": 1,
+     "produced": false
+    },
+    {
+     "feature": "Hip circumference 0.0",
+     "diseases": 1,
+     "produced": true
+    },
+    {
+     "feature": "Snoring 0.0__Yes",
+     "diseases": 1,
+     "produced": true
+    },
+    {
+     "feature": "Variation in diet_num",
+     "diseases": 1,
+     "produced": false
+    }
+   ]
+  }
+ }
+}

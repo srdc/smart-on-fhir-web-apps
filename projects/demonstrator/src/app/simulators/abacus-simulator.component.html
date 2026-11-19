@@ -1,0 +1,69 @@
+<div class="demo-sim">
+  <div class="demo-sim-note">
+    <i class="bi bi-info-circle me-1"></i><b>Simulated.</b> The Health Monitoring App (ABACUS) is the patient's mobile
+    application. This view shows what it stored in the STAGE FHIR repository for {{ patientName }}, and lets you answer
+    the questionnaires again as the patient.
+  </div>
+
+  <div class="demo-phone">
+    <div class="demo-phone-bar">
+      @if (open) {
+        <button class="btn btn-link btn-sm text-white p-0 me-2" (click)="open = undefined; message = undefined">
+          <i class="bi bi-chevron-left"></i></button>
+      }
+      <span class="fw-semibold">{{ open ? title(open) : 'My questionnaires' }}</span>
+    </div>
+    <div class="demo-phone-body">
+      @if (loading) {
+        <div class="text-center py-4"><span class="spinner-border spinner-border-sm"></span></div>
+      } @else if (error) {
+        <div class="alert alert-danger small">{{ error }}</div>
+      } @else if (!open) {
+        <div class="small text-muted mb-2">Hello {{ patientName }}</div>
+        @for (q of completed; track q.response.questionnaire) {
+          <button class="demo-phone-item" (click)="open = q; message = undefined">
+            <span class="flex-grow-1 text-start">
+              <span class="d-block fw-medium">{{ title(q) }}</span>
+              <span class="small text-muted">Completed {{ q.response.authored | date: 'd MMM y, HH:mm' }}</span>
+            </span>
+            <i class="bi bi-check-circle-fill demo-ok" aria-label="Completed"></i>
+          </button>
+        } @empty {
+          <div class="small text-muted">No completed questionnaires.</div>
+        }
+      } @else {
+        @if (open.questionnaire?.description) {
+          <p class="small text-muted">{{ open.questionnaire?.description }}</p>
+        }
+        @for (item of items(open); track item.linkId) {
+          <div class="mb-3">
+            <div class="small fw-medium mb-1">{{ item.text }}</div>
+            @if (open.draft) {
+              @for (option of item.answerOption; track option.valueCoding?.code) {
+                <label class="form-check small mb-0">
+                  <input class="form-check-input" type="radio" [name]="item.linkId" [attr.name]="item.linkId" [value]="option.valueCoding?.code"
+                         [(ngModel)]="open.draft[item.linkId]">
+                  <span class="form-check-label">{{ option.valueCoding?.display }}</span>
+                </label>
+              }
+            } @else {
+              <div class="demo-phone-answer">{{ answerDisplay(open, item) }}</div>
+            }
+          </div>
+        }
+        @if (message) {
+          <div class="alert alert-info small py-2">{{ message }}</div>
+        }
+        @if (open.draft) {
+          <div class="d-flex gap-2">
+            <button class="btn btn-outline-secondary btn-sm" (click)="open.draft = undefined">Cancel</button>
+            <button class="btn btn-primary btn-sm flex-grow-1" [disabled]="saving" (click)="save(open)">
+              @if (saving) { <span class="spinner-border spinner-border-sm me-1"></span> }Submit answers</button>
+          </div>
+        } @else {
+          <button class="btn btn-primary btn-sm w-100" (click)="edit(open)">Answer again</button>
+        }
+      }
+    </div>
+  </div>
+</div>

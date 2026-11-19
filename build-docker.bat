@@ -11,5 +11,6 @@ call npm run build -- score --configuration production --base-href /smart-apps/s
 call npm run build -- shc-generator --configuration production --base-href /smart-apps/shc-generator/ --deploy-url /smart-apps/shc-generator/
 call npm run build -- risk-prediction --configuration production --base-href /smart-apps/risk-prediction/ --deploy-url /smart-apps/risk-prediction/
 call npm run build -- dashboard --configuration production --base-href /smart-apps/dashboard/ --deploy-url /smart-apps/dashboard/
+call npm run build -- demonstrator --configuration production --base-href /smart-apps/demonstrator/ --deploy-url /smart-apps/demonstrator/
 
 docker build -t srdc/smart-apps -f ./docker/Dockerfile .

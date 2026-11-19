@@ -1217,6 +1217,127 @@
           }
         }
       }
+    },
+    "demonstrator": {
+      "projectType": "application",
+      "schematics": {
+        "@schematics/angular:component": {
+          "style": "scss",
+          "standalone": false
+        },
+        "@schematics/angular:directive": {
+          "standalone": false
+        },
+        "@schematics/angular:pipe": {
+          "standalone": false
+        }
+      },
+      "root": "projects/demonstrator",
+      "sourceRoot": "projects/demonstrator/src",
+      "prefix": "demo",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-angular:application",
+          "options": {
+            "outputPath": "dist/demonstrator",
+            "index": "projects/demonstrator/src/index.html",
+            "browser": "projects/demonstrator/src/main.ts",
+            "polyfills": [
+              "zone.js"
+            ],
+            "preserveSymlinks": true,
+            "tsConfig": "projects/demonstrator/tsconfig.app.json",
+            "inlineStyleLanguage": "scss",
+            "assets": [
+              "projects/demonstrator/src/favicon.ico",
+              "projects/demonstrator/src/assets",
+              {
+                "glob": "**/*",
+                "input": "assets",
+                "output": "assets"
+              }
+            ],
+            "styles": [
+              "projects/demonstrator/src/styles.scss"
+            ],
+            "scripts": [
+              "node_modules/bootstrap/dist/js/bootstrap.min.js"
+            ]
+          },
+          "configurations": {
+            "production": {
+              "fileReplacements": [
+                {
+                  "replace": "projects/demonstrator/src/environments/environment.ts",
+                  "with": "projects/demonstrator/src/environments/environment-docker.ts"
+                }
+              ],
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "500kb",
+                  "maximumError": "2mb"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "2kb",
+                  "maximumError": "4kb"
+                }
+              ],
+              "outputHashing": "all",
+              "optimization": {
+                "scripts": true,
+                "styles": {
+                  "minify": true,
+                  "inlineCritical": false
+                },
+                "fonts": true
+              }
+            },
+            "development": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true
+            },
+            "testing": {
+              "fileReplacements": [
+                {
+                  "replace": "projects/demonstrator/src/environments/environment.ts",
+                  "with": "projects/demonstrator/src/environments/environment-testing.ts"
+                }
+              ],
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "serve": {
+          "builder": "@angular-devkit/build-angular:dev-server",
+          "options": {
+            "proxyConfig": "projects/demonstrator/proxy.conf.json",
+            "prebundle": {
+              "exclude": [
+                "ng-smart-on-fhir"
+              ]
+            }
+          },
+          "configurations": {
+            "production": {
+              "buildTarget": "demonstrator:build:production"
+            },
+            "development": {
+              "buildTarget": "demonstrator:build:development"
+            },
+            "testing": {
+              "buildTarget": "demonstrator:build:testing",
+              "proxyConfig": "projects/demonstrator/proxy.conf.testing.json"
+            }
+          },
+          "defaultConfiguration": "development"
+        }
+      }
     }
   },
   "cli": {

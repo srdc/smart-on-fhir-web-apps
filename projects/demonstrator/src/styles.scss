@@ -1,0 +1,217 @@
+@import "../../../theme/bootstrap-theme.scss";
+@import "../../../node_modules/bootstrap-icons/font/bootstrap-icons.min.css";
+@import "../../../node_modules/ng-smart-on-fhir/themes/bootstrap";
+
+body { background: var(--stage-bg, #f5f7fb); }
+.min-h-0 { min-height: 0; }
+.min-w-0 { min-width: 0; }
+
+// risk classes of the storyboard document and the results page
+.bg-risk-high { background: var(--bs-danger); }
+.bg-risk-moderate { background: var(--bs-warning); }
+.bg-risk-low { background: var(--bs-info); }
+
+// ---------------------------------------------------------------- motion (the STAGE theme stays; only how it answers)
+:root {
+  --demo-ease: cubic-bezier(.2, .7, .2, 1);
+  --demo-ok: #2f8f5b;
+}
+// buttons step up on hover and sink on press, for a fine pointer only
+@media (hover: hover) and (pointer: fine) {
+  .btn { transition: transform .15s var(--demo-ease), background-color .15s, border-color .15s, color .15s; }
+  .btn:hover:not(:disabled) { transform: translateY(-1px); }
+  .btn:active:not(:disabled) { transform: translateY(1px) scale(.985); transition-duration: .09s; }
+}
+@keyframes demo-rise {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+
+// ---------------------------------------------------------------- start page
+
+.demo-kicker { font-size: .9rem; font-weight: 600; opacity: .8; }
+// the hero enters once on load: the heading rises, the rest follows
+.demo-hero__title {
+  color: inherit; font-weight: 700; font-size: clamp(2rem, 1.2rem + 2.6vw, 3rem); line-height: 1.12;
+  margin-bottom: 1rem; max-width: 16em; animation: demo-rise .7s var(--demo-ease) both;
+}
+.demo-hero__lead {
+  font-size: 1.2rem; line-height: 1.5; opacity: .92; max-width: 34em; margin-bottom: 1.5rem;
+  animation: demo-rise .52s var(--demo-ease) .35s both;
+}
+.demo-facts {
+  display: flex; flex-wrap: wrap; gap: .75rem 2rem; margin-bottom: 1.75rem; font-size: .95rem;
+  animation: demo-rise .52s var(--demo-ease) .41s both;
+  b { display: block; font-size: 1.75rem; line-height: 1.1; font-variant-numeric: tabular-nums; }
+}
+.demo-hero__note { font-size: .875rem; opacity: .85; max-width: 26em; }
+.demo-chip-muted { opacity: .7; margin-left: .25rem; }
+.demo-group {
+  display: inline-flex; align-items: center; font-size: .8rem; font-weight: 600; padding: .2rem .6rem;
+  border-radius: 999px; background: var(--bs-light); border: 1px solid var(--stage-line, #e1e3e5); color: rgb(34, 62, 124);
+}
+.demo-footer {
+  background: #fff; border-top: 1px solid var(--stage-line, #e1e3e5); color: var(--bs-secondary-color);
+  font-size: .9rem;
+}
+.demo-how li {
+  display: flex; gap: .75rem; align-items: flex-start; margin-bottom: .75rem;
+  > span {
+    flex: 0 0 1.75rem; height: 1.75rem; border-radius: 50%; background: rgba(255, 255, 255, .2);
+    display: flex; align-items: center; justify-content: center; font-weight: 600;
+  }
+}
+.demo-patient-card { border-color: var(--stage-line, #e1e3e5); }
+.demo-avatar {
+  flex: 0 0 2.5rem; width: 2.5rem; height: 2.5rem; border-radius: 50%; display: flex; align-items: center;
+  justify-content: center; font-weight: 600; color: #fff; background: rgb(34, 62, 124);
+  &.female { background: var(--bs-primary); }
+}
+.risk-row {
+  display: grid; grid-template-columns: 9.5rem 1fr 3rem; gap: .5rem; align-items: center; font-size: .8rem;
+  .risk-track { height: .5rem; background: var(--bs-light); border-radius: .25rem; overflow: hidden; }
+  .risk-bar { display: block; height: 100%; border-radius: .25rem; }
+  .risk-value { text-align: right; font-variant-numeric: tabular-nums; }
+}
+
+// ---------------------------------------------------------------- story page
+.demo-story {
+  display: grid; grid-template-columns: minmax(300px, 400px) 1fr; height: 100%;
+  @media (max-width: 991.98px) { grid-template-columns: 1fr; height: auto; }
+}
+.demo-story-panel {
+  background: #fff; border-right: 1px solid var(--stage-line, #e1e3e5); overflow-y: auto; min-height: 0;
+}
+.demo-story-head { padding: 1rem; border-bottom: 1px solid var(--stage-line, #e1e3e5); }
+.demo-steps > li {
+  border-bottom: 1px solid var(--stage-line, #e1e3e5);
+  &.active { background: #fbf7f4; }
+}
+.demo-step-title {
+  display: flex; gap: .6rem; align-items: center; width: 100%; padding: .7rem 1rem; border: 0; background: none;
+  font-weight: 500; font-size: .95rem;
+  .active > & { color: var(--bs-primary); }
+}
+.demo-step-no {
+  flex: 0 0 1.6rem; height: 1.6rem; border-radius: 50%; border: 1px solid currentColor; display: flex;
+  align-items: center; justify-content: center; font-size: .8rem;
+  .done & { background: var(--bs-secondary); border-color: var(--bs-secondary); color: #fff; }
+  .active & { background: var(--bs-primary); border-color: var(--bs-primary); color: #fff; }
+}
+.demo-step-body { padding: 0 1rem 1rem 3.2rem; font-size: .875rem; }
+.demo-note {
+  background: #fff; border: 1px solid var(--stage-line, #e1e3e5); border-left: 3px solid var(--bs-secondary);
+  border-radius: .25rem; padding: .5rem .75rem; margin-bottom: .5rem;
+}
+.demo-account {
+  display: grid; grid-template-columns: max-content 1fr; gap: .4rem 1rem; align-items: baseline;
+  dt { font-weight: 500; }
+  dd { margin: 0; }
+  code { font-size: 1rem; }
+}
+.demo-behind {
+  margin-bottom: .5rem; color: var(--bs-secondary-color);
+  summary { cursor: pointer; font-weight: 500; }
+}
+.demo-hint {
+  background: rgba(229, 109, 48, .08); border-radius: .25rem; padding: .4rem .6rem; color: #8a3d14;
+}
+.demo-stage { display: flex; flex-direction: column; min-height: 0; @media (max-width: 991.98px) { height: 85vh; } }
+.demo-stage-tabs {
+  display: flex; align-items: flex-end; gap: .25rem; padding: .5rem .75rem 0; background: var(--bs-light);
+  border-bottom: 1px solid var(--stage-line, #e1e3e5); min-height: 2.75rem;
+  button, .demo-stage-label {
+    border: 1px solid transparent; border-bottom: 0; background: none; padding: .45rem .9rem; font-size: .875rem;
+    border-radius: .375rem .375rem 0 0; color: var(--bs-body-color);
+  }
+  button.active, .demo-stage-label { background: #fff; border-color: var(--stage-line, #e1e3e5); font-weight: 500; }
+  button:not(.active):hover { background: rgba(255, 255, 255, .6); }
+}
+// live, simulated or done for you: where the demonstrator ends and the real application begins
+.demo-stage-kind {
+  align-self: center; margin-left: .5rem; font-size: .75rem; font-weight: 600; padding: .15rem .55rem;
+  border-radius: 999px; background: #fff3cd; color: #7a5a00;
+  &.live { background: rgba(47, 143, 91, .12); color: var(--demo-ok); }
+  &.live::before {
+    content: ''; display: inline-block; width: .5rem; height: .5rem; border-radius: 50%; margin-right: .35rem;
+    background: var(--demo-ok); vertical-align: .05rem;
+  }
+}
+.demo-stage-open { align-self: center; margin-left: auto; font-size: .85rem; text-decoration: none; }
+.demo-stage-open:hover { text-decoration: underline; }
+.demo-ok { color: var(--demo-ok); }
+.demo-shot {
+  display: block; width: 100%; max-width: 640px; margin-bottom: 1.25rem; border: 1px solid var(--stage-line, #e1e3e5);
+  border-radius: .5rem; box-shadow: 0 .25rem 1rem rgba(0, 0, 0, .06);
+}
+.demo-stage-body { flex: 1 1 auto; min-height: 0; position: relative; overflow: auto; }
+.demo-screenshots { padding: 1.5rem; max-width: 900px; }
+
+// ---------------------------------------------------------------- actions
+
+// the guide: the robot doctor tells the visitor what to do in the step, in a speech bubble that fades up
+.demo-guide {
+  display: flex; align-items: flex-end; gap: .75rem; padding: 1rem 1rem .5rem; background: linear-gradient(to bottom,var(--bs-primary-bg-subtle), var(--bs-light));
+}
+.demo-guide__avatar {
+  flex-shrink: 0; width: 121px; height: 121px; object-fit: contain; margin-bottom: -6px;
+  animation: demo-rise .45s var(--demo-ease) both;
+}
+.demo-guide__bubble {
+  position: relative; flex: 1 1 auto; min-width: 0; max-width: 62rem;
+  font-size: 1rem; background: #fff; border: 1px solid var(--stage-line, #e1e3e5);
+  @media (max-height: 840px) { font-size: .875rem; }
+  border-radius: 1rem 1rem 1rem .25rem; padding: .75rem 1rem;
+  box-shadow: 0 6px 18px -10px rgba(25, 45, 90, .35);
+  transform-origin: left bottom;
+  animation: demo-rise .5s var(--demo-ease) .08s both;
+  // the tail, pointing at the robot
+  &::before, &::after {
+    content: ''; position: absolute; left: -9px; bottom: 10px; width: 0; height: 0;
+    border-style: solid; border-width: 7px 9px 7px 0;
+  }
+  &::before { border-color: transparent var(--stage-line, #e1e3e5) transparent transparent; left: -10px; }
+  &::after { border-color: transparent #fff transparent transparent; }
+  ul { margin: 0 0 .5rem; padding-left: 1.1rem; }
+  ul:last-child { margin-bottom: 0; }
+  li { margin-bottom: .2rem; animation: demo-rise .4s var(--demo-ease) both; }
+}
+.demo-guide__title { font-weight: 600; color: var(--bs-primary); margin-bottom: .35rem; }
+@media (max-width: 575.98px) {
+  .demo-guide__avatar { width: 48px; height: 48px; }
+}
+
+// ---------------------------------------------------------------- simulators
+.demo-sim { padding: 1.5rem; max-width: 760px; margin: 0 auto; }
+.demo-sim-note {
+  font-size: .85rem; background: #fff8e1; border: 1px solid #f1d98a; border-radius: .375rem; padding: .6rem .8rem;
+  margin-bottom: 1rem;
+}
+.demo-phone {
+  max-width: 360px; margin: 0 auto; border: 10px solid #1f2430; border-radius: 2rem; overflow: hidden;
+  background: #fff; box-shadow: 0 .5rem 1.5rem rgba(0, 0, 0, .15);
+}
+.demo-phone-bar { background: rgb(34, 62, 124); color: #fff; padding: .9rem 1rem; display: flex; align-items: center; }
+.demo-phone-body { padding: 1rem; height: 520px; overflow-y: auto; }
+.demo-phone-item {
+  display: flex; align-items: center; gap: .5rem; width: 100%; border: 1px solid var(--stage-line, #e1e3e5);
+  background: #fff; border-radius: .5rem; padding: .6rem .75rem; margin-bottom: .5rem;
+}
+.demo-phone-answer { background: var(--bs-light); border-radius: .375rem; padding: .3rem .6rem; font-size: .85rem; }
+.demo-measure-label { max-width: 45%; overflow: hidden; text-overflow: ellipsis; }
+
+// LIVA simulator (its own colour, not the theme's)
+:root { --demo-liva: #2f6f5e; }
+.demo-liva-button { background: var(--demo-liva); border-color: var(--demo-liva); color: #fff;
+  &:hover { background: #24584a; color: #fff; } }
+.demo-liva-button-outline { border-color: var(--demo-liva); color: var(--demo-liva);
+  &:hover { background: var(--demo-liva); color: #fff; } }
+.demo-liva-badge { background: rgba(47, 111, 94, .12); color: var(--demo-liva); }
+
+.demo-skip {
+  position: absolute; top: .5rem; left: .5rem; z-index: 1100; padding: .5rem 1rem; border-radius: .375rem;
+  background: #fff; color: rgb(34, 62, 124); font-weight: 600;
+}
