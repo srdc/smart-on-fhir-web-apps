@@ -412,6 +412,11 @@ export class ResultsComponent implements OnInit, OnDestroy, AfterViewInit {
     this.router.navigate(['/form']);
   }
 
+  /** On to intervention planning: the modifiable risk factors and the interventions to suggest to the patient */
+  manageInterventions() {
+    this.router.navigate(['/interventions']);
+  }
+
   getWaterfallChartData(disease: DiseaseRisk): ChartData {
     const features = this.getTopShapFeatures(disease.shapFeatures, 10)
     return {
