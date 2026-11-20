@@ -27,6 +27,7 @@ import {
 import {AddMeasurementDialogComponent} from './care-plan/add-measurement-dialog.component';
 import {SharedLinksComponent} from './shared-links/shared-links.component';
 import {DiseaseSelectionComponent} from './diseases/disease-selection.component';
+import {ChartjsModule} from '@coreui/angular-chartjs';
 
 @NgModule({
   declarations: [
@@ -58,6 +59,7 @@ import {DiseaseSelectionComponent} from './diseases/disease-selection.component'
     SidebarModule,
     HeaderModule,
     SummaryPanelModule,
+    ChartjsModule,
   ],
   providers: [MenuService, provideCharts(withDefaultRegisterables())],
   bootstrap: [AppComponent],
