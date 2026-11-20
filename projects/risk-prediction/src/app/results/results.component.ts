@@ -7,10 +7,90 @@ import {MenuService} from "../menu.service";
 import {beeswarmAssetUrl, LocalPlotResponse} from "./llm-models";
 import {ChatbotComponent} from "../chatbot/chatbot.component";
 import {environment} from "../../environments/environment";
+import annotationPlugin from 'chartjs-plugin-annotation';
+
+const waterfallDirectionPlugin = {
+  id: 'waterfallDirectionPlugin',
+
+  afterDatasetsDraw(chart: any) {
+    const dataset = chart.data.datasets[0] as any;
+
+    if (!dataset?.pointTypes) {
+      return;
+    }
+
+    const meta = chart.getDatasetMeta(0);
+    const ctx = chart.ctx;
+
+    if (!meta?.data) {
+      return;
+    }
+
+    ctx.save();
+
+    meta.data.forEach((bar: any, index: number) => {
+      const raw = dataset.data[index];
+
+      if (!Array.isArray(raw) || raw.length !== 2) {
+        return;
+      }
+
+      const [start, end] = raw;
+
+      if (start === end) {
+        return;
+      }
+
+      const direction = end > start ? '→' : '←';
+
+      const props = bar.getProps(
+        ['x', 'base', 'y'],
+        true
+      );
+
+      const left = Math.min(props.x, props.base);
+      const right = Math.max(props.x, props.base);
+      const width = right - left;
+
+      let arrowX: number;
+
+      if (width >= 24) {
+        arrowX = left + width / 2;
+      } else {
+        arrowX = end > start
+          ? right + 8
+          : left - 8;
+      }
+
+      ctx.font = '700 18px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      ctx.fillStyle =
+        width >= 24
+          ? 'rgba(255, 255, 255, 0.95)'
+          : '#495057';
+
+      ctx.fillText(
+        direction,
+        arrowX,
+        props.y
+      );
+    });
+
+    ctx.restore();
+  }
+};
+
+Chart.register(
+  annotationPlugin,
+  waterfallDirectionPlugin
+);
 
 interface ShapFeature {
   name: string;
   value: number;
+  displayContribution?: number;
 }
 
 interface DiseaseRisk {
@@ -19,7 +99,11 @@ interface DiseaseRisk {
   riskScore: number;
   shapFeatures: ShapFeature[];
   expanded: boolean;
-  baseline: number;
+
+  baselineValue: number;
+  finalPrediction: number;
+  otherFeaturesContribution: number;
+  numOtherFeatures: number;
 }
 
 interface SummaryItem {
@@ -30,6 +114,33 @@ interface SummaryItem {
   linkLabel?: string;  // "Show SHAP Details"
   linkHref?: string;   // Will use this to store disease index for lookup
   diseaseIndex?: number; // Store index to find disease
+}
+
+function formatDisplayPercent(value: number): string {
+  const percent = value * 100;
+
+  const maximumFractionDigits =
+    Math.abs(percent) >= 10 ? 1 :
+    Math.abs(percent) >= 1 ? 2 : 3;
+
+  return new Intl.NumberFormat('en-GB', {
+    maximumFractionDigits
+  }).format(percent) + '%';
+}
+
+function formatSignedPercentagePoints(
+  probabilityContribution: number
+): string {
+  const percentagePoints = probabilityContribution * 100;
+
+  const maximumFractionDigits =
+    Math.abs(percentagePoints) >= 10 ? 1 : 3;
+
+  const magnitude = new Intl.NumberFormat('en-GB', {
+    maximumFractionDigits
+  }).format(Math.abs(percentagePoints));
+
+  return `${percentagePoints >= 0 ? '+' : '-'}${magnitude} percentage points`;
 }
 
 @Component({
@@ -106,36 +217,192 @@ export class ResultsComponent implements OnInit, OnDestroy, AfterViewInit {
   }
   waterfallChartData: {[diseaseId: string]: ChartData} = {}
   waterfallChartOptions: ChartOptions = {
-    aspectRatio: 1,
-    indexAxis: 'y', // <-- makes it horizontal
-    backgroundColor: (ctx: any) => ctx.raw >= 0 ? '#ff0051' : '#56b2fc',
-    hoverBackgroundColor: (ctx: any) => ctx.raw >= 0 ? '#b1033b' : '#018bfb',
-    borderColor: (ctx: any) => ctx.raw >= 0 ? '#b1033b' : '#018bfb',
+    aspectRatio: 1.4,
+    indexAxis: 'y',
+
+    layout: {
+      padding: {
+        top: 32
+      }
+    },
+
     plugins: {
+      tooltip: {
+        callbacks: {
+          title: (contexts: any[]) => {
+            return contexts[0]?.label ?? '';
+          },
+
+          label: (context: any) => {
+            const dataset = context.dataset as any;
+
+            const contribution =
+              dataset.contributions?.[context.dataIndex] ?? 0;
+
+            const type =
+              dataset.pointTypes?.[context.dataIndex];
+
+            if (type === 'other') {
+              return [
+                `Risk contribution: ${formatSignedPercentagePoints(contribution)}`,
+                `${dataset.numOtherFeatures} other features combined`
+              ];
+            }
+
+            return [
+              `Risk contribution: ${formatSignedPercentagePoints(contribution)}`
+            ];
+          }
+        }
+      },
+
       legend: {
         display: true,
         position: 'bottom',
+
         labels: {
           generateLabels(chart: Chart): LegendItem[] {
             return [
               {
-                text: 'Increasing Factors',
-                fillStyle: '#ff0051',
-                strokeStyle: '#b1033b'
+                text: 'Increases prediction',
+                fillStyle: '#0d6efd',
+                strokeStyle: '#0d6efd'
               },
               {
-                text: 'Decreasing Factors',
-                fillStyle: '#56b2fc',
-                strokeStyle: '#018bfb'
+                text: 'Decreases prediction',
+                fillStyle: '#fd7e14',
+                strokeStyle: '#fd7e14'
+              },
+              {
+                text: 'Other features',
+                fillStyle: '#adb5bd',
+                strokeStyle: '#adb5bd'
               }
             ];
           }
         }
+      },
+
+      annotation: {
+        clip: false,
+
+        annotations: {
+          baselineLine: {
+            type: 'line',
+
+            xMin: (ctx: any) =>
+              (ctx.chart.data.datasets[0] as any).baselineValue,
+
+            xMax: (ctx: any) =>
+              (ctx.chart.data.datasets[0] as any).baselineValue,
+
+            borderColor: '#6c757d',
+            borderWidth: 2,
+            borderDash: [6, 6],
+
+            label: {
+              display: true,
+
+              content: (ctx: any) => {
+                const value =
+                  (ctx.chart.data.datasets[0] as any).baselineValue;
+
+                return `Baseline ${formatDisplayPercent(value)}`;
+              },
+
+              position: 'start',
+              backgroundColor: 'rgba(255,255,255,0.9)',
+              color: '#495057'
+            }
+          },
+
+          finalPredictionLine: {
+            type: 'line',
+
+            xMin: (ctx: any) =>
+              (ctx.chart.data.datasets[0] as any).finalPrediction,
+
+            xMax: (ctx: any) =>
+              (ctx.chart.data.datasets[0] as any).finalPrediction,
+
+            borderColor: '#212529',
+            borderWidth: 2,
+
+            label: {
+              display: true,
+
+              content: (ctx: any) => {
+                const value =
+                  (ctx.chart.data.datasets[0] as any).finalPrediction;
+
+                return `Patient prediction ${formatDisplayPercent(value)}`;
+              },
+
+              position: 'end',
+              yAdjust: -24,
+              backgroundColor: 'rgba(255,255,255,0.9)',
+              color: '#212529'
+            }
+          }
+        }
       }
     },
+
+    backgroundColor: (ctx: any) => {
+      const dataset = ctx.dataset as any;
+
+      const type =
+        dataset.pointTypes?.[ctx.dataIndex];
+
+      const contribution =
+        dataset.contributions?.[ctx.dataIndex];
+
+      if (type === 'other') {
+        return '#adb5bd';
+      }
+
+      return contribution >= 0
+        ? '#0d6efd'
+        : '#fd7e14';
+    },
+
+    borderColor: (ctx: any) => {
+      const dataset = ctx.dataset as any;
+
+      const type =
+        dataset.pointTypes?.[ctx.dataIndex];
+
+      const contribution =
+        dataset.contributions?.[ctx.dataIndex];
+
+      if (type === 'other') {
+        return '#adb5bd';
+      }
+
+      return contribution >= 0
+        ? '#0d6efd'
+        : '#fd7e14';
+    },
+
     scales: {
       x: {
-        beginAtZero: true
+        beginAtZero: false,
+
+        ticks: {
+          callback: (value: any) =>
+            (Number(value) * 100).toFixed(2) + '%'
+        },
+
+        title: {
+          display: true,
+          text: 'Predicted risk'
+        }
+      },
+
+      y: {
+        ticks: {
+          autoSkip: false
+        }
       }
     }
   };
@@ -217,12 +484,28 @@ export class ResultsComponent implements OnInit, OnDestroy, AfterViewInit {
         const disease = result.disease;
         const riskScore = result.prediction.risk_score || 0;
 
+        const waterfallData =
+        result.plots['waterfall'].waterfall_data;
+
+        const baselineValue =
+          waterfallData.baseline_value;
+
+        const finalPrediction =
+          waterfallData.final_prediction;
+
+        const otherFeaturesContribution =
+          waterfallData.other_features_contribution ?? 0;
+
+        const numOtherFeatures =
+          waterfallData.num_other_features ?? 0;
+
         const shapFeatures: ShapFeature[] = [
-          ...result.plots['waterfall'].waterfall_data.top_positive_contributors,
-          ...result.plots['waterfall'].waterfall_data.top_negative_contributors,
+          ...waterfallData.top_positive_contributors,
+          ...waterfallData.top_negative_contributors,
         ].map(contributor => ({
           name: contributor.display_name,
-          value: contributor.shap_value
+          value: contributor.shap_value,
+          displayContribution: contributor.display_contribution
         }));
 
         diseases.push({
@@ -231,7 +514,10 @@ export class ResultsComponent implements OnInit, OnDestroy, AfterViewInit {
           riskScore,
           shapFeatures,
           expanded: false,
-          baseline: result.plots['waterfall'].waterfall_data.baseline_value || 0
+          baselineValue,
+          finalPrediction,
+          otherFeaturesContribution,
+          numOtherFeatures
         });
 
         this.diseases = diseases.sort((a, b) => b.riskScore - a.riskScore);
@@ -413,14 +699,59 @@ export class ResultsComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   getWaterfallChartData(disease: DiseaseRisk): ChartData {
-    const features = this.getTopShapFeatures(disease.shapFeatures, 10)
+    const features = [...disease.shapFeatures]
+      .sort((a, b) => Math.abs(b.value) - Math.abs(a.value));
+
+    const labels: string[] = [];
+    const data: [number, number][] = [];
+    const contributions: number[] = [];
+    const pointTypes: string[] = [];
+
+    let currentValue = disease.baselineValue;
+
+    features.forEach(feature => {
+      const start = currentValue;
+
+      // Use sequential percentage-point contributions when available.
+      // Otherwise, use SHAP values from the current probability-scale
+      // backend response.
+      const contribution = feature.displayContribution === undefined
+        ? feature.value
+        : feature.displayContribution / 100;
+
+      const end = start + contribution;
+
+      labels.push(feature.name);
+      data.push([start, end]);
+      contributions.push(contribution);
+      pointTypes.push('feature');
+
+      currentValue = end;
+    });
+
+    if (disease.numOtherFeatures > 0) {
+      const start = currentValue;
+      const end = start + disease.otherFeaturesContribution;
+
+      labels.push('Other features');
+      data.push([start, end]);
+      contributions.push(disease.otherFeaturesContribution);
+      pointTypes.push('other');
+
+      currentValue = end;
+    }
+
     return {
-      labels: features.map(feature => feature.name),
+      labels,
       datasets: [{
-        base: disease.baseline,
-        label: 'Contribution',
-        data: features.map(feature => feature.value)
-      }]
+        label: 'Prediction',
+        data,
+        contributions,
+        pointTypes,
+        baselineValue: disease.baselineValue,
+        finalPrediction: disease.finalPrediction,
+        numOtherFeatures: disease.numOtherFeatures
+      } as any]
     };
   }
 

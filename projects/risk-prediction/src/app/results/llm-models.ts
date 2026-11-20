@@ -62,6 +62,8 @@ export interface WaterfallData {
   num_features_used: number
   num_missing_features: number
   num_imputed_features: number
+  other_features_contribution?: number;
+  num_other_features?: number;
 }
 
 export interface Contributor {
@@ -70,6 +72,7 @@ export interface Contributor {
   feature_value: number
   feature_unit: string
   shap_value: number
+  display_contribution?: number;
 }
 
 export interface QualityFlags {
