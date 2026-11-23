@@ -1,0 +1,2007 @@
+{
+  "resourceType": "Questionnaire",
+  "id": "stage_wp6_features",
+  "url": "https://stage-healthy-aging.eu/feature-sets/stage_wp6_features",
+  "version": "1.0",
+  "name": "stage_wp6_features",
+  "title": "STAGE WP6 features (human-facing questionnaire, prefilled from EHR)",
+  "status": "draft",
+  "purpose": "Generated from fhir-feature-mapping-v3.xlsx by generate_stage_wp6_v3.py. Prefills the stage_wp6_features Questionnaire from Patient/Observation/Condition/FamilyMemberHistory resources and previously-saved external questionnaire responses (WHO-5/HDI-1..4/PHQ-2). The user reviews/edits/completes the prefilled answers before saving; stage_wp6_model_features (hop 2) then reads back the saved response.",
+  "item": [
+    {
+      "linkId": "patient_demographics",
+      "text": "Patient demographics",
+      "type": "group",
+      "required": false,
+      "repeats": false,
+      "item": [
+        {
+          "linkId": "31",
+          "text": "Sex",
+          "type": "choice",
+          "required": false,
+          "repeats": false,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://stage-healthy-aging.eu/ValueSet/genderMapping-values",
+                "code": "Male",
+                "display": "Male"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://stage-healthy-aging.eu/ValueSet/genderMapping-values",
+                "code": "Female",
+                "display": "Female"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "21003",
+          "text": "Age",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "20015",
+          "text": "Sitting height (cm)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "23127",
+          "text": "Trunk fat percentage (%)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "30290",
+          "text": "High light scatter reticulocyte percentage (%)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "904",
+          "text": "Days walking (d/wk)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "874",
+          "text": "Duration walking (min/d)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "2178",
+          "text": "Overall health rating",
+          "type": "choice",
+          "required": false,
+          "repeats": false,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://stage-healthy-aging.eu/ValueSet/healthRatingMapping",
+                "code": "A0",
+                "display": "Poor"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://stage-healthy-aging.eu/ValueSet/healthRatingMapping",
+                "code": "A1",
+                "display": "Fair"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://stage-healthy-aging.eu/ValueSet/healthRatingMapping",
+                "code": "A2",
+                "display": "Good"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://stage-healthy-aging.eu/ValueSet/healthRatingMapping",
+                "code": "A3",
+                "display": "Excellent"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "2070",
+          "text": "Frequency of tenseness / restlessness in the last 2 weeks",
+          "type": "choice",
+          "required": false,
+          "repeats": false,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://stage-healthy-aging.eu/ValueSet/tensenessMapping",
+                "code": "A0",
+                "display": "Not at all"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://stage-healthy-aging.eu/ValueSet/tensenessMapping",
+                "code": "A1",
+                "display": "Several days"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://stage-healthy-aging.eu/ValueSet/tensenessMapping",
+                "code": "A2",
+                "display": "More than half the days"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://stage-healthy-aging.eu/ValueSet/tensenessMapping",
+                "code": "A3",
+                "display": "Nearly every day"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "738",
+          "text": "Average total household income before tax",
+          "type": "choice",
+          "required": false,
+          "repeats": false,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://stage-healthy-aging.eu/ValueSet/incomeMapping",
+                "code": "A0",
+                "display": "Less than 18,000 GBP"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://stage-healthy-aging.eu/ValueSet/incomeMapping",
+                "code": "A1",
+                "display": "18,000 to 30,999 GBP"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://stage-healthy-aging.eu/ValueSet/incomeMapping",
+                "code": "A2",
+                "display": "31,000 to 51,999 GBP"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://stage-healthy-aging.eu/ValueSet/incomeMapping",
+                "code": "A3",
+                "display": "52,000 to 100,000 GBP"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://stage-healthy-aging.eu/ValueSet/incomeMapping",
+                "code": "A4",
+                "display": "Greater than 100,000 GBP"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "1210",
+          "text": "Snoring",
+          "type": "choice",
+          "required": false,
+          "repeats": false,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://stage-healthy-aging.eu/ValueSet/snoringMapping",
+                "code": "Y",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://stage-healthy-aging.eu/ValueSet/snoringMapping",
+                "code": "N",
+                "display": "No"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "1568",
+          "text": "Average weekly red wine intake (/wk)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "1578",
+          "text": "Average weekly champagne plus white wine intake (/wk)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "1588",
+          "text": "Average weekly beer plus cider intake (/wk)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        }
+      ]
+    },
+    {
+      "linkId": "conditions",
+      "text": "Conditions (diagnoses)",
+      "type": "group",
+      "required": false,
+      "repeats": false,
+      "item": [
+        {
+          "linkId": "2247_any",
+          "text": "Hearing difficulty",
+          "type": "boolean",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "2463_any",
+          "text": "Fractured bones",
+          "type": "boolean",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "6149_set",
+          "text": "Dental problems",
+          "type": "choice",
+          "required": false,
+          "repeats": true,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "http://snomed.info/sct",
+                "code": "26284000",
+                "display": "Mouth ulcers"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://snomed.info/sct",
+                "code": "11114002",
+                "display": "Painful gums"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://snomed.info/sct",
+                "code": "86276007",
+                "display": "Bleeding gums"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://snomed.info/sct",
+                "code": "283021003",
+                "display": "Loose teeth"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://snomed.info/sct",
+                "code": "27355003",
+                "display": "Toothache"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://snomed.info/sct",
+                "code": "8060009",
+                "display": "Dentures"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "6159_set",
+          "text": "Pain type(s) experienced",
+          "type": "choice",
+          "required": false,
+          "repeats": true,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "http://snomed.info/sct",
+                "code": "25064002",
+                "display": "Headache"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://snomed.info/sct",
+                "code": "95668009",
+                "display": "Facial Pain"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://snomed.info/sct",
+                "code": "81680005",
+                "display": "Neck Pain"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://snomed.info/sct",
+                "code": "45326000",
+                "display": "Shoulder Pain"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://snomed.info/sct",
+                "code": "161891005",
+                "display": "Back Pain"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://snomed.info/sct",
+                "code": "21522001",
+                "display": "Abdominal Pain"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://snomed.info/sct",
+                "code": "49218002",
+                "display": "Hip Pain"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://snomed.info/sct",
+                "code": "1003722009",
+                "display": "Knee Pain"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://snomed.info/sct",
+                "code": "2134003",
+                "display": "Pain all over the body"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "linkId": "mood_phq2",
+      "text": "PHQ-2 Mood Check",
+      "type": "group",
+      "required": false,
+      "repeats": false,
+      "item": [
+        {
+          "linkId": "1960",
+          "text": "Fed-up feelings",
+          "type": "choice",
+          "required": false,
+          "repeats": false,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://stage-healthy-aging.eu/ValueSet/fedUpFeelingsMapping-values",
+                "code": "No",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://stage-healthy-aging.eu/ValueSet/fedUpFeelingsMapping-values",
+                "code": "Yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://stage-healthy-aging.eu/ValueSet/fedUpFeelingsMapping-values",
+                "code": "Unknown",
+                "display": "Unknown"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "1980",
+          "text": "Worrier feelings",
+          "type": "choice",
+          "required": false,
+          "repeats": false,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://stage-healthy-aging.eu/ValueSet/worrierFeelingsMapping-values",
+                "code": "No",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://stage-healthy-aging.eu/ValueSet/worrierFeelingsMapping-values",
+                "code": "Yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://stage-healthy-aging.eu/ValueSet/worrierFeelingsMapping-values",
+                "code": "Unknown",
+                "display": "Unknown"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "linkId": "diet_hdi2",
+      "text": "Healthy Diet Index - Part 2 (fruit, vegetables, spreads)",
+      "type": "group",
+      "required": false,
+      "repeats": false,
+      "item": [
+        {
+          "linkId": "1289",
+          "text": "Cooked vegetable intake (/d)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "1309",
+          "text": "Fresh fruit intake (/d)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "1428",
+          "text": "Spread type",
+          "type": "choice",
+          "required": false,
+          "repeats": false,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://stage-healthy-aging.eu/ValueSet/spreadTypeMapping-values",
+                "code": "Other/Margarine",
+                "display": "Other/Margarine"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://stage-healthy-aging.eu/ValueSet/spreadTypeMapping-values",
+                "code": "Butter",
+                "display": "Butter"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://stage-healthy-aging.eu/ValueSet/spreadTypeMapping-values",
+                "code": "None",
+                "display": "None"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://stage-healthy-aging.eu/ValueSet/spreadTypeMapping-values",
+                "code": "Unknown",
+                "display": "Unknown"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "1438",
+          "text": "Bread intake",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "1458",
+          "text": "Cereal intake",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        }
+      ]
+    },
+    {
+      "linkId": "family_history",
+      "text": "Family member history",
+      "type": "group",
+      "required": false,
+      "repeats": false,
+      "item": [
+        {
+          "linkId": "20107_set",
+          "text": "Father illnesses",
+          "type": "choice",
+          "required": false,
+          "repeats": true,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "G20",
+                "display": "Parkinson's disease"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "F32",
+                "display": "Depression"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "C34",
+                "display": "Lung Cancer"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "C18",
+                "display": "Bowel Cancer"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "C50",
+                "display": "Breast Cancer"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "I10",
+                "display": "High Blood Pressure"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "Z82.4",
+                "display": "Family history of ischaemic heart disease and other diseases of the circulatory system"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "I09",
+                "display": "Other rheumatic heart diseases"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "I11",
+                "display": "Hypertensive heart disease"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "I24",
+                "display": "Other acute ischaemic heart diseases"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "I25",
+                "display": "Chronic ischaemic heart disease"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "I27",
+                "display": "Other pulmonary heart diseases"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "I51",
+                "display": "Complications and ill-defined descriptions of heart disease"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "Z82.3",
+                "display": "Family history of stroke"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "I60",
+                "display": "Subarachnoid haemorrhage"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "I61",
+                "display": "Intracerebral haemorrhage"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "I62",
+                "display": "Other nontraumatic intracranial haemorrhage"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "I63",
+                "display": "Cerebral infarction"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "I64",
+                "display": "Stroke, not specified as haemorrhage or infarction"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "J41",
+                "display": "Simple and mucopurulent chronic bronchitis"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "J42",
+                "display": "Unspecified chronic bronchitis"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "J43",
+                "display": "Emphysema"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "G30",
+                "display": "Alzheimer disease"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "F03",
+                "display": "Unspecified dementia"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "Z83.3",
+                "display": "Family history of diabetes mellitus"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "E10",
+                "display": "Type 1 diabetes mellitus"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "E11",
+                "display": "Type 2 diabetes mellitus"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "E12",
+                "display": "Malnutrition-related diabetes mellitus"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "E13",
+                "display": "Other specified diabetes mellitus"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "E14",
+                "display": "Unspecified diabetes mellitus"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "20110_set",
+          "text": "Mother illnesses",
+          "type": "choice",
+          "required": false,
+          "repeats": true,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "G20",
+                "display": "Parkinson's disease"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "F32",
+                "display": "Depression"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "C34",
+                "display": "Lung Cancer"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "C18",
+                "display": "Bowel Cancer"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "C50",
+                "display": "Breast Cancer"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "I10",
+                "display": "High Blood Pressure"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "Z82.4",
+                "display": "Family history of ischaemic heart disease and other diseases of the circulatory system"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "I09",
+                "display": "Other rheumatic heart diseases"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "I11",
+                "display": "Hypertensive heart disease"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "I24",
+                "display": "Other acute ischaemic heart diseases"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "I25",
+                "display": "Chronic ischaemic heart disease"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "I27",
+                "display": "Other pulmonary heart diseases"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "I51",
+                "display": "Complications and ill-defined descriptions of heart disease"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "Z82.3",
+                "display": "Family history of stroke"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "I60",
+                "display": "Subarachnoid haemorrhage"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "I61",
+                "display": "Intracerebral haemorrhage"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "I62",
+                "display": "Other nontraumatic intracranial haemorrhage"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "I63",
+                "display": "Cerebral infarction"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "I64",
+                "display": "Stroke, not specified as haemorrhage or infarction"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "J41",
+                "display": "Simple and mucopurulent chronic bronchitis"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "J42",
+                "display": "Unspecified chronic bronchitis"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "J43",
+                "display": "Emphysema"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "G30",
+                "display": "Alzheimer disease"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "F03",
+                "display": "Unspecified dementia"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "Z83.3",
+                "display": "Family history of diabetes mellitus"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "E10",
+                "display": "Type 1 diabetes mellitus"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "E11",
+                "display": "Type 2 diabetes mellitus"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "E12",
+                "display": "Malnutrition-related diabetes mellitus"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "E13",
+                "display": "Other specified diabetes mellitus"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "E14",
+                "display": "Unspecified diabetes mellitus"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "20111_set",
+          "text": "Sibling illnesses",
+          "type": "choice",
+          "required": false,
+          "repeats": true,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "G20",
+                "display": "Parkinson's disease"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "F32",
+                "display": "Depression"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "C34",
+                "display": "Lung Cancer"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "C18",
+                "display": "Bowel Cancer"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "C50",
+                "display": "Breast Cancer"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "I10",
+                "display": "High Blood Pressure"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "Z82.4",
+                "display": "Family history of ischaemic heart disease and other diseases of the circulatory system"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "I09",
+                "display": "Other rheumatic heart diseases"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "I11",
+                "display": "Hypertensive heart disease"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "I24",
+                "display": "Other acute ischaemic heart diseases"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "I25",
+                "display": "Chronic ischaemic heart disease"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "I27",
+                "display": "Other pulmonary heart diseases"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "I51",
+                "display": "Complications and ill-defined descriptions of heart disease"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "Z82.3",
+                "display": "Family history of stroke"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "I60",
+                "display": "Subarachnoid haemorrhage"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "I61",
+                "display": "Intracerebral haemorrhage"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "I62",
+                "display": "Other nontraumatic intracranial haemorrhage"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "I63",
+                "display": "Cerebral infarction"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "I64",
+                "display": "Stroke, not specified as haemorrhage or infarction"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "J41",
+                "display": "Simple and mucopurulent chronic bronchitis"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "J42",
+                "display": "Unspecified chronic bronchitis"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "J43",
+                "display": "Emphysema"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "G30",
+                "display": "Alzheimer disease"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "F03",
+                "display": "Unspecified dementia"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "Z83.3",
+                "display": "Family history of diabetes mellitus"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "E10",
+                "display": "Type 1 diabetes mellitus"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "E11",
+                "display": "Type 2 diabetes mellitus"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "E12",
+                "display": "Malnutrition-related diabetes mellitus"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "E13",
+                "display": "Other specified diabetes mellitus"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "E14",
+                "display": "Unspecified diabetes mellitus"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "linkId": "physical_activity_level",
+      "text": "Physical Activity Level",
+      "type": "group",
+      "required": false,
+      "repeats": false,
+      "item": [
+        {
+          "linkId": "864",
+          "text": "Days moderate activity",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "894",
+          "text": "Duration moderate activity",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "884",
+          "text": "Days vigorous activity",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "914",
+          "text": "Duration vigorous activity",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        }
+      ]
+    },
+    {
+      "linkId": "diet_hdi1",
+      "text": "Healthy Diet Index - Part 1 (dishes)",
+      "type": "group",
+      "required": false,
+      "repeats": false,
+      "item": [
+        {
+          "linkId": "1329",
+          "text": "Oily fish intake (/d)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "1349",
+          "text": "Processed meat intake (/d)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "1359",
+          "text": "Poultry intake (/d)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "1369",
+          "text": "Beef intake (/d)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        }
+      ]
+    },
+    {
+      "linkId": "combined",
+      "text": "Combined/derived features",
+      "type": "group",
+      "required": false,
+      "repeats": false,
+      "item": [
+        {
+          "linkId": "bodyFatFreeMass",
+          "text": "Body fat-free mass",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        }
+      ]
+    },
+    {
+      "linkId": "observations",
+      "text": "Observations (generic)",
+      "type": "group",
+      "required": false,
+      "repeats": false,
+      "item": [
+        {
+          "linkId": "48_latest",
+          "text": "Waist Circumference (cm)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "49_latest",
+          "text": "Hip circumference (cm)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "50_latest",
+          "text": "Standing height (cm)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "21002_latest",
+          "text": "Weight (kg)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "21001_latest",
+          "text": "BMI (kg/m2)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "23099_latest",
+          "text": "Body fat % (%)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "74_latest",
+          "text": "Fasting time (h)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "4080_latest",
+          "text": "Systolic blood pressure (automated) (mm[Hg])",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "4079_latest",
+          "text": "Diastolic blood pressure (automated) (mm[Hg])",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "93_latest",
+          "text": "Systolic blood pressure, manual reading (mm[Hg])",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "94_latest",
+          "text": "Diastolic blood pressure, manual reading (mm[Hg])",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "95_latest",
+          "text": "Pulse rate (during BP measurement) (/min)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "46_latest",
+          "text": "Hand grip strength (left) (kg)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "47_latest",
+          "text": "Hand grip strength (right) (kg)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "20116_latest",
+          "text": "Smoking Status",
+          "type": "choice",
+          "required": false,
+          "repeats": false,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://stage-healthy-aging.eu/ValueSet/smokingStatusMapping-values",
+                "code": "Never",
+                "display": "Never"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://stage-healthy-aging.eu/ValueSet/smokingStatusMapping-values",
+                "code": "Previous",
+                "display": "Previous"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://stage-healthy-aging.eu/ValueSet/smokingStatusMapping-values",
+                "code": "Current",
+                "display": "Current"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://stage-healthy-aging.eu/ValueSet/smokingStatusMapping-values",
+                "code": "Unknown",
+                "display": "Unknown"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "1239_latest",
+          "text": "Tobacco Smoking (current)",
+          "type": "boolean",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "20117_latest",
+          "text": "Drinker Status",
+          "type": "choice",
+          "required": false,
+          "repeats": false,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://stage-healthy-aging.eu/ValueSet/drinkerStatusMapping-values",
+                "code": "Previous",
+                "display": "Previous"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://stage-healthy-aging.eu/ValueSet/drinkerStatusMapping-values",
+                "code": "Current",
+                "display": "Current"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://stage-healthy-aging.eu/ValueSet/drinkerStatusMapping-values",
+                "code": "Never",
+                "display": "Never"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://stage-healthy-aging.eu/ValueSet/drinkerStatusMapping-values",
+                "code": "Unknown",
+                "display": "Unknown"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "1160_latest",
+          "text": "Sleep duration (h)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "30690_latest",
+          "text": "Cholesterol (mmol/L)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "30760_latest",
+          "text": "HDL cholesterol (mmol/L)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "30780_latest",
+          "text": "LDL direct (mmol/L)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "30870_latest",
+          "text": "Triglycerides (mmol/L)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "30630_latest",
+          "text": "Apolipoprotein A (g/L)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "30640_latest",
+          "text": "Apolipoprotein B (g/L)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "30740_latest",
+          "text": "Glucose (mmol/L)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "30750_latest",
+          "text": "HbA1c (mmol/mol)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "30710_latest",
+          "text": "C-reactive protein (mg/L)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "30770_latest",
+          "text": "IGF-1 (nmol/L)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "30850_latest",
+          "text": "Testosterone (nmol/L)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "30500_latest",
+          "text": "Microalbumin in urine (mg/L)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "30510_latest",
+          "text": "Creatinine in urine (umol/L)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "30520_latest",
+          "text": "Potassium in urine (mmol/L)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "30530_latest",
+          "text": "Sodium in urine (mmol/L)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "30600_latest",
+          "text": "Albumin (g/L)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "30620_latest",
+          "text": "Alanine aminotransferase (U/L)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "30650_latest",
+          "text": "Aspartate aminotransferase (U/L)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "30660_latest",
+          "text": "Direct bilirubin (umol/L)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "30670_latest",
+          "text": "Urea (mmol/L)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "30680_latest",
+          "text": "Calcium (mmol/L)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "30700_latest",
+          "text": "Creatinine (umol/L)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "30720_latest",
+          "text": "Cystatin C (mg/L)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "30730_latest",
+          "text": "Gamma glutamyltransferase (U/L)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "30790_latest",
+          "text": "Lipoprotein A (nmol/L)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "30800_latest",
+          "text": "Oestradiol (pmol/L)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "30810_latest",
+          "text": "Phosphate (mmol/L)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "30830_latest",
+          "text": "SHBG (nmol/L)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "30840_latest",
+          "text": "Total bilirubin (umol/L)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "102_latest",
+          "text": "Pulse rate, automated reading (/min)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "3063_latest",
+          "text": "Forced expiratory volume in 1-second (FEV1) (L)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "3062_latest",
+          "text": "Forced vital capacity (FVC) (L)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "30610_latest",
+          "text": "Alkaline phosphatase (U/L)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "30860_latest",
+          "text": "Total protein (g/L)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "30890_latest",
+          "text": "Vitamin D (25-OH) (nmol/L)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "30880_latest",
+          "text": "Urate (umol/L)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "30000_latest",
+          "text": "White blood cell count (10*9/L)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "30010_latest",
+          "text": "Red blood cell count (10*12/L)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "30020_latest",
+          "text": "Haemoglobin concentration (g/dL)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "30030_latest",
+          "text": "Haematocrit percentage (%)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "30040_latest",
+          "text": "Mean corpuscular volume (fL)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "30050_latest",
+          "text": "Mean corpuscular haemoglobin (pg)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "30060_latest",
+          "text": "Mean corpuscular haemoglobin concentration (g/dL)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "30070_latest",
+          "text": "Red blood cell distribution width (%)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "30080_latest",
+          "text": "Platelet count (10*9/L)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "30090_latest",
+          "text": "Platelet crit (%)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "30100_latest",
+          "text": "Mean platelet volume (fL)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "30110_latest",
+          "text": "Platelet distribution width (%)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "30120_latest",
+          "text": "Lymphocyte count (10*9/L)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "30130_latest",
+          "text": "Monocyte count (10*9/L)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "30140_latest",
+          "text": "Neutrophil count (10*9/L)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "30150_latest",
+          "text": "Eosinophil count (10*9/L)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "30180_latest",
+          "text": "Lymphocyte percentage (%)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "30190_latest",
+          "text": "Monocyte percentage (%)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "30210_latest",
+          "text": "Eosinophil percentage (%)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "30220_latest",
+          "text": "Basophil percentage (%)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "30240_latest",
+          "text": "Reticulocyte percentage (%)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "30250_latest",
+          "text": "Reticulocyte count (10*12/L)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "30280_latest",
+          "text": "Immature reticulocyte fraction (1)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "30260_latest",
+          "text": "Mean reticulocyte volume (fL)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "30270_latest",
+          "text": "Mean sphered cell volume (fL)",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        }
+      ]
+    },
+    {
+      "linkId": "diet_hdi3",
+      "text": "Healthy Diet Index - Part 3 (cheese)",
+      "type": "group",
+      "required": false,
+      "repeats": false,
+      "item": [
+        {
+          "linkId": "1408",
+          "text": "Cheese intake",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        }
+      ]
+    },
+    {
+      "linkId": "diet_hdi4",
+      "text": "Healthy Diet Index - Part 4 (drinks)",
+      "type": "group",
+      "required": false,
+      "repeats": false,
+      "item": [
+        {
+          "linkId": "1488",
+          "text": "Tea intake",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "1498",
+          "text": "Coffee intake",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "1528",
+          "text": "Water intake",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        }
+      ]
+    },
+    {
+      "linkId": "mood_who5",
+      "text": "WHO-5 Well-Being Index",
+      "type": "group",
+      "required": false,
+      "repeats": false,
+      "item": [
+        {
+          "linkId": "1170",
+          "text": "Getting up",
+          "type": "decimal",
+          "required": false,
+          "repeats": false
+        },
+        {
+          "linkId": "1930",
+          "text": "Miserableness",
+          "type": "choice",
+          "required": false,
+          "repeats": false,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://stage-healthy-aging.eu/ValueSet/miserablenessMapping-values",
+                "code": "No",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://stage-healthy-aging.eu/ValueSet/miserablenessMapping-values",
+                "code": "Yes",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://stage-healthy-aging.eu/ValueSet/miserablenessMapping-values",
+                "code": "Unknown",
+                "display": "Unknown"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

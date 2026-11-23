@@ -828,7 +828,10 @@ export class ResultsComponent implements OnInit, OnDestroy {
 
   getWaterfallChartData(disease: DiseaseRisk): ChartData {
     const features = [...disease.shapFeatures]
-      .sort((a, b) => Math.abs(b.value) - Math.abs(a.value));
+      .sort((a, b) =>
+        Math.abs(b.displayContribution ?? b.value * 100) -
+        Math.abs(a.displayContribution ?? a.value * 100)
+      );
   
     const labels: string[] = [];
     const data: [number, number][] = [];

@@ -124,7 +124,7 @@ const routes: Routes = [
       path: 'form',
       component: FormComponent,
       canActivate: [requireRiskPredictionMode],
-      data: { questionnaireAsset: 'assets/lr_questionnaire.json' }
+      data: { questionnaireAsset: 'assets/stage-wp6-features.json' }
     },
     {
       path: 'results',

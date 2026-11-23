@@ -156,11 +156,7 @@ export class FormComponent implements OnInit, OnDestroy {
           patientId: this.patient.id
         },
         prefetch: {
-          patient: this.patient,
-          questionnaire: <fhir4.Bundle>{
-            resourceType: 'Bundle',
-            entry: [{ resource: this.questionnaire, search: { mode: 'match' } }]
-          }
+          patient: this.patient
         }
       });
 
@@ -302,6 +298,23 @@ export class FormComponent implements OnInit, OnDestroy {
     const age = this.calculateAge(this.patient?.birthDate);
     if (!this.patient?.id) return null;
 
+    const questionnaireLinkIds = (this.questionnaire?.item ?? [])
+      .flatMap((group: any) =>
+        (group.item ?? []).map((item: any) => item.linkId)
+      );
+
+    const answerLinkIds = Object.keys(this.answers);
+
+    console.log("Questionnaire ID:", this.questionnaire?.id);
+    console.log("Questionnaire linkIds:", questionnaireLinkIds);
+    console.log("Answer linkIds:", answerLinkIds);
+
+    console.log(
+      "Matching linkIds:",
+      questionnaireLinkIds.filter(id => id in this.answers)
+    );
+
+
     const groupItems = (this.questionnaire?.item ?? [])
       .map((group: any) => {
         const items = (group.item ?? [])
@@ -338,7 +351,7 @@ export class FormComponent implements OnInit, OnDestroy {
 
     return {
       resourceType: "QuestionnaireResponse",
-      questionnaire: `Questionnaire/${this.questionnaire?.id}`,
+      questionnaire: "Questionnaire/stage_wp6_features",
       id: "risk-assessment-" + Date.now(),
       status: "completed",
       subject: { reference: `Patient/${this.patient.id}` },
@@ -377,14 +390,20 @@ export class FormComponent implements OnInit, OnDestroy {
       );
 
       const patientId = this.patient?.id;
-      const qrId = qr.id;
+
+      // Save the completed QuestionnaireResponse to the FHIR server
+      const savedQr = await this.sof.create(qr);
+
+      console.log("Saved QuestionnaireResponse:", savedQr);
+
+      const qrId = savedQr.id;
 
       // Call risk calculation service
       const response = await this.cdsHooksService.callService({
         serviceId: "risk_prediction",
         language: "en",
         context: { patientId, qrId },
-        prefetch: { patient: this.patient, qr: qr, observations: { resourceType: 'Bundle', entry: [] } }
+        prefetch: { patient: this.patient, qr: savedQr, observations: { resourceType: 'Bundle', entry: [] } }
       });
 
       console.log('Risk Calculation Response:', response);
