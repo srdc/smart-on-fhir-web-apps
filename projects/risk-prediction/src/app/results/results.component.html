@@ -163,10 +163,19 @@
 <!--          </tbody>-->
 <!--        </table>-->
         <div class="row">
-          <div class="col-sm-12 col-md-6 d-flex align-items-center justify-content-center">
-            <div style="width: 100%; max-width: 600px">
-              <h5 class="text-center mb-2">Most Affecting Risk Factors</h5>
-              <canvas baseChart type="bar" [options]="waterfallChartOptions" [data]="waterfallChartData[disease.disease]"></canvas>
+          <div class="col-sm-12 col-md-6">
+            <div style="width: 100%; overflow-x: auto;">
+              <div style="min-width: 750px;">
+                <h5 class="text-center mb-2">
+                  Waterfall Plot
+                </h5>
+
+                <c-chart
+                type="bar"
+                [options]="waterfallChartOptions"
+                [data]="waterfallChartData[disease.disease]">
+              </c-chart>
+              </div>
             </div>
           </div>
           <div class="col-sm-12 col-md-6">
