@@ -52,6 +52,6 @@ export const environment = {
     serviceName: 'risk_prediction',
     baseUrl: cdsBaseUrl
   },
-  studyApiBaseUrl: 'http://127.0.0.1:8010',
+  studyApiBaseUrl: 'http://127.0.0.1:8000',
   studyPersistenceMode: <'http' | 'localStorage'>'http'
 }

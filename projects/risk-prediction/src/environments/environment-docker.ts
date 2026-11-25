@@ -45,6 +45,6 @@ export const environment = {
     baseUrl: cdsBaseUrl
   },
   // Replace for the deployed Study API before using this build in a real study.
-  studyApiBaseUrl: 'http://127.0.0.1:8010',
+  studyApiBaseUrl: 'http://127.0.0.1:8000',
   studyPersistenceMode: <'http' | 'localStorage'>'http'
 }
